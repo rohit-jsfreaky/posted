@@ -52,6 +52,8 @@ export default function Game({
 
   const [earned, setEarned] = useState<string[]>([]);
   const [choice, setChoice] = useState<string | null>(null);
+  /** what the player is typing into the choice box before they commit it */
+  const [typed, setTyped] = useState('');
   const [items, setItems] = useState<FeedItem[]>([]);
   const [thread, setThread] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
@@ -672,28 +674,42 @@ export default function Game({
 
       {pending && level.choice && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-ink/90 p-6">
-          <div className="w-full max-w-sm border border-line bg-panel p-5">
+          <form
+            className="w-full max-w-sm border border-line bg-panel p-5"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const written = typed.trim();
+              if (!written) return;
+              const p = pending;
+              setPending(null);
+              setTyped('');
+              resolve(p.report, p.flags, p.image, written);
+            }}
+          >
             <p className="eyebrow text-xs text-accent">{level.choice.prompt}</p>
-            <p className="mt-2 text-xs text-mute">
-              The label changed, but nobody can read your handwriting from here.
+            <p className="mt-2 text-xs leading-snug text-mute">
+              The label changed, but the editor hands back a picture, not words —
+              nobody can read your handwriting from here. Type it again and the
+              street will print it exactly as you wrote it.
             </p>
-            <div className="mt-4 flex flex-col gap-2">
-              {level.choice.options.map((opt) => (
-                <button
-                  key={opt}
-                  data-testid={`choice-${opt}`}
-                  onClick={() => {
-                    const p = pending;
-                    setPending(null);
-                    resolve(p.report, p.flags, p.image, opt);
-                  }}
-                  className="border border-line px-3 py-2 text-left text-sm text-text hover:border-accent"
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
+            <input
+              data-testid="choice-input"
+              autoFocus
+              value={typed}
+              maxLength={level.choice.maxLength}
+              placeholder={level.choice.placeholder}
+              onChange={(e) => setTyped(e.target.value)}
+              className="mt-4 w-full border border-line bg-ink px-3 py-2 text-sm text-text placeholder:text-dim focus:border-accent focus:outline-none"
+            />
+            <button
+              data-testid="choice-confirm"
+              type="submit"
+              disabled={!typed.trim()}
+              className="eyebrow mt-3 w-full bg-accent py-2 text-xs text-accent-ink disabled:cursor-not-allowed disabled:bg-line disabled:text-dim"
+            >
+              That is what it says
+            </button>
+          </form>
         </div>
       )}
 

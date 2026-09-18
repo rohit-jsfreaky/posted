@@ -30,8 +30,6 @@ const FOLDER_LABEL = { x: 0.71, y: 0.665, w: 0.14, h: 0.05 };
 
 export const REFERENCE_CASE = 'VCPD-7719042';
 
-export const CASE_OPTIONS = ['VCPD-884213', 'VCPD-8842137', 'VCPD-88421'];
-
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
   backdrop(ctx, 'bg-archive');
@@ -59,6 +57,11 @@ function composite(state: WorldState, ctx: Ctx) {
     ZONES.label.y + ZONES.label.h / 2,
     state.case_no ? '#24272b' : '#c8ccc6',
     state.case_no ? 30 : 24,
+    'center',
+    0,
+    // the player types this one, so it is squeezed to the strip rather than
+    // trusted to fit
+    ZONES.label.w * 0.92,
   );
 
   if (state.official) {
@@ -135,11 +138,13 @@ export const level5: Level = {
     { zone: 'room', why: 'crop the room away and it stops looking like an interview' },
   ],
 
-  // when the label changes, the game cannot read the typed text, so it asks
+  // the editor hands back pixels, not text, so the game cannot read the label it
+  // can see has changed. It asks — and then prints back exactly what was typed
   choice: {
     when: 'case_numbered',
     prompt: 'What did you write on the label?',
-    options: CASE_OPTIONS,
+    placeholder: 'VCPD-0000000',
+    maxLength: 18,
     key: 'case_no',
   },
 

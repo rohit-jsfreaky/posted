@@ -116,14 +116,21 @@ export type Level = {
    */
   hints: string[];
   /**
-   * Some things cannot be measured, only asked. The editor's API cannot tell us
-   * what text the player typed, so when a flag fires the level may ask them
-   * which of a few authored strings they wrote.
+   * Some things cannot be measured, only asked.
+   *
+   * The editor hands back pixels, not text, so when the player writes on
+   * something the game cannot read what it says. It asks them to type it again.
+   * Offering a few authored strings to pick from was worse than asking: somebody
+   * who had just written their own number was shown a list of three numbers that
+   * were not it. What they type is what the world prints.
    */
   choice?: {
     when: string;
     prompt: string;
-    options: string[];
+    /** greyed-out example in the box, never submitted */
+    placeholder: string;
+    /** the label in the photograph is small; anything longer will not fit on it */
+    maxLength: number;
     key: string;
   };
   /** what the street says when the post lands and holds up */
