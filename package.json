@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:identity": "tsx tools/identity-check.ts"
+    "check:identity": "npx --yes tsx tools/identity-check.ts"
   },
   "dependencies": {
     "@unlayer/react-image-editor": "^1.0.2",

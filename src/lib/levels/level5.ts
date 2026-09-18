@@ -152,6 +152,11 @@ export const level5: Level = {
 
   solved: (s) => Boolean(s.official) && s.face === 'redacted' && Boolean(s.case_no),
 
+  hints: [
+    'Nothing in this photo has to change. Where it claims to have come from does.',
+    'Frame gives it the border of a filed document. For the witness, Blur or Pixelate her face, or lay a black bar across it the way a real file would.',
+    'Text writes the case number on the label. It will ask you what you wrote — VCPD numbers are seven digits long, and the folder on the table has one you can count.',
+  ],
   tells: [
     {
       id: 'digits',

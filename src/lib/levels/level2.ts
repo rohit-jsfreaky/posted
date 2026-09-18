@@ -110,6 +110,11 @@ export const level2: Level = {
 
   solved: (s) => !s.car && s.dims === 'original',
 
+  hints: [
+    'The car is parked against the kerb on the right. Crop takes it off that edge in one move.',
+    'But a crop leaves a smaller photo, and he checks the size of everything posted off that camera.',
+    'So crop the car out, then open Resize and put the photo back to 1200 x 800. Same picture, same frame, no car.',
+  ],
   tells: [
     {
       id: 'dimensions',

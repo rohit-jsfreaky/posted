@@ -107,6 +107,15 @@ export type Level = {
   solved: (state: WorldState) => boolean;
   tells: Tell[];
   /**
+   * Asked for, never pushed.
+   *
+   * Knowing which manipulation solves a problem is the game, so nothing is shown
+   * until the player asks. They come in order, widest first: what has to change,
+   * then which tool reaches it, then the exact move. Somebody who has worked it
+   * out never sees one; somebody stuck never has to guess twice.
+   */
+  hints: string[];
+  /**
    * Some things cannot be measured, only asked. The editor's API cannot tell us
    * what text the player typed, so when a flag fires the level may ask them
    * which of a few authored strings they wrote.

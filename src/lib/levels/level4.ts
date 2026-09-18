@@ -99,6 +99,11 @@ export const level4: Level = {
 
   solved: (s) => Boolean(s.car && s.shadow),
 
+  hints: [
+    'This one adds instead of removing. Bay four is empty and it needs his car in it — Stickers.',
+    'Anything standing in that lot at half one throws a shadow. Draw a soft dark shape on the ground under the car, or nobody believes it is on the ground at all.',
+    'Then Filter > Noise, a little. The rest of the photo is grainy and a pasted car is not, and he zooms all the way in.',
+  ],
   tells: [
     {
       id: 'no_shadow',

@@ -149,6 +149,11 @@ export const level1: Level = {
 
   solved: (s) => !s.bouncer && s.time === 'night' && s.door === 'open',
 
+  hints: [
+    'Two things have to be different: the hour of the day, and the man standing on the door.',
+    'He is right at the edge of the shot. Crop cuts things off an edge — and nothing on the building matters over there.',
+    'For the hour, Filter > Brightness, and take it a long way down. A small nudge still reads as daytime.',
+  ],
   tells: [
     {
       id: 'shape',

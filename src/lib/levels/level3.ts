@@ -147,6 +147,11 @@ export const level3: Level = {
 
   solved: (s) => !s.subject && !s.reflection && !s.water,
 
+  hints: [
+    'He is in the photo three times: standing on the dock, reflected in the window, and again in the water.',
+    'The window sits in the middle of the frame, so crop cannot reach it. Filter > Brightness, up, until the glass blows out — real photos lose windows to light all the time.',
+    'For the dock and the water, put a shape over him in a colour the dock and the water actually are. A patch that matches nothing around it is exactly what he zooms in on.',
+  ],
   tells: [
     {
       id: 'blob_on_the_dock',

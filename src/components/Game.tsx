@@ -78,6 +78,8 @@ export default function Game({
    * game undoing it out of spite. Both need saying.
    */
   const [notice, setNotice] = useState<{ head: string; body: string } | null>(null);
+  /** how many hints the player has asked for on this job. Nothing is shown unasked */
+  const [hints, setHints] = useState(0);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
@@ -530,6 +532,28 @@ export default function Game({
             <p className="mt-2 text-[10px] text-dim">
               KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
             </p>
+
+            {/* working out which manipulation solves it is the game, so the hints
+                sit behind a button and come one at a time */}
+            {level.hints.slice(0, hints).map((h, i) => (
+              <p
+                key={h.slice(0, 14)}
+                data-testid="hint"
+                className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
+              >
+                <span className="text-accent">{i + 1}. </span>
+                {h}
+              </p>
+            ))}
+            {hints < level.hints.length && (
+              <button
+                data-testid="hint-button"
+                onClick={() => setHints((n) => n + 1)}
+                className="eyebrow mt-2 w-full border border-line py-1.5 text-[10px] text-mute hover:border-accent hover:text-text"
+              >
+                {hints === 0 ? 'Stuck? Get a hint' : `Another hint  ${hints}/${level.hints.length}`}
+              </button>
+            )}
           </div>
 
           {/* client and feed share the rest of the height, one at a time */}
