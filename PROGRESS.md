@@ -6,11 +6,14 @@
 
 ## Where we are right now
 
-**Phases 0 to 3 are done. Phase 4's art is generated and wired into all five scenes.**
+**Phases 0 to 3 are done. Phase 4's art is wired into all five scenes, and Phase 5's
+story, sound and ending are written and wired.**
 
-The grey boxes are gone. What is not done is proving the diff engine still behaves
-on photographic art — see "Not verified yet" below. That is the next thing to do,
-before anything else.
+Two gates are open, both because this session had no browser:
+1. the test bench has not been run against the art (Phase 4)
+2. nobody has played it through or heard the sound (Phase 5)
+
+Both need a browser. Do them in that order before writing another feature.
 
 ```
 composite(state) -> editor -> align -> diff -> flags -> suspicion -> he replies -> state -> composite(state)
@@ -58,7 +61,7 @@ Last updated: 2026-09-18.
 | 2 antagonist + feed | **done** | **yes — sloppy edit, he catches it, it reverts** |
 | 3 levels 2–5 + tool unlocks | **done** | **yes — all five playable, scored, in one sitting** |
 | 4 art | **wired in**, placement verified, engine numbers **not re-tested** | not yet — needs a `/lab` run |
-| 5 story, sound, ending | not started | no |
+| 5 story, sound, ending | written and wired, **unheard and unplayed** | no — needs a playthrough |
 | 6 ship | not started | no |
 
 ## Open questions
@@ -290,6 +293,48 @@ Three things the art forced:
   and the queue is the same man mirrored.
 - The UI chrome from `ART.md` (phone frame, feed card, composer) is still CSS, which is fine.
 
+## Phase 5 — story, sound, ending
+
+### The five chapters
+
+`src/lib/story.ts` holds the arc from `DESIGN.md` sec 6, and it is now actually in the game
+rather than implied by the level text.
+
+| job | the client | what he posts after it lands |
+|---|---|---|
+| 1 | a stranger who wants into a club | something about that photo is bugging him |
+| 2 | somebody careful, who wants the thread deleted | "second one this week" |
+| 3 | a brother alibi | he puts all three jobs side by side |
+| 4 | **no name given** | "thats my car. i was home. i have the router logs" |
+| 5 | the same client, finishing it | "ok" |
+
+Job four is the turn. The client who will not give a name wants a car *added* to a scene, and
+when the player asks whose, the answer is the man who has spent a week posting about them. Job
+five is the file that finishes him. Then the ending says the quiet part: he was right every
+single time, about every single one, and nobody checked.
+
+**The brief is a conversation now, not a paragraph.** Messages arrive one at a time in the DM
+panel, the player's own replies are in there, and the client writes back once the job lands.
+A wall of text at the top of the screen is a wall of text nobody reads.
+
+### Sound
+
+`src/lib/sound.ts` synthesises five cues from oscillators — post, reply, sting, revert, landed.
+No audio files, so nothing to download and nothing to license. The audio context is created on
+the first play rather than at import, because browsers will not start audio before a click, and
+the first cue always follows the click on Save. Everything is wrapped: a browser that refuses
+audio costs the player nothing. There is a sound toggle in the header.
+
+### Not verified yet
+
+- **The sound has never been heard.** It was written without a browser this session. The tones
+  are quiet and short by construction, but they need one listen before the demo video.
+- **Nobody has played it start to finish since the art went in.** That is the actual Phase 5
+  finish line — a stranger reaching the ending in 10 to 15 minutes without being told what to
+  do — and it needs a human, not a check.
+- The DM timing (messages 1.1s apart, payoff at 2.4s, his beat at 6.4s) is guesswork until
+  somebody sits through it.
+
 ## Decisions already made (do not reopen)
 
 - **`draw` is never a core verb.** It is always the crude, high-suspicion option. The entire
@@ -384,4 +429,8 @@ Full field research and the kill table are in `CLAUDE.md`.
 2. **Run `/lab` against the art.** The wiring is done and placement is verified by eye, but the
    diff thresholds have only ever been tested against grey boxes. Expect to re-tune, then play
    all five jobs in the real editor again. This is the gate on Phase 4.
-3. **Phase 5** after that: the client DMs, sound, and the five-chapter arc with him.
+3. **Play it end to end** and listen to it. Phase 5's content is in; what is missing is one
+   human sitting through all five jobs. Watch for: does the first job teach itself, is the DM
+   pacing right, and does his turn in job four actually land.
+4. **Phase 6** is the README, the demo video (first shot is the bouncer disappearing), the
+   deploy and the form.

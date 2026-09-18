@@ -19,6 +19,8 @@ import {
 } from '@/lib/level';
 import { LEVELS } from '@/lib/levels';
 import { assess, methodFor } from '@/lib/suspicion';
+import { CHAPTERS, ENDING, type Message } from '@/lib/story';
+import { play, setMuted } from '@/lib/sound';
 
 /**
  * The loop, end to end:
@@ -53,11 +55,15 @@ export default function Game() {
   const [lastReport, setLastReport] = useState<DiffReport | null>(null);
   const [suspicion, setSuspicion] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [thread, setThread] = useState<Message[]>([]);
+  const [beat, setBeat] = useState(false);
+  const [sound, setSound] = useState(true);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
 
   const level: Level = LEVELS[levelIndex];
+  const chapter = CHAPTERS[levelIndex];
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((t) => window.clearTimeout(t));
@@ -103,8 +109,34 @@ export default function Game() {
     return () => window.clearInterval(t);
   }, []);
 
+  /** The brief arrives as a conversation, not a paragraph nobody reads. */
+  const openThread = useCallback(
+    (index: number) => {
+      const ch = CHAPTERS[index];
+      setThread([]);
+      ch.dms.forEach((m, i) =>
+        timers.current.push(
+          window.setTimeout(() => setThread((prev) => [...prev, m]), 500 + i * 1100),
+        ),
+      );
+    },
+    [],
+  );
+
+  // The first job's thread has to start on its own, since no click opened it.
+  // Only timers are scheduled here — nothing is set during the effect itself.
+  useEffect(() => {
+    const ch = CHAPTERS[startingLevel()];
+    const ids = ch.dms.map((m, i) =>
+      window.setTimeout(() => setThread((prev) => [...prev, m]), 400 + i * 1100),
+    );
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, []);
+
   function startLevel(index: number) {
     clearTimers();
+    setBeat(false);
+    openThread(index);
     setLevelIndex(index);
     setEarned([]);
     setChoice(null);
@@ -123,6 +155,7 @@ export default function Game() {
     setLastReport(report);
 
     push({ kind: 'post', who: 'you', text: level.goal, image, likes: 3 });
+    play('post');
 
     if (!report.trusted) {
       later(700, () =>
@@ -180,14 +213,15 @@ export default function Game() {
     // the crowd, arriving one at a time and disagreeing with itself
     const crowd = [...level.reactions].sort(() => Math.random() - 0.5).slice(0, 3);
     crowd.forEach((text, i) =>
-      later(1200 + i * 900, () =>
+      later(1200 + i * 900, () => {
+        play('reply');
         push({
           kind: 'reply',
           who: ['nine_lives_vc', 'marla_qt', 'boardwalk_dan', 'leonida_lurker'][i % 4],
           text,
           likes: 4 + i * 11,
-        }),
-      ),
+        });
+      }),
     );
 
     const hits: Tell[] = spotted(level, report, after);
@@ -201,12 +235,14 @@ export default function Game() {
         ? tell.post
         : `something about this is off. ${smell.notes[0]?.note ?? 'it does not sit right'}.`;
 
-      later(3600, () =>
-        push({ kind: 'him', who: HIM, text, image: undefined, likes: 210, zoom: { image, zone } }),
-      );
+      later(3600, () => {
+        play('sting');
+        push({ kind: 'him', who: HIM, text, image: undefined, likes: 210, zoom: { image, zone } });
+      });
 
       if (fatal?.reverts) {
         later(5200, () => {
+          play('revert');
           setEarned((prev) => prev.filter((f) => f !== fatal.reverts));
           if (level.choice && fatal.reverts === level.choice.when) setChoice(null);
           push({
@@ -217,6 +253,19 @@ export default function Game() {
           });
         });
       }
+    }
+
+    // the job landing is what moves the story on, so the beat rides on the post
+    const done = level.solved(after) && !fatal;
+    if (done && !beat) {
+      setBeat(true);
+      later(400, () => play('landed'));
+      chapter.payoff.forEach((m, i) =>
+        later(2400 + i * 1300, () => setThread((prev) => [...prev, m])),
+      );
+      later(6400, () =>
+        push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 }),
+      );
     }
 
     void editorRef.current?.editor?.reset(source);
@@ -282,11 +331,14 @@ export default function Game() {
     return (
       <main className="flex min-h-full flex-col items-center justify-center gap-4 bg-[#0d0f13] p-6 text-center text-[#e8e8e8]">
         <p className="font-mono text-xs tracking-[0.3em] text-[#6b7078]">POSTED</p>
-        <h1 className="max-w-xl text-2xl leading-snug">He was right about all of it.</h1>
-        <p className="max-w-md text-sm leading-relaxed text-[#8d939c]">
-          Five jobs. A bouncer, a car, a brother, a parking bay and a police file.
-          None of it happened, and all of it is true now.
-        </p>
+        <h1 className="max-w-xl text-2xl leading-snug">{ENDING.headline}</h1>
+        <div className="flex max-w-lg flex-col gap-3">
+          {ENDING.body.map((line) => (
+            <p key={line.slice(0, 16)} className="text-sm leading-relaxed text-[#8d939c]">
+              {line}
+            </p>
+          ))}
+        </div>
         <button
           onClick={() => {
             setFinished(false);
@@ -307,8 +359,18 @@ export default function Game() {
           <h1 className="font-mono text-sm tracking-widest text-[#9aa0aa]">
             POSTED — JOB {level.id} OF {LEVELS.length}: {level.title.toUpperCase()}
           </h1>
-          <span className="font-mono text-xs text-[#6b7078]">
+          <span className="flex items-center gap-3 font-mono text-xs text-[#6b7078]">
             {busy ? 'reading the post…' : `new tool: ${level.teaches}`}
+            <button
+              onClick={() => {
+                const next = !sound;
+                setSound(next);
+                setMuted(!next);
+              }}
+              className="rounded border border-[#2f343d] px-2 py-0.5 text-[10px] hover:border-[#5a626d]"
+            >
+              {sound ? 'sound on' : 'sound off'}
+            </button>
           </span>
         </header>
 
@@ -357,10 +419,28 @@ export default function Game() {
 
       <aside className="flex w-full shrink-0 flex-col gap-3 xl:w-[400px]">
         <div className="rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-          <p className="font-mono text-xs text-[#6b7078]">DM — {level.client}</p>
-          <p className="mt-1 text-sm leading-relaxed text-[#c9d0d8]">{level.brief}</p>
+          <p className="font-mono text-xs text-[#6b7078]">
+            DM — {level.client}
+            <span className="ml-2 text-[#4e545d]">chapter {chapter.card}</span>
+          </p>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {thread.map((m, i) => (
+              <p
+                key={`${i}-${m.text.slice(0, 12)}`}
+                className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-sm leading-snug ${
+                  m.from === 'you'
+                    ? 'self-end bg-[#25406b] text-[#dce7f7]'
+                    : m.from === 'system'
+                      ? 'self-center bg-transparent text-center text-[11px] text-[#6b7078]'
+                      : 'self-start bg-[#232830] text-[#c9d0d8]'
+                }`}
+              >
+                {m.text}
+              </p>
+            ))}
+          </div>
           <p className="mt-2 font-mono text-[10px] text-[#6b7078]">
-            KEEP: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
+            KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
           </p>
         </div>
 
