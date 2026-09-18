@@ -58,12 +58,21 @@ export const level2: Level = {
   flags: [
     {
       name: 'car_removed',
+      chatter: [
+        'wasnt there a car parked right there earlier',
+        'the plate was readable an hour ago lol',
+        'i drive past there every night, never seen a car sat like that',
+      ],
       goal: 'Get the car out of the shot',
       test: (r) => r.zones.car.changed,
       says: 'The car is out of the picture.',
     },
     {
       name: 'dims_restored',
+      chatter: [
+        'looks like every other shot off that cam',
+        'nothing weird about this one',
+      ],
       goal: 'Leave the frame the right size',
       test: (r) => !r.dims.changed,
       says: 'Nobody can tell the frame was touched.',
@@ -93,6 +102,7 @@ export const level2: Level = {
   tells: [
     {
       id: 'dimensions',
+      whole: true,
       test: (r) => r.dims.changed,
       zone: 'street_sign',
       post: '1440x1080? every cam on that street shoots 1920x1080. this is cropped.',

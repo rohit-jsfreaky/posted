@@ -69,6 +69,14 @@ export default function Game({
    */
   const [rail, setRail] = useState<'client' | 'feed'>('client');
   const [unread, setUnread] = useState(0);
+  /**
+   * Shown over the workspace right after the world moves.
+   *
+   * The photo in the editor goes back to full size after a post, which is correct —
+   * the street re-rendered and handed over a new picture — but without saying so it
+   * reads as the player's work being thrown away.
+   */
+  const [changed, setChanged] = useState(false);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
@@ -131,6 +139,20 @@ export default function Game({
     feedEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [items.length]);
 
+  /**
+   * Hand the editor the photograph the world produced.
+   *
+   * `source` is a memo, so inside a handler it is still the photo from before this
+   * post landed. Resetting to it puts the bouncer back on the door the moment you
+   * remove him — the change shows in the feed and the workspace quietly rolls back,
+   * which reads as the edit being thrown away rather than acted on.
+   */
+  function show(list: string[], pick: string | null) {
+    const w = level.apply(level.initial, list);
+    if (level.choice && pick) w[level.choice.key] = pick;
+    void editorRef.current?.editor?.reset(renderLevel(level, w));
+  }
+
   function resolve(report: DiffReport, flags: string[], image: string, picked: string | null) {
     const broken = brokenKeeps(level, report);
     const smell = assess(level, report);
@@ -189,7 +211,13 @@ export default function Game({
         ),
       );
 
-    const crowd = [...level.reactions].sort(() => Math.random() - 0.5).slice(0, 3);
+    // people comment on what they can see, so the replies come from the flags that
+    // actually landed. One ambient line goes in the mix as noise
+    const said = level.flags
+      .filter((f) => flags.includes(f.name))
+      .flatMap((f) => f.chatter);
+    const noise = [...level.reactions].sort(() => Math.random() - 0.5).slice(0, 1);
+    const crowd = [...said.sort(() => Math.random() - 0.5).slice(0, 2), ...noise];
     crowd.forEach((text, i) =>
       later(1200 + i * 900, () => {
         play('reply');
@@ -212,19 +240,37 @@ export default function Game({
         : `something about this is off. ${smell.notes[0]?.note ?? 'it does not sit right'}.`;
       later(3600, () => {
         play('sting');
-        push({ kind: 'him', who: HIM, text, likes: 210, zoom: { image, zone } });
+        push({
+          kind: 'him',
+          who: HIM,
+          text,
+          likes: 210,
+          ...(tell?.whole
+            ? { image }
+            : { zoom: { image, zone } }),
+        });
       });
       if (fatal?.reverts) {
         later(5200, () => {
           play('revert');
-          setEarned((prev) => prev.filter((f) => f !== fatal.reverts));
+          const back = stuck.filter((f) => f !== fatal.reverts);
+          const held =
+            level.choice && fatal.reverts === level.choice.when ? null : picked ?? choice;
+          setEarned(back);
           if (level.choice && fatal.reverts === level.choice.when) setChoice(null);
+          show(back, held);
           push({ kind: 'system', who: '', text: 'PEOPLE BELIEVED HIM. IT WENT BACK.', likes: 0 });
         });
       }
     }
 
+    // the notice explains why the workspace photo is different. The job-done card
+    // says the same thing louder, so it only runs when the job is still open
     const landed = level.solved(after) && !fatal;
+    if (!landed) {
+      setChanged(true);
+      later(5200, () => setChanged(false));
+    }
     if (landed && !beat) {
       setBeat(true);
       later(400, () => play('landed'));
@@ -234,7 +280,7 @@ export default function Game({
       later(6400, () => push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 }));
     }
 
-    void editorRef.current?.editor?.reset(source);
+    void editorRef.current?.editor?.reset(renderLevel(level, after));
   }
 
   async function readPost(dataUrl: string) {
@@ -359,7 +405,7 @@ export default function Game({
 
       <div className="flex min-h-0 flex-1">
         {/* ------------------------------------------------------------ workspace */}
-        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           {/* the editor fills whatever height is left; minHeight 0 stops its own
               default 500px floor from pushing the page taller than the window */}
           <div className="editor-shell flex min-h-0 flex-1 flex-col overflow-hidden [&>div]:flex [&>div]:min-h-0 [&>div]:flex-1">
@@ -374,6 +420,18 @@ export default function Game({
               onCancel={() => void editorRef.current?.editor?.reset(source)}
             />
           </div>
+
+          {changed && (
+            <div
+              data-testid="world-changed"
+              className="rise pointer-events-none absolute left-1/2 top-16 z-30 -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
+            >
+              <p className="eyebrow text-xs text-accent">The street changed</p>
+              <p className="mt-0.5 text-[11px] text-text/80">
+                This is the new photograph. Your edit did its job and went.
+              </p>
+            </div>
+          )}
 
           {/* ----------------------------------------------------- action row */}
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-3 py-2.5">

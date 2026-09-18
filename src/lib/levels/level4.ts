@@ -63,12 +63,20 @@ export const level4: Level = {
   flags: [
     {
       name: 'car_placed',
+      chatter: [
+        'thats his car sat in bay four',
+        'bay four is never taken, thats the weird bit',
+      ],
       goal: 'Put his car in the empty bay',
       test: (r) => r.zones.spot.changed,
       says: "There's a car in bay four.",
     },
     {
       name: 'shadow_added',
+      chatter: [
+        'shadow lines up with everything else in the lot',
+        'middle of the day, checks out',
+      ],
       goal: 'Give it a shadow',
       // something darker than predicted, sitting on the ground under it
       test: (r) => r.zones.spot_shadow.drift < -0.035,

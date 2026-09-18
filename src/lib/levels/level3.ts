@@ -102,18 +102,29 @@ export const level3: Level = {
   flags: [
     {
       name: 'subject_removed',
+      chatter: [
+        'thought there was someone standing on the dock in this',
+        'empty dock at half nine, sounds about right for ambrosia',
+      ],
       goal: 'Him, off the dock',
       test: (r) => r.zones.subject.changed,
       says: "He's not on the dock.",
     },
     {
       name: 'reflection_removed',
+      chatter: [
+        'that window is just glare now',
+        'nice light coming off the glass',
+      ],
       goal: 'Him, out of the window',
       test: (r) => r.zones.reflection.changed,
       says: 'The window is just a window now.',
     },
     {
       name: 'water_removed',
+      chatter: [
+        'waters dead calm. nothing in it',
+      ],
       goal: 'Him, out of the water',
       test: (r) => r.zones.water.changed,
       says: 'Nothing in the water either.',

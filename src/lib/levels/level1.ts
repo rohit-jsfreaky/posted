@@ -108,12 +108,22 @@ export const level1: Level = {
   flags: [
     {
       name: 'night',
+      chatter: [
+        'wait it was open?? i walked past at 9 and it was dead',
+        'queue was mental last night',
+        'since when does vantablack have a line out the door',
+      ],
       goal: 'Make it night',
       test: (r) => r.gain < 0.65,
       says: "Sun's down. The place is open and there's a queue.",
     },
     {
       name: 'bouncer_removed',
+      chatter: [
+        'bro that place has no bouncer now?',
+        'walked straight in. nobody on the door at all',
+        'my ex works there, says the door guy stopped showing up',
+      ],
       goal: 'Get him off the door',
       test: (r) => r.zones.bouncer.changed,
       says: "He's not on the door any more.",
@@ -142,6 +152,7 @@ export const level1: Level = {
   tells: [
     {
       id: 'shape',
+      whole: true,
       test: (r) => r.dims.aspectChanged,
       zone: 'facade',
       post: 'why is this photo a different shape than every other pic of vantablack lol',

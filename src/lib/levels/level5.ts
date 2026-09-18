@@ -94,12 +94,19 @@ export const level5: Level = {
   flags: [
     {
       name: 'official',
+      chatter: [
+        'where did this even come from',
+        'thats an evidence photo, why is it on here',
+      ],
       goal: 'Make it look like a file',
       test: (r) => r.ring.changed,
       says: 'It reads like a document now, not a snapshot.',
     },
     {
       name: 'face_hidden',
+      chatter: [
+        'face is blacked out like a real file',
+      ],
       goal: 'Cover the witness',
       // A bar over the eyes is the classic redaction precisely because covering
       // a third of a face defeats recognition. Note a black bar *raises* local
@@ -113,6 +120,9 @@ export const level5: Level = {
     },
     {
       name: 'case_numbered',
+      chatter: [
+        'case number checks out',
+      ],
       goal: 'Put a case number on it',
       test: (r) => r.zones.label.changed,
       says: 'It carries a case number.',

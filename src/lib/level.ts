@@ -46,6 +46,14 @@ export type FlagSpec = {
    * way of knowing which half is missing.
    */
   goal: string;
+  /**
+   * What the street says about *this* change specifically.
+   *
+   * Reactions used to be a level-wide pool, which meant somebody could remove a
+   * bouncer and get three replies about how busy the queue was last night. People
+   * comment on what they can see, so the lines belong to the flag that caused them.
+   */
+  chatter: string[];
 };
 
 export type Keep = {
@@ -60,6 +68,12 @@ export type Tell = {
   test: (r: DiffReport, state: WorldState) => boolean;
   /** the zone the camera pushes into */
   zone: string;
+  /**
+   * Some tells are about the whole photograph rather than a place in it — its
+   * shape, its dimensions. Zooming into a corner of the wall to make a point about
+   * the frame is nonsense, so these show the picture entire instead.
+   */
+  whole?: boolean;
   post: string;
   /** a fatal tell reverts one of your flags. a soft one is just a warning */
   fatal: boolean;
