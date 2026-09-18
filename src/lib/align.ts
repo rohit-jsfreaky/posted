@@ -93,7 +93,15 @@ function matchAxis(orig: ArrayLike<number>, saved: ArrayLike<number>): AxisFit {
   return best;
 }
 
-/** Sample the overlap on a grid and correlate. This is the honest check. */
+/**
+ * Sample the overlap on a grid and correlate. This is the honest check.
+ *
+ * It ignores the outer border, because that is exactly where a frame, a vignette
+ * or a caption bar lands. Judging alignment on pixels the player was invited to
+ * paint over makes a correctly aligned photo look unrecognisable.
+ */
+const BORDER = 0.07;
+
 function verify2d(
   orig: Gray,
   plate: Gray,
@@ -107,8 +115,8 @@ function verify2d(
   let total = 0;
   for (let gy = 0; gy < steps; gy++) {
     for (let gx = 0; gx < steps; gx++) {
-      const ox = ((gx + 0.5) / steps) * orig.w;
-      const oy = ((gy + 0.5) / steps) * orig.h;
+      const ox = (BORDER + ((gx + 0.5) / steps) * (1 - 2 * BORDER)) * orig.w;
+      const oy = (BORDER + ((gy + 0.5) / steps) * (1 - 2 * BORDER)) * orig.h;
       total++;
       const sx = (ox - x.off) * x.k;
       const sy = (oy - y.off) * y.k;
@@ -124,6 +132,41 @@ function verify2d(
   const coverage = total === 0 ? 0 : seen / total;
   if (coverage < 0.15) return { score: -2, coverage };
   return { score: ncc(a, b), coverage };
+}
+
+function spread(v: ArrayLike<number>): number {
+  let m = 0;
+  for (let i = 0; i < v.length; i++) m += v[i];
+  m /= Math.max(1, v.length);
+  let acc = 0;
+  for (let i = 0; i < v.length; i++) acc += (v[i] - m) * (v[i] - m);
+  return Math.sqrt(acc / Math.max(1, v.length));
+}
+
+/**
+ * Candidate fits for one axis, cheapest explanation first.
+ *
+ * A flat scene — a car park, a bare interview room — has almost no variation
+ * along one axis, and matching profiles that carry no information invents
+ * answers. So the obvious explanations are always on the list, and the 2-D check
+ * below decides between them.
+ */
+function axisCandidates(
+  orig: ArrayLike<number>,
+  plate: ArrayLike<number>,
+): AxisFit[] {
+  const out: AxisFit[] = [
+    { k: 1, off: 0, score: 0 }, // untouched
+    { k: plate.length / orig.length, off: 0, score: 0 }, // resized to fit
+  ];
+  if (spread(orig) > 0.004 && spread(plate) > 0.004) out.push(matchAxis(orig, plate));
+  const seen = new Set<string>();
+  return out.filter((c) => {
+    const key = `${c.k.toFixed(3)}:${c.off.toFixed(1)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /**
@@ -156,11 +199,15 @@ export function align(orig: Gray, saved: Gray): Alignment {
     const ratio = plate.w / plate.h / (orig.w / orig.h);
     if (ratio < 0.3 || ratio > 3.4) continue;
     const p = profiles(plate);
-    const x = matchAxis(origProfiles.cols, p.cols);
-    const y = matchAxis(origProfiles.rows, p.rows);
-    const { score, coverage } = verify2d(orig, plate, x, y);
-    if (!best || score > best.score) {
-      best = { rotation, x, y, score, coverage, plate };
+    const xs = axisCandidates(origProfiles.cols, p.cols);
+    const ys = axisCandidates(origProfiles.rows, p.rows);
+    for (const x of xs) {
+      for (const y of ys) {
+        const { score, coverage } = verify2d(orig, plate, x, y);
+        if (!best || score > best.score) {
+          best = { rotation, x, y, score, coverage, plate };
+        }
+      }
     }
   }
 

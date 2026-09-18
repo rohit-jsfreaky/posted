@@ -129,3 +129,61 @@ export function ncc(a: ArrayLike<number>, b: ArrayLike<number>): number {
   if (sa < 1e-7 || sb < 1e-7) return 0;
   return sab / Math.sqrt(sa * sb);
 }
+
+/**
+ * Luma and saturation in one pass.
+ *
+ * Saturation matters for spotting things that were *added*: a pasted sticker is
+ * usually far more colourful than a photographed street.
+ */
+export function platesFromImage(
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+): { luma: Gray; sat: Gray } {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, w);
+  canvas.height = Math.max(1, h);
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) throw new Error('canvas 2d context not available');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const luma = new Float32Array(canvas.width * canvas.height);
+  const sat = new Float32Array(canvas.width * canvas.height);
+  for (let i = 0, p = 0; i < luma.length; i++, p += 4) {
+    const r = px[p] / 255;
+    const g = px[p + 1] / 255;
+    const b = px[p + 2] / 255;
+    luma[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    sat[i] = max < 1e-4 ? 0 : (max - min) / max;
+  }
+  return {
+    luma: { w: canvas.width, h: canvas.height, data: luma },
+    sat: { w: canvas.width, h: canvas.height, data: sat },
+  };
+}
+
+/**
+ * Per-pixel high frequency energy: how much a pixel differs from its neighbours.
+ *
+ * This is what film grain looks like to a computer. A flat vector sticker dropped
+ * on a grainy photo has almost none of it, which is the tell in Level 4.
+ */
+export function highFrequency(g: Gray): Gray {
+  const out = new Float32Array(g.w * g.h);
+  for (let y = 1; y < g.h - 1; y++) {
+    for (let x = 1; x < g.w - 1; x++) {
+      const i = y * g.w + x;
+      const lap =
+        4 * g.data[i] -
+        g.data[i - 1] -
+        g.data[i + 1] -
+        g.data[i - g.w] -
+        g.data[i + g.w];
+      out[i] = Math.abs(lap);
+    }
+  }
+  return { w: g.w, h: g.h, data: out };
+}

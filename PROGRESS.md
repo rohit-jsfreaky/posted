@@ -6,25 +6,34 @@
 
 ## Where we are right now
 
-**Phase 1 is done. The risk is dead.** The loop works end to end with the real editor:
+**Phases 0 to 3 are done. All five jobs are playable, the antagonist works, and the
+game has an ending.**
 
 ```
-composite(state) -> editor -> save -> align -> diff -> flags -> state -> composite(state)
+composite(state) -> editor -> align -> diff -> flags -> suspicion -> he replies -> state -> composite(state)
 ```
 
-Level 1 is playable and winnable with grey boxes. Crop the bouncer off the edge and drop the
-brightness, press Save, and the street comes back as night: neon sign lit, door open, a queue
-outside, and the bouncer simply not there. What you posted was a narrow dim crop. What the world
-shows is clean and full size. That gap is the whole game and it reads exactly as intended.
+What is in the build:
+- **Five levels**, each teaching one tool and one tell (`src/lib/levels/`)
+- **The antagonist**, `@cal_hampton_77`, who zooms into the exact region he caught,
+  posts about it, and reverts one of your changes when the tell is fatal
+- **The feed**: your post, replies arriving one at a time and disagreeing with each
+  other, counters ticking up on their own
+- **Suspicion**, inferred from the shape of the measurements, never from which tool
+  you used — the same removal costs 8 done cleanly and 34 done crudely
+- **KEEPs**: destroy what proves the photo is real and nobody believes the post
+- **Zoom preview**, twice per job, which runs the diff on your current edit through
+  the editor's own `getImage()` and tells you what a skeptic would notice
+- **An ending** after job five
 
-**The one thing still open from Phase 0 is the deploy, blocked on a Vercel login Rohit has to
-do himself.** Everything else in Phase 0 passed.
-
-Stack: Next.js 16.3.5 + React 19.2.8 + Tailwind 4 + `@unlayer/react-image-editor` 1.0.2.
 `npm run dev` → the game on `/`, the diff engine test bench on `/lab`.
-Lint clean, production build passes.
+`/?job=3` opens any job directly, which is how the levels were tested.
 
-Evidence: `docs/phase0/*.png`, `docs/phase1/*.png`.
+Lint clean, production build passes, **test bench 21/21**.
+
+**Still open from Phase 0: the deploy, blocked on a Vercel login Rohit has to do.**
+
+Evidence: `docs/phase0/`, `docs/phase1/`, `docs/phase3/`.
 
 Last updated: 2026-09-18.
 
@@ -42,9 +51,9 @@ Last updated: 2026-09-18.
 |---|---|---|
 | 0 setup | built + proven locally, **deploy blocked on `vercel login`** | not yet — needs the live URL |
 | 1 diff → flags → re-render (**THE RISK**) | **done** | **yes — all four checks, real editor** |
-| 2 antagonist + feed | next | no |
-| 3 levels 2–5 + tool unlocks | not started | no |
-| 4 art | not started | no |
+| 2 antagonist + feed | **done** | **yes — sloppy edit, he catches it, it reverts** |
+| 3 levels 2–5 + tool unlocks | **done** | **yes — all five playable, scored, in one sitting** |
+| 4 art | source images generated, **not wired in yet** | no |
 | 5 story, sound, ending | not started | no |
 | 6 ship | not started | no |
 
@@ -141,6 +150,116 @@ its brightness can say anything; if it had detail and now has none, it was cover
   reading a little (0.05 against a 0.10 threshold). Matters only when facade becomes a KEEP in
   Phase 3 — give KEEP zones their own geometry then.
 
+## What Phase 3 proved (three places the editor contradicted the plan)
+
+Every level was driven by hand in the real editor. The lab (`/lab`) now runs **21 hand-made
+edits across all five levels, 21/21**, and prints every number it measured.
+
+| job | run in the real editor | result |
+|---|---|---|
+| 1 | brightness down, crop the bouncer off | solved, suspicion 30/60, moves to job 2 |
+| 2 | crop only | **he posts the dimensions, the car comes back** |
+| 2 | crop, then resize to 1200×800 | solved, suspicion 8/55, **he says nothing** |
+| 3 | filled shape over the man on the dock | `subject_removed`, suspicion 4/85 |
+| 4 | sticker in bay four, shadow drawn under it | solved, plus his non-fatal grain comment |
+| 5 | frame + black bar + label, **wrong** case number | caught, `case_numbered` reverted |
+| 5 | same, with the seven-digit number off the folder | solved → the ending |
+
+### 1. The Blur slider is global, not local
+
+`LEVELS.md` built Level 3 around blurring only the window. Measured: the slider blurs the whole
+photo, so "the window is the only soft thing in the shot" is a tell that can never fire. The
+level now runs on what the editor can do — blow the highlight out with global brightness
+(cheapest), cover it in a colour that belongs (medium), or paint a crude blob (expensive and he
+catches it) — and crop still cannot reach the middle of a frame, which was always the point.
+
+### 2. Filters never touch a pasted object
+
+`LEVELS.md` and `ART.md` built Level 4's third flag on Filter → Noise graining a pasted car
+until it matched the plate. Measured: filters apply to the photo layer only. With Noise at 35
+the whole car park grained to 0.33 and the pasted car stayed at **0.003**. The counter-move
+does not exist in this editor.
+
+The obvious replacement, "make its light match", does not hold up either: brightness cannot be
+separated from an object's own colour, and dropping a paste's opacity blends it toward the
+asphalt rather than toward the car parked beside it. **So the flag was cut** rather than ship a
+requirement resting on a measurement that cannot be justified. Level 4 asks for the two things
+that can be measured: something is there, and it throws a shadow. The grain is still measured,
+and he still points at it — an observation that costs nothing, which is its own kind of menace.
+
+### 3. A black bar raises local contrast, it does not collapse it
+
+`DESIGN.md` §5 defines `face_hidden` as variance collapsing. That describes blur and pixelate.
+A redaction bar is a hard edge against skin, so variance goes **up**. Level 5 now reads a
+redaction as detail collapsing *or* a third of the zone being replaced *or* the zone going very
+dark — a bar over the eyes is the classic redaction precisely because a third is enough.
+
+### Engine changes this forced
+
+- **The alignment search now proposes candidates and lets the 2-D check decide.** A flat scene —
+  a car park, a bare interview room — has almost no variation along one axis, and matching
+  profiles that carry no information invents answers. Identity and scaled-to-fit are always on
+  the list. Level 5's frame case went from fit 0.287 to 1.000.
+- **Alignment ignores the outer 7% of the frame.** That is where frames, vignettes and caption
+  bars land. Judging alignment on pixels the player was invited to paint over made a correctly
+  aligned photo look unrecognisable.
+- **The photometric fit is trimmed.** A big local edit dragged a plain least-squares fit toward
+  itself, and then untouched zones looked like they had drifted — a black bar over a face was
+  making the label at the other end of the photo read as changed.
+- **Grain is a low percentile of high-frequency energy, not its mean.** An object's own edges are
+  high frequency too, so a detailed sticker read as grainy when averaged.
+- **A flat area that stops being flat counts as something placed there.** Without it, an empty
+  parking bay could only be seen to have a car in it if the car was the wrong brightness.
+- **Clipping is not tampering.** A zone pinned at white cannot match any prediction, so its
+  brightness residual means nothing — but the detail test still catches that nobody can read it.
+
+### Honest gaps
+
+- Level 3's three-flag solve was verified in the lab, not driven end to end in the editor. Jobs
+  1, 2, 4 and 5 were each completed by hand in the real editor.
+- Flip is still unhandled (four rotations only). A mirrored photo reads as heavily changed.
+- Suspicion is scored per post, so splitting a job across several small posts costs less than
+  doing it in one. Worth a look in Phase 5.
+
+## Phase 4 — art so far
+
+Nine images generated with ChatGPT image gen and saved to `public/art/`. 16 MB total.
+
+| file | what | size |
+|---|---|---|
+| `bg-club.png` | art deco club front, empty street, **blank** sign panel, closed door | 1536×1024 |
+| `bg-street.png` | pastel street, empty kerb on the right, **blank** street name plate | 1536×1024 |
+| `bg-marina.png` | dock, moored boat, **blank** clock, a real glass window, water | 1536×1024 |
+| `bg-lot.png` | car park, one parked car **with a shadow**, empty bay, gate booth | 1536×1024 |
+| `bg-archive.png` | interview room, empty chair, folder with a **blank** label, blinds | 1536×1024 |
+| `cut-bouncer.png` | doorman, arms folded, full body | RGBA |
+| `cut-subject.png` | the brother, full body | RGBA |
+| `cut-car.png` | side-on saloon car | RGBA |
+| `cut-witness.png` | seated person, upper body | RGBA |
+
+Rules the prompts had to enforce, and why:
+
+- **Everything is shot in daylight, including the scenes the game plays at night.** Night is a
+  multiply pass over the day render (`DESIGN.md` §4), so the art has to arrive lit.
+- **Backgrounds are empty of anything removable.** No bouncer, no car, no people. Those are
+  cut-outs the game switches on and off — bake one into a background and it can never be
+  removed, which is the entire game.
+- **Every sign, plate, clock face and label is blank.** The game draws its own text, and Level 5
+  turns on what the label says.
+- **Every scene has contrast and structure in both directions** — fences, poles, bay lines, wall
+  panels, blinds. Phase 3 proved a flat scene breaks the alignment search.
+- **The car park is lit, not black**, for the reason in the Phase 3 notes.
+- 1536×1024 is 3:2, matching the 1200×800 scene box exactly, so nothing needs to be squashed.
+
+### Not done yet
+
+- **None of it is wired into the game.** Every level still renders grey boxes. Swapping them in
+  means replacing the `composite()` in each `src/lib/levels/levelN.ts` and then **re-measuring
+  every zone against the new art** — the zones are fractions, and the art will not land where
+  the grey boxes did. The test bench has to be re-run after each level.
+- Missing cut-outs: the queue outside the club at night, and a standing witness for Level 2.
+- The UI chrome from `ART.md` (phone frame, feed card, composer) is still CSS, which is fine.
+
 ## Decisions already made (do not reopen)
 
 - **`draw` is never a core verb.** It is always the crude, high-suspicion option. The entire
@@ -213,11 +332,26 @@ Full field research and the kill table are in `CLAUDE.md`.
 - Found and fixed the subtractive-brightness bug and the flat-zone bug (see above)
 - All four finish-line checks pass against the real editor; lab at 11/11; build passes
 
+### 2026-09-18 — Phases 2 and 3 (the antagonist, and all five jobs)
+- `src/lib/level.ts` — what a level is: zones, state, flags, KEEPs, tells, tolerance
+- `src/lib/levels/level1..5.ts` — five jobs, each with its own scene, rules and tells
+- `src/lib/draw.ts` — grey-box scene helpers, all on fractional coordinates
+- `src/lib/suspicion.ts` — infers the method from the shape of the numbers, never the tool
+- `src/lib/zones.ts` — zone maths, including the ground band beneath an object
+- `src/components/Feed.tsx`, `ZoomView.tsx` — the feed, and the camera push into a tell
+- `src/components/Game.tsx` — level progression, staggered replies, ticking counters, the
+  revert, the case-number question and the ending
+- Diff engine generalised: colour, grain, detail and absolute brightness per zone, plus the
+  outer ring for spotting a frame
+- Test bench rebuilt to cover all five levels: **21/21**
+- Drove every level by hand in the real editor and found three places where the editor does
+  not do what the design docs assumed (see above)
+
 ## Next action
 
 1. **Rohit runs `npx vercel login`** (one time, interactive). Then the deploy is one command
    and Phase 0's finish line passes.
-2. **Phase 2 — the antagonist and the feed.** The loop works but there is nobody to beat yet.
-   The feed panel, the account that zooms in on the tell, the zoom animation, and his correction
-   reverting one flag. Finish line: make a sloppy edit on purpose, he catches it, the change
-   reverts, and it feels bad enough to want another go.
+2. **Finish Phase 4: wire the art in.** The images exist (see above). The work left is per
+   level: draw the background, place the cut-outs, then **re-measure the zones to match where
+   things actually are in the picture**, and re-run `/lab` until it is back to 21/21. Level 1
+   first, since it is the demo shot.
