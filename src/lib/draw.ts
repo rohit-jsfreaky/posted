@@ -65,15 +65,31 @@ export function placeFlipped(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
   ctx.restore();
 }
 
-/** Blow light into a region, the way sun hits glass. */
-export function glare(ctx: Ctx, z: Zone, strength = 0.55) {
+/**
+ * Sun catching glass: solid across the zone, then falling away outside it.
+ *
+ * The shape does two jobs. Visually, light that fades at its edges reads as a
+ * flare on a pane, where a hard-edged fill reads as a white billboard stuck on
+ * the building. Mechanically, the inside has to be uniformly near-white, because
+ * Level 3's cheapest solution works by the whole measured zone clipping at once
+ * when the photo is brightened — a flare that dimmed toward the middle of the
+ * zone would leave contrast behind and the flag would never fire.
+ */
+export function glare(ctx: Ctx, z: Zone, strength = 0.55, spread = 1.8) {
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
+  const cx = (z.x + z.w / 2) * W;
+  const cy = (z.y + z.h / 2) * H;
+  const inner = Math.hypot((z.w * W) / 2, (z.h * H) / 2);
+  const outer = inner * spread;
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, outer);
+  g.addColorStop(0, `rgba(255,255,255,${strength})`);
+  g.addColorStop(inner / outer, `rgba(255,255,255,${strength})`);
+  g.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.save();
   ctx.globalCompositeOperation = 'screen';
-  ctx.globalAlpha = strength;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(z.x * W, z.y * H, z.w * W, z.h * H);
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - outer, cy - outer, outer * 2, outer * 2);
   ctx.restore();
 }
 

@@ -34,6 +34,24 @@ export type Alignment = {
 
 const ROTATIONS = [0, 90, 180, 270] as const;
 
+/**
+ * How much better than "untouched" a shifted fit has to score before it wins.
+ *
+ * When the saved image is the same size as the one we handed out, the frame was
+ * almost certainly not moved, and a big honest edit — a shape covering a window —
+ * pulls the correlation down on its own. Without a margin the search answers that
+ * by sliding the whole image sideways, which scores a hair higher and makes every
+ * other zone read as slightly changed. The frame staying put is the explanation to
+ * beat, not just another candidate.
+ *
+ * The marina is what set the size of this. It is full of repeating verticals —
+ * dock pilings, palm trunks, window mullions — and a shifted fit can alias onto
+ * them and win by about 0.03. A real crop-and-resize is nothing like that close:
+ * Level 2's is a 1.59x stretch. So the margin sits above the aliasing and far
+ * below anything genuine.
+ */
+const IDENTITY_MARGIN = 0.06;
+
 function lerp(series: ArrayLike<number>, at: number): number {
   const i0 = Math.floor(at);
   const i1 = Math.min(i0 + 1, series.length - 1);
@@ -192,7 +210,11 @@ export function align(orig: Gray, saved: Gray): Alignment {
     }
   }
 
+  const sameSize =
+    Math.abs(saved.w - orig.w) <= 1 && Math.abs(saved.h - orig.h) <= 1;
+
   let best: Alignment | null = null;
+  let bestScore = -Infinity;
   for (const rotation of ROTATIONS) {
     const plate = rotateGray(saved, rotation);
     // a rotation that leaves a wildly different aspect ratio is not worth searching
@@ -204,7 +226,11 @@ export function align(orig: Gray, saved: Gray): Alignment {
     for (const x of xs) {
       for (const y of ys) {
         const { score, coverage } = verify2d(orig, plate, x, y);
-        if (!best || score > best.score) {
+        const untouched =
+          sameSize && rotation === 0 && x.k === 1 && x.off === 0 && y.k === 1 && y.off === 0;
+        const ranked = untouched ? score + IDENTITY_MARGIN : score;
+        if (ranked > bestScore) {
+          bestScore = ranked;
           best = { rotation, x, y, score, coverage, plate };
         }
       }

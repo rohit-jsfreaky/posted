@@ -9,11 +9,11 @@
 **Phases 0 to 3 are done. Phase 4's art is wired into all five scenes, and Phase 5's
 story, sound and ending are written and wired.**
 
-Two gates are open, both because this session had no browser:
-1. the test bench has not been run against the art (Phase 4)
-2. nobody has played it through or heard the sound (Phase 5)
+**Phase 4's gate is closed: the bench runs 21/21 against the real art**, and job 1
+was replayed end to end in the real editor with it.
 
-Both need a browser. Do them in that order before writing another feature.
+One gate is still open: nobody has played all five jobs through, and nobody has
+heard the sound. That needs a person, not a check.
 
 ```
 composite(state) -> editor -> align -> diff -> flags -> suspicion -> he replies -> state -> composite(state)
@@ -35,8 +35,7 @@ What is in the build:
 `npm run dev` → the game on `/`, the diff engine test bench on `/lab`.
 `/?job=3` opens any job directly, which is how the levels were tested.
 
-Lint clean, production build passes. **The test bench last ran 21/21 against grey
-boxes, and has not been run since the art went in.**
+Lint clean, production build passes, **test bench 21/21 against the real art**.
 
 **Still open from Phase 0: the deploy, blocked on a Vercel login Rohit has to do.**
 
@@ -60,7 +59,7 @@ Last updated: 2026-09-18.
 | 1 diff → flags → re-render (**THE RISK**) | **done** | **yes — all four checks, real editor** |
 | 2 antagonist + feed | **done** | **yes — sloppy edit, he catches it, it reverts** |
 | 3 levels 2–5 + tool unlocks | **done** | **yes — all five playable, scored, in one sitting** |
-| 4 art | **wired in**, placement verified, engine numbers **not re-tested** | not yet — needs a `/lab` run |
+| 4 art | **done** | **yes — 21/21 against the art, job 1 replayed in the real editor** |
 | 5 story, sound, ending | written and wired, **unheard and unplayed** | no — needs a playthrough |
 | 6 ship | not started | no |
 
@@ -325,13 +324,48 @@ the first play rather than at import, because browsers will not start audio befo
 the first cue always follows the click on Save. Everything is wrapped: a browser that refuses
 audio costs the player nothing. There is a sound toggle in the header.
 
+### Re-testing against the art — and the two bugs it found
+
+The bench went **19/21** the first time it saw photographic art. Both failures were Level 3's
+blow-out, and chasing them turned up a second, more dangerous bug.
+
+**1. The window would not clip.** In grey boxes the pane sat at 0.91 luma, so a brightness
+raise pushed it past white and took the ghost with it. The photographed glass sits at 0.67, so
+a realistic lift took it to 0.89 and clipped nothing — the ghost survived untouched
+(`str 0.00, det 1.00`). The level's cheapest solution had quietly stopped working.
+
+The fix is a tone budget, not a number nudged until it passed. Clipping at a lift of `L` needs
+both the glass and the ghost above `1 - L`, and the ghost still has to be visible at rest, so
+the pane goes close to white and the ghost sits about a tenth of a stop under it. Any darker
+and it survives the lift; any lighter and nobody can see him to begin with.
+
+Then it looked like a **white billboard stuck on the building**, which is worse than a bug on a
+judged entry. So `glare()` became a radial flare: solid across the measured zone, falling away
+outside it. The fade is what makes it read as light on glass; the solid centre is what makes
+the zone clip as one. The measured zone shrank to the lit part of the pane to match.
+
+**2. The alignment drifted on repeating texture.** Covering the window made the engine fire
+`subject_removed` and `water_removed` too, and the boat read 19% missing on an edit that never
+touched the frame. The search had sled the whole image 13px sideways at 1.06x, scoring 0.03
+better than leaving it alone, by aliasing onto the marina's dock pilings and palm trunks.
+
+Fixed by making an unmoved frame the explanation to beat: when the saved image is the same size
+as the one we handed out, a shifted fit has to win by **0.06** before it is believed. That sits
+above the aliasing and far below anything genuine — Level 2's real crop-and-resize is a 1.59x
+stretch. This one mattered well beyond Level 3: any honest local edit was dragging every other
+zone slightly off.
+
+After both, **21/21**, and Level 3's price gradient is intact: blow the window out for **10**
+suspicion, cover it in a matching colour for **22**, do all three crudely for **54**.
+
 ### Not verified yet
 
 - **The sound has never been heard.** It was written without a browser this session. The tones
   are quiet and short by construction, but they need one listen before the demo video.
-- **Nobody has played it start to finish since the art went in.** That is the actual Phase 5
-  finish line — a stranger reaching the ending in 10 to 15 minutes without being told what to
-  do — and it needs a human, not a check.
+- **Nobody has played all five jobs start to finish.** Job 1 was replayed in the real editor
+  with the art and solves cleanly, but the full run is the actual Phase 5 finish line — a
+  stranger reaching the ending in 10 to 15 minutes without being told what to do — and it needs
+  a human, not a check.
 - The DM timing (messages 1.1s apart, payoff at 2.4s, his beat at 6.4s) is guesswork until
   somebody sits through it.
 
@@ -429,8 +463,8 @@ Full field research and the kill table are in `CLAUDE.md`.
 2. **Run `/lab` against the art.** The wiring is done and placement is verified by eye, but the
    diff thresholds have only ever been tested against grey boxes. Expect to re-tune, then play
    all five jobs in the real editor again. This is the gate on Phase 4.
-3. **Play it end to end** and listen to it. Phase 5's content is in; what is missing is one
+2. **Play it end to end** and listen to it. Phase 5's content is in; what is missing is one
    human sitting through all five jobs. Watch for: does the first job teach itself, is the DM
    pacing right, and does his turn in job four actually land.
-4. **Phase 6** is the README, the demo video (first shot is the bouncer disappearing), the
+3. **Phase 6** is the README, the demo video (first shot is the bouncer disappearing), the
    deploy and the form.

@@ -21,8 +21,8 @@
  *
  * The glare pass matters mechanically. The window in the art is mid-toned, and
  * the cheapest solution needs it to be the first thing that clips when the whole
- * photo is brightened. So the glass gets lit, and the ghost in it is drawn faint
- * on top, close enough in tone that the two blow out together.
+ * photo is brightened. So the glass is taken close to white and the ghost is set
+ * just under it, close enough in tone that the two blow out together.
  */
 
 import {
@@ -43,7 +43,7 @@ import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
   subject: { x: 0.4, y: 0.44, w: 0.16, h: 0.26 },
-  reflection: { x: 0.62, y: 0.3, w: 0.24, h: 0.26 },
+  reflection: { x: 0.665, y: 0.325, w: 0.135, h: 0.205 },
   water: { x: 0.4, y: 0.73, w: 0.16, h: 0.17 },
   clock: { x: 0.17, y: 0.06, w: 0.09, h: 0.14 },
   boat: { x: 0.0, y: 0.45, w: 0.24, h: 0.3 },
@@ -51,7 +51,7 @@ const ZONES: ZoneMap = {
 };
 
 /** His shape inside the glass — smaller, and set back into the window. */
-const GHOST = { x: 0.68, y: 0.34, w: 0.1, h: 0.18 };
+const GHOST = { x: 0.688, y: 0.345, w: 0.09, h: 0.165 };
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
@@ -62,9 +62,17 @@ function composite(state: WorldState, ctx: Ctx) {
 
   nightPass(ctx, '#5a6699');
 
-  // sun on the glass, so the window is the brightest thing in the shot
-  glare(ctx, ZONES.reflection, 0.62);
-  if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.3);
+  // Sun on the glass, then the ghost laid faintly over it.
+  //
+  // The tones here are chosen, not decorative. For the cheapest solution to work,
+  // raising the whole photo's brightness has to clip the glass *and* the shape in
+  // it at the same moment. Clipping at a lift of L needs both to sit above 1 - L,
+  // and the ghost still has to be visible at rest, so the pane is taken close to
+  // white and the ghost is set just under it — about a tenth of a stop down. Any
+  // darker and it survives the lift; any lighter and nobody can see him to begin
+  // with.
+  glare(ctx, ZONES.reflection, 0.83);
+  if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.15);
 
   label(
     ctx,
