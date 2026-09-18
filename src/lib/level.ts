@@ -78,6 +78,14 @@ export type Tell = {
   /** a fatal tell reverts one of your flags. a soft one is just a warning */
   fatal: boolean;
   reverts?: string;
+  /**
+   * What would have worked instead, in one sentence.
+   *
+   * A fatal tell takes back work the player already did. Without a reason the
+   * street simply undoes itself and the player learns nothing except that the
+   * game is unfair, so every tell that reverts something says what to do instead.
+   */
+  fix?: string;
 };
 
 export type Level = {

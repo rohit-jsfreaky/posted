@@ -165,6 +165,7 @@ export const level1: Level = {
       post: 'zoom in on the right side. that wall has a smudge shaped exactly like a man.',
       fatal: true,
       reverts: 'bouncer_removed',
+      fix: 'He stands near the right edge. Crop him out of the frame — paint never matches the wall behind it.',
     },
   ],
 

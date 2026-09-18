@@ -15,7 +15,7 @@ import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
   car: { x: 0.63, y: 0.51, w: 0.3, h: 0.22 },
-  street_sign: { x: 0.1, y: 0.05, w: 0.16, h: 0.09 },
+  street_sign: { x: 0.107, y: 0.06, w: 0.156, h: 0.1 },
   witness: { x: 0.42, y: 0.44, w: 0.15, h: 0.26 },
   block: { x: 0.0, y: 0.02, w: 0.62, h: 0.66 },
 };
@@ -29,14 +29,19 @@ function composite(state: WorldState, ctx: Ctx) {
 
   nightPass(ctx, '#4a5794');
 
-  // the plate is blank in the art, so the game writes the street name
+  // The plate is blank in the art, so the game writes the street name onto it. The
+  // sign hangs at an angle, so the writing is turned to match and held inside the
+  // green — flat, full-width text sat over the top edge and off the right end.
   label(
     ctx,
     'GRASSRIVERS',
     ZONES.street_sign.x + ZONES.street_sign.w / 2,
     ZONES.street_sign.y + ZONES.street_sign.h / 2,
     '#eaf3ee',
-    26,
+    22,
+    'center',
+    8.1,
+    ZONES.street_sign.w * 0.88,
   );
 
   stamp(ctx, 'GRASSRIVERS & 6TH   02:14', '#c2cade');
@@ -74,7 +79,13 @@ export const level2: Level = {
         'nothing weird about this one',
       ],
       goal: 'Leave the frame the right size',
-      test: (r) => !r.dims.changed,
+      /**
+       * Not "the frame is the right size" — an untouched photo is the right size,
+       * and that version of this test handed the flag to anyone who pressed POST IT
+       * without editing anything. This is "something came out and the frame still
+       * matches the camera", which is the whole trick the level teaches.
+       */
+      test: (r) => !r.dims.changed && r.zones.car.changed,
       says: 'Nobody can tell the frame was touched.',
     },
   ],
@@ -108,6 +119,7 @@ export const level2: Level = {
       post: '1440x1080? every cam on that street shoots 1920x1080. this is cropped.',
       fatal: true,
       reverts: 'car_removed',
+      fix: 'Crop the car out, then use Resize to put the photo back to the size it started at.',
     },
     {
       id: 'smear',
@@ -116,6 +128,7 @@ export const level2: Level = {
       post: 'the kerb line stops and starts again. something was painted over it.',
       fatal: true,
       reverts: 'car_removed',
+      fix: 'The car sits against the right kerb. Crop it out of the frame instead of painting over it.',
     },
   ],
 

@@ -120,7 +120,7 @@ export const CASES: MutationCase[] = [
     level: 2,
     expect: ['car_removed', 'dims_restored'],
   },
-  { id: 'l2-untouched', what: 'save without editing', level: 2, expect: ['dims_restored'] },
+  { id: 'l2-untouched', what: 'save without editing', level: 2, expect: [] },
 
   // level 3 — four tools reach the window at four prices
   {

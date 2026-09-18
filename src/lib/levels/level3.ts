@@ -155,6 +155,7 @@ export const level3: Level = {
       post: 'theres a patch on the dock that is not the colour of anything near it.',
       fatal: true,
       reverts: 'subject_removed',
+      fix: 'Cover him in a colour the dock actually is. A patch that matches nothing around it is the thing he looks for.',
     },
     {
       id: 'whole_thing_smeared',
@@ -166,6 +167,7 @@ export const level3: Level = {
       post: 'the entire photo is smeared. thats not depth of field, thats someone hiding something.',
       fatal: true,
       reverts: 'reflection_removed',
+      fix: 'Only the window has to go. Raise brightness until it blows out instead of blurring the whole photo.',
     },
   ],
 

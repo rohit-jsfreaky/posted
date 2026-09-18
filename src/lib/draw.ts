@@ -101,12 +101,33 @@ export function label(
   colour: string,
   size = 20,
   align: CanvasTextAlign = 'center',
+  /**
+   * Signs in a photograph are rarely square to the camera.
+   *
+   * `tilt` turns the writing to sit along the plate it is written on, in degrees,
+   * and `fit` is the widest it may run as a fraction of the canvas — a long street
+   * name is squeezed to stay inside its sign rather than hanging off both ends.
+   */
+  tilt = 0,
+  fit?: number,
 ) {
+  const W = ctx.canvas.width;
+  ctx.save();
   ctx.fillStyle = colour;
   ctx.font = `600 ${size}px monospace`;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, x * ctx.canvas.width, y * ctx.canvas.height);
+
+  if (tilt) {
+    ctx.translate(x * W, y * ctx.canvas.height);
+    ctx.rotate((tilt * Math.PI) / 180);
+    ctx.translate(-x * W, -y * ctx.canvas.height);
+  }
+
+  const room = fit === undefined ? undefined : fit * W;
+  if (room !== undefined) ctx.fillText(text, x * W, y * ctx.canvas.height, room);
+  else ctx.fillText(text, x * W, y * ctx.canvas.height);
+  ctx.restore();
 }
 
 /** A soft elliptical shadow on the ground under something. */

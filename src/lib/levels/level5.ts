@@ -163,6 +163,7 @@ export const level5: Level = {
       post: 'VCPD case numbers have seven digits. that one has six. the folder in the same photo has seven.',
       fatal: true,
       reverts: 'case_numbered',
+      fix: 'Write a case number with seven digits, the way the folder in the same photo does.',
     },
     {
       id: 'no_redaction',

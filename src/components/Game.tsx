@@ -70,13 +70,14 @@ export default function Game({
   const [rail, setRail] = useState<'client' | 'feed'>('client');
   const [unread, setUnread] = useState(0);
   /**
-   * Shown over the workspace right after the world moves.
+   * Shown over the workspace whenever the photograph under the editor is replaced.
    *
-   * The photo in the editor goes back to full size after a post, which is correct —
-   * the street re-rendered and handed over a new picture — but without saying so it
-   * reads as the player's work being thrown away.
+   * The world re-renders after every post that lands, so the picture the player was
+   * working on is swapped for a new one. Without a word on screen that reads as the
+   * game throwing their work away — and when a tell reverts a flag it reads as the
+   * game undoing it out of spite. Both need saying.
    */
-  const [changed, setChanged] = useState(false);
+  const [notice, setNotice] = useState<{ head: string; body: string } | null>(null);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
@@ -216,8 +217,14 @@ export default function Game({
     const said = level.flags
       .filter((f) => flags.includes(f.name))
       .flatMap((f) => f.chatter);
-    const noise = [...level.reactions].sort(() => Math.random() - 0.5).slice(0, 1);
-    const crowd = [...said.sort(() => Math.random() - 0.5).slice(0, 2), ...noise];
+    const picks = said.sort(() => Math.random() - 0.5).slice(0, 2);
+    // the ambient pool and a flag's own lines overlap, so two people could end up
+    // saying the same sentence word for word
+    const noise = level.reactions
+      .filter((t) => !picks.includes(t))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 1);
+    const crowd = Array.from(new Set([...picks, ...noise]));
     crowd.forEach((text, i) =>
       later(1200 + i * 900, () => {
         play('reply');
@@ -260,6 +267,13 @@ export default function Game({
           if (level.choice && fatal.reverts === level.choice.when) setChoice(null);
           show(back, held);
           push({ kind: 'system', who: '', text: 'PEOPLE BELIEVED HIM. IT WENT BACK.', likes: 0 });
+          setNotice({
+            head: 'It went back',
+            body:
+              fatal.fix ??
+              'He was believed, so the street undid it. Try it a way he cannot catch.',
+          });
+          later(7000, () => setNotice(null));
         });
       }
     }
@@ -268,8 +282,11 @@ export default function Game({
     // says the same thing louder, so it only runs when the job is still open
     const landed = level.solved(after) && !fatal;
     if (!landed) {
-      setChanged(true);
-      later(5200, () => setChanged(false));
+      setNotice({
+        head: 'The street changed',
+        body: 'This is the new photograph. Your edit did its job and went.',
+      });
+      later(5000, () => setNotice(null));
     }
     if (landed && !beat) {
       setBeat(true);
@@ -421,15 +438,13 @@ export default function Game({
             />
           </div>
 
-          {changed && (
+          {notice && (
             <div
               data-testid="world-changed"
-              className="rise pointer-events-none absolute left-1/2 top-16 z-30 -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
+              className="rise pointer-events-none absolute left-1/2 top-16 z-30 w-[min(30rem,90%)] -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
             >
-              <p className="eyebrow text-xs text-accent">The street changed</p>
-              <p className="mt-0.5 text-[11px] text-text/80">
-                This is the new photograph. Your edit did its job and went.
-              </p>
+              <p className="eyebrow text-xs text-accent">{notice.head}</p>
+              <p className="mt-0.5 text-[11px] leading-snug text-text/80">{notice.body}</p>
             </div>
           )}
 

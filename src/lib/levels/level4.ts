@@ -107,6 +107,7 @@ export const level4: Level = {
       post: 'the car has no shadow. everything else in this lot has a shadow.',
       fatal: true,
       reverts: 'car_placed',
+      fix: 'Draw a soft dark shape on the ground under the car. Everything else in that lot throws one.',
     },
     {
       // he notices the clean paste even when it does not cost you the job
