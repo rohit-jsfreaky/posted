@@ -19,20 +19,22 @@
  * Shapes are here as well as draw, because covering something is only cheap when
  * the colour you cover it with belongs in the photo.
  *
- * The glare pass matters mechanically. The window in the art is mid-toned, and
- * the cheapest solution needs it to be the first thing that clips when the whole
- * photo is brightened. So the glass is taken close to white and the ghost is set
- * just under it, close enough in tone that the two blow out together.
+ * The light on the glass matters mechanically, so it is painted into the
+ * background art rather than drawn on at runtime — a radial flare has no edges of
+ * its own and read as a lamp hanging off the front of the building. On the file
+ * the pane measures 0.83 mean luma against 0.54 for the whole frame, which is
+ * what the cheapest solution needs: brighten the photo and the glass is the first
+ * thing in it to clip. The ghost sits just under that, so the two go together.
  */
 
 import {
   backdrop,
-  glare,
   label,
   nightPass,
   place,
   placeFlipped,
   placeMirrored,
+  patch,
   reset,
   stamp,
   type Ctx,
@@ -53,7 +55,13 @@ const ZONES: ZoneMap = {
 /** His shape inside the glass — smaller, and set back into the window. */
 const GHOST = { x: 0.688, y: 0.345, w: 0.09, h: 0.165 };
 
-/** The glass itself, measured off the art. Light on a window stops at its frame. */
+/**
+ * The glass itself, measured off the art.
+ *
+ * The sun on this window is in the background art now rather than drawn on at
+ * runtime, which is the difference between a photograph of a lit window and a
+ * lamp stuck to the front of a building.
+ */
 const PANE = { x: 0.616, y: 0.3, w: 0.297, h: 0.3 };
 
 function composite(state: WorldState, ctx: Ctx) {
@@ -65,17 +73,14 @@ function composite(state: WorldState, ctx: Ctx) {
 
   nightPass(ctx, '#5a6699');
 
-  // Sun on the glass, then the ghost laid faintly over it.
-  //
-  // The tones here are chosen, not decorative. For the cheapest solution to work,
-  // raising the whole photo's brightness has to clip the glass *and* the shape in
-  // it at the same moment. Clipping at a lift of L needs both to sit above 1 - L,
-  // and the ghost still has to be visible at rest, so the pane is taken close to
-  // white and the ghost is set just under it — about a tenth of a stop down. Any
-  // darker and it survives the lift; any lighter and nobody can see him to begin
-  // with.
-  glare(ctx, ZONES.reflection, 0.83, 1.8, PANE);
-  if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.15);
+  // The sky goes to evening; the window does not. Sun is already on that glass in
+  // the art, so the pane is laid back over the evening pass untouched. Measured on
+  // the file, the pane reads 0.83 mean luma against 0.54 for the whole frame,
+  // which is what the cheapest solution needs: brighten the photo and the glass is
+  // the first thing in it to clip. The ghost sits just under that, close enough in
+  // tone that the two blow out together and faint enough to read as a reflection.
+  patch(ctx, 'bg-marina', PANE);
+  if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.17);
 
   label(
     ctx,

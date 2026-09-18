@@ -25,6 +25,31 @@ export function backdrop(ctx: Ctx, name: AssetName) {
 }
 
 /**
+ * Redraw one rectangle of a background over whatever is now on top of it.
+ *
+ * Used to hold something back from a pass that covers the whole frame. A lit shop
+ * window does not dim when the sky does, so the evening multiply goes over
+ * everything and then the glass is laid back down exactly as the art has it.
+ * Nothing is invented — the same pixels, from the same file, in the same place.
+ */
+export function patch(ctx: Ctx, name: AssetName, z: Zone) {
+  const img = art(name);
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.drawImage(
+    img,
+    z.x * img.naturalWidth,
+    z.y * img.naturalHeight,
+    z.w * img.naturalWidth,
+    z.h * img.naturalHeight,
+    z.x * W,
+    z.y * H,
+    z.w * W,
+    z.h * H,
+  );
+}
+
+/**
  * Draw a cut-out into a zone.
  *
  * It fills the zone exactly rather than fitting inside it. The cut-outs are
@@ -65,53 +90,7 @@ export function placeFlipped(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
   ctx.restore();
 }
 
-/**
- * Sun catching glass: solid across the zone, then falling away outside it.
- *
- * The shape does two jobs. Visually, light that fades at its edges reads as a
- * flare on a pane, where a hard-edged fill reads as a white billboard stuck on
- * the building. Mechanically, the inside has to be uniformly near-white, because
- * Level 3's cheapest solution works by the whole measured zone clipping at once
- * when the photo is brightened — a flare that dimmed toward the middle of the
- * zone would leave contrast behind and the flag would never fire.
- */
-export function glare(
-  ctx: Ctx,
-  z: Zone,
-  strength = 0.55,
-  spread = 1.8,
-  /**
-   * The pane the light is on.
-   *
-   * A radial flare has no edges of its own, so without this it runs off the glass
-   * and across the wall, the awning and the palm behind it — a ball of light
-   * hanging on the front of the building rather than sun caught in a window. Glass
-   * has a frame, and the light stops at it.
-   */
-  within?: Zone,
-) {
-  const W = ctx.canvas.width;
-  const H = ctx.canvas.height;
-  const cx = (z.x + z.w / 2) * W;
-  const cy = (z.y + z.h / 2) * H;
-  const inner = Math.hypot((z.w * W) / 2, (z.h * H) / 2);
-  const outer = inner * spread;
-  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, outer);
-  g.addColorStop(0, `rgba(255,255,255,${strength})`);
-  g.addColorStop(inner / outer, `rgba(255,255,255,${strength})`);
-  g.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.save();
-  if (within) {
-    ctx.beginPath();
-    ctx.rect(within.x * W, within.y * H, within.w * W, within.h * H);
-    ctx.clip();
-  }
-  ctx.globalCompositeOperation = 'screen';
-  ctx.fillStyle = g;
-  ctx.fillRect(cx - outer, cy - outer, outer * 2, outer * 2);
-  ctx.restore();
-}
-
+/** Writing burned onto the photograph: a sign, a clock face, a case number. */
 export function label(
   ctx: Ctx,
   text: string,
