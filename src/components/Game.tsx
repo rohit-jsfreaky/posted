@@ -62,6 +62,13 @@ export default function Game({
   const [lastReport, setLastReport] = useState<DiffReport | null>(null);
   const [suspicion, setSuspicion] = useState(0);
   const [sound, setSound] = useState(true);
+  /**
+   * The rail shows one of these at a time. Stacked, the feed ended up as a
+   * squeezed strip at the bottom of the screen — which is where the game's whole
+   * reaction happens, so it needs the height.
+   */
+  const [rail, setRail] = useState<'client' | 'feed'>('client');
+  const [unread, setUnread] = useState(0);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
@@ -89,9 +96,14 @@ export default function Game({
     [level],
   );
 
-  const push = useCallback((item: Omit<FeedItem, 'id'>) => {
-    setItems((prev) => [...prev, { ...item, id: nextId() }]);
-  }, []);
+  // arrivals only count as unread while the feed is the hidden tab
+  const push = useCallback(
+    (item: Omit<FeedItem, 'id'>) => {
+      setItems((prev) => [...prev, { ...item, id: nextId() }]);
+      setUnread((n) => (rail === 'feed' ? 0 : n + 1));
+    },
+    [rail],
+  );
 
   // the brief arrives as a conversation. Only timers here, no direct setState
   useEffect(() => {
@@ -127,6 +139,7 @@ export default function Game({
 
     push({ kind: 'post', who: 'you', text: level.goal, image, likes: 3 });
     play('post');
+    setRail('feed');
 
     if (!report.trusted) {
       later(700, () =>
@@ -397,14 +410,83 @@ export default function Game({
         </section>
 
         {/* ----------------------------------------------------------- right rail */}
-        <aside className="flex w-[300px] shrink-0 flex-col border-l border-line xl:w-[380px]">
-          {/* client */}
-          <div className="flex max-h-[38%] min-h-0 flex-col border-b border-line">
-            <div className="flex shrink-0 items-baseline justify-between px-3 pt-2.5">
-              <h2 className="eyebrow text-xs text-text">Client</h2>
-              <span className="text-[10px] text-dim">{level.client}</span>
+        <aside className="flex w-[320px] shrink-0 flex-col border-l border-line xl:w-[390px]">
+          {/* the street stays pinned: it is the payoff, and watching it change is
+              the whole point of the game */}
+          <div className="shrink-0 border-b border-line">
+            <div className="flex items-baseline justify-between px-3 pt-2.5">
+              <h2 className="eyebrow text-xs text-text">The street</h2>
+              <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
             </div>
-            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
+            <div className="p-3 pt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                data-testid="world"
+                src={source}
+                alt="the world as it is now"
+                className="w-full border border-line"
+              />
+            </div>
+          </div>
+
+          {/* what this job still needs. Without it, a player who does half the job
+              has no way of telling which half is missing */}
+          <div className="shrink-0 border-b border-line px-3 py-2.5">
+            <h2 className="eyebrow text-xs text-text">This job needs</h2>
+            <ul data-testid="objectives" className="mt-2 flex flex-col gap-1">
+              {level.flags
+                .filter((f) => level.required.includes(f.name))
+                .map((f) => {
+                  const got = earned.includes(f.name);
+                  return (
+                    <li key={f.name} className="flex items-center gap-2 text-[11px]">
+                      <span
+                        className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center text-[9px] ${
+                          got ? 'bg-good text-accent-ink' : 'border border-line text-dim'
+                        }`}
+                      >
+                        {got ? '✓' : ''}
+                      </span>
+                      <span className={got ? 'text-mute line-through' : 'text-text/90'}>
+                        {f.goal}
+                      </span>
+                    </li>
+                  );
+                })}
+            </ul>
+            <p className="mt-2 text-[10px] text-dim">
+              KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
+            </p>
+          </div>
+
+          {/* client and feed share the rest of the height, one at a time */}
+          <div className="flex shrink-0 border-b border-line">
+            {(['client', 'feed'] as const).map((tab) => (
+              <button
+                key={tab}
+                data-testid={`tab-${tab}`}
+                onClick={() => {
+                  setRail(tab);
+                  if (tab === 'feed') setUnread(0);
+                }}
+                className={`eyebrow flex-1 px-3 py-2 text-[11px] ${
+                  rail === tab
+                    ? 'bg-accent text-accent-ink'
+                    : 'text-mute hover:text-text'
+                }`}
+              >
+                {tab === 'client' ? 'Client' : 'Feed'}
+                {tab === 'feed' && unread > 0 && rail !== 'feed' && (
+                  <span className="ml-1.5 bg-accent px-1 text-[10px] text-accent-ink">
+                    {unread}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
+            {rail === 'client' ? (
               <div className="flex flex-col gap-1.5">
                 {thread.map((m, i) => (
                   <p
@@ -421,39 +503,12 @@ export default function Game({
                   </p>
                 ))}
               </div>
-            </div>
-            <p className="shrink-0 border-t border-line px-3 py-1.5 text-[10px] text-dim">
-              KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
-            </p>
-          </div>
-
-          {/* the street */}
-          <div className="shrink-0 border-b border-line">
-            <div className="flex items-baseline justify-between px-3 pt-2.5">
-              <h2 className="eyebrow text-xs text-text">The street</h2>
-              <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
-            </div>
-            <div className="p-3 pt-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                data-testid="world"
-                src={source}
-                alt="the world as it is now"
-                className="w-full border border-line"
-              />
-              <p data-testid="flags" className="mt-1.5 text-[10px] text-dim">
-                {earned.length > 0 ? earned.join(' · ') : 'nothing has stuck yet'}
-              </p>
-            </div>
-          </div>
-
-          {/* feed */}
-          <div className="flex min-h-0 flex-1 flex-col">
-            <h2 className="eyebrow shrink-0 px-3 pt-2.5 text-xs text-text">Feed</h2>
-            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
-              <Feed items={items} />
-              <div ref={feedEnd} />
-            </div>
+            ) : (
+              <>
+                <Feed items={items} />
+                <div ref={feedEnd} />
+              </>
+            )}
           </div>
         </aside>
       </div>

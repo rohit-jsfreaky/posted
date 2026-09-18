@@ -40,6 +40,12 @@ export type FlagSpec = {
   test: (r: DiffReport) => boolean;
   /** what the street does about it, in plain words */
   says: string;
+  /**
+   * What the player still has to achieve, phrased as the thing not the mechanism.
+   * Shown on the job checklist — without it a player who does half the job has no
+   * way of knowing which half is missing.
+   */
+  goal: string;
 };
 
 export type Keep = {

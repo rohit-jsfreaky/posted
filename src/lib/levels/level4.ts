@@ -63,11 +63,13 @@ export const level4: Level = {
   flags: [
     {
       name: 'car_placed',
+      goal: 'Put his car in the empty bay',
       test: (r) => r.zones.spot.changed,
       says: "There's a car in bay four.",
     },
     {
       name: 'shadow_added',
+      goal: 'Give it a shadow',
       // something darker than predicted, sitting on the ground under it
       test: (r) => r.zones.spot_shadow.drift < -0.035,
       says: 'It throws a shadow like everything else at that hour.',

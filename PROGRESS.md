@@ -399,7 +399,25 @@ can overflow scrolls inside itself — the feed and the client thread. The edito
 takes `minHeight={0}` so its own 500px floor cannot push the layout past the
 viewport. Checked at 1600x900: document height equals window height exactly.
 
-### Two things this turned up
+### The rail, after watching somebody play
+
+Two things went wrong the first time a person sat with it, and both were the
+interface failing to say something the game already knew.
+
+**Nothing told the player what the job still needed.** He cropped the bouncer out
+correctly, the flag fired, and nothing happened — because Level 1 also needs it to
+be night, and there was no way to find that out. There is now a **THIS JOB NEEDS**
+checklist pinned in the rail, one line per required flag, ticked and struck through
+as they land. Every flag carries a `goal` written as the thing rather than the
+mechanism: "Make it night", not "night".
+
+**The feed was a squeezed strip at the bottom of a three-panel stack** — which is
+where the entire reaction to a post happens. The street stays pinned because
+watching it change is the point, and the client thread and the feed now share the
+rest of the height as **tabs**. Posting switches to the feed on its own, and the
+feed tab carries an unread count while the client is up.
+
+### Two things the rebuild turned up
 
 **The editor's Save is the only thing that commits a crop.** The new POST IT button
 first read the canvas with `getImage()`, which looked right and was wrong: a pending

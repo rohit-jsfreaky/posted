@@ -102,16 +102,19 @@ export const level3: Level = {
   flags: [
     {
       name: 'subject_removed',
+      goal: 'Him, off the dock',
       test: (r) => r.zones.subject.changed,
       says: "He's not on the dock.",
     },
     {
       name: 'reflection_removed',
+      goal: 'Him, out of the window',
       test: (r) => r.zones.reflection.changed,
       says: 'The window is just a window now.',
     },
     {
       name: 'water_removed',
+      goal: 'Him, out of the water',
       test: (r) => r.zones.water.changed,
       says: 'Nothing in the water either.',
     },

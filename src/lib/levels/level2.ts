@@ -58,11 +58,13 @@ export const level2: Level = {
   flags: [
     {
       name: 'car_removed',
+      goal: 'Get the car out of the shot',
       test: (r) => r.zones.car.changed,
       says: 'The car is out of the picture.',
     },
     {
       name: 'dims_restored',
+      goal: 'Leave the frame the right size',
       test: (r) => !r.dims.changed,
       says: 'Nobody can tell the frame was touched.',
     },

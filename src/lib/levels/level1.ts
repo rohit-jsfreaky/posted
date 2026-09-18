@@ -108,11 +108,13 @@ export const level1: Level = {
   flags: [
     {
       name: 'night',
+      goal: 'Make it night',
       test: (r) => r.gain < 0.65,
       says: "Sun's down. The place is open and there's a queue.",
     },
     {
       name: 'bouncer_removed',
+      goal: 'Get him off the door',
       test: (r) => r.zones.bouncer.changed,
       says: "He's not on the door any more.",
     },
