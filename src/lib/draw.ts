@@ -75,7 +75,21 @@ export function placeFlipped(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
  * when the photo is brightened — a flare that dimmed toward the middle of the
  * zone would leave contrast behind and the flag would never fire.
  */
-export function glare(ctx: Ctx, z: Zone, strength = 0.55, spread = 1.8) {
+export function glare(
+  ctx: Ctx,
+  z: Zone,
+  strength = 0.55,
+  spread = 1.8,
+  /**
+   * The pane the light is on.
+   *
+   * A radial flare has no edges of its own, so without this it runs off the glass
+   * and across the wall, the awning and the palm behind it — a ball of light
+   * hanging on the front of the building rather than sun caught in a window. Glass
+   * has a frame, and the light stops at it.
+   */
+  within?: Zone,
+) {
   const W = ctx.canvas.width;
   const H = ctx.canvas.height;
   const cx = (z.x + z.w / 2) * W;
@@ -87,6 +101,11 @@ export function glare(ctx: Ctx, z: Zone, strength = 0.55, spread = 1.8) {
   g.addColorStop(inner / outer, `rgba(255,255,255,${strength})`);
   g.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.save();
+  if (within) {
+    ctx.beginPath();
+    ctx.rect(within.x * W, within.y * H, within.w * W, within.h * H);
+    ctx.clip();
+  }
   ctx.globalCompositeOperation = 'screen';
   ctx.fillStyle = g;
   ctx.fillRect(cx - outer, cy - outer, outer * 2, outer * 2);

@@ -53,6 +53,9 @@ const ZONES: ZoneMap = {
 /** His shape inside the glass — smaller, and set back into the window. */
 const GHOST = { x: 0.688, y: 0.345, w: 0.09, h: 0.165 };
 
+/** The glass itself, measured off the art. Light on a window stops at its frame. */
+const PANE = { x: 0.616, y: 0.3, w: 0.297, h: 0.3 };
+
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
   backdrop(ctx, 'bg-marina');
@@ -71,7 +74,7 @@ function composite(state: WorldState, ctx: Ctx) {
   // white and the ghost is set just under it — about a tenth of a stop down. Any
   // darker and it survives the lift; any lighter and nobody can see him to begin
   // with.
-  glare(ctx, ZONES.reflection, 0.83);
+  glare(ctx, ZONES.reflection, 0.83, 1.8, PANE);
   if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.15);
 
   label(

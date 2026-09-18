@@ -8,6 +8,7 @@ import Game from './Game';
 import Ending from './screens/Ending';
 import { preloadAssets } from '@/lib/assets';
 import { LEVELS } from '@/lib/levels';
+import { clearSave, loadDone, saveDone } from '@/lib/save';
 
 /**
  * Which screen is on.
@@ -43,14 +44,27 @@ export default function Shell() {
   useEffect(() => {
     if (!ready || held.current) return;
     held.current = true;
-    const t = window.setTimeout(() => setScreen('start'), 700);
+    const t = window.setTimeout(() => {
+      setDone(loadDone(LEVELS.length));
+      setScreen('start');
+    }, 700);
     return () => window.clearTimeout(t);
   }, [ready]);
 
   const finishJob = useCallback((index: number) => {
-    setDone((d) => Math.max(d, index + 1));
+    setDone((d) => {
+      const next = Math.max(d, index + 1);
+      saveDone(next);
+      return next;
+    });
     if (index + 1 >= LEVELS.length) setScreen('ending');
     else setScreen('jobs');
+  }, []);
+
+  const wipe = useCallback(() => {
+    clearSave();
+    setDone(0);
+    setAt(0);
   }, []);
 
   if (screen === 'loading') return <Loading progress={progress} />;
@@ -58,11 +72,14 @@ export default function Shell() {
   if (screen === 'start') {
     return (
       <Start
+        done={done}
+        total={LEVELS.length}
         onStart={() => {
           setAt(Math.min(done, LEVELS.length - 1));
           setScreen('playing');
         }}
         onJobs={() => setScreen('jobs')}
+        onReset={wipe}
       />
     );
   }
@@ -84,8 +101,7 @@ export default function Shell() {
     return (
       <Ending
         onRestart={() => {
-          setDone(0);
-          setAt(0);
+          wipe();
           setScreen('start');
         }}
       />
