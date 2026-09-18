@@ -39,14 +39,32 @@ function load(name: AssetName): Promise<void> {
   });
 }
 
-/** Load everything once. Safe to call repeatedly; the same promise comes back. */
-export function preloadAssets(): Promise<void> {
+/**
+ * Load everything once. Safe to call repeatedly; the same promise comes back.
+ *
+ * `onProgress` reports real decoded-image progress, so the loading screen's bar
+ * is measuring something rather than counting down a made-up timer.
+ */
+export function preloadAssets(onProgress?: (done: number) => void): Promise<void> {
   if (!pending) {
+    const names = Object.keys(ASSETS) as AssetName[];
+    let done = 0;
     pending = Promise.all(
-      (Object.keys(ASSETS) as AssetName[]).map(load),
+      names.map((n) =>
+        load(n).then(() => {
+          done += 1;
+          onProgress?.(done / names.length);
+        }),
+      ),
     ).then(() => undefined);
+  } else {
+    onProgress?.(cache.size / Object.keys(ASSETS).length);
   }
   return pending;
+}
+
+export function assetCount(): number {
+  return Object.keys(ASSETS).length;
 }
 
 export function isReady(): boolean {

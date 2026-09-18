@@ -25,29 +25,27 @@ export const HIM = 'cal_hampton_77';
 
 function Likes({ n }: { n: number }) {
   return (
-    <span className="font-mono text-[10px] text-[#6b7078]">
-      ♥ {n.toLocaleString()}
-    </span>
+    <span className="text-[10px] text-dim">♥ {n.toLocaleString()}</span>
   );
 }
 
 export default function Feed({ items }: { items: FeedItem[] }) {
   if (items.length === 0) {
     return (
-      <p className="font-mono text-xs text-[#6b7078]">
-        nothing posted yet. edit the photo, then press Save to post it.
+      <p className="text-[11px] text-dim">
+        nothing posted yet. edit the photo, then hit POST IT.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       {items.map((item) => {
         if (item.kind === 'system') {
           return (
             <p
               key={item.id}
-              className="px-1 py-0.5 font-mono text-[10px] tracking-widest text-[#6b7078]"
+              className="px-1 py-1 text-[10px] tracking-[0.14em] text-accent"
             >
               {item.text}
             </p>
@@ -59,31 +57,27 @@ export default function Feed({ items }: { items: FeedItem[] }) {
           <article
             key={item.id}
             data-testid={him ? 'him-post' : 'feed-item'}
-            className={`rounded-lg border p-2 ${
-              him
-                ? 'border-[#5e3030] bg-[#1f1416]'
-                : 'border-[#262a31] bg-[#171a21]'
+            className={`rise border-l-2 p-2 ${
+              him ? 'border-accent bg-raised' : 'border-line bg-panel'
             }`}
           >
             <div className="flex items-baseline justify-between gap-2">
               <span
-                className={`font-mono text-[11px] ${
-                  him ? 'text-[#ff8a8a]' : 'text-[#7e8794]'
-                }`}
+                className={`text-[11px] ${him ? 'text-accent' : 'text-mute'}`}
               >
                 @{item.who}
               </span>
               <Likes n={item.likes} />
             </div>
 
-            <p className="mt-1 text-sm leading-snug text-[#d2d8df]">{item.text}</p>
+            <p className="mt-1 text-xs leading-snug text-text/85">{item.text}</p>
 
             {item.image && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={item.image}
                 alt="posted"
-                className="mt-2 w-full rounded border border-[#262a31]"
+                className="mt-2 w-full border border-line"
               />
             )}
 

@@ -19,7 +19,7 @@ import {
 } from '@/lib/level';
 import { LEVELS } from '@/lib/levels';
 import { assess, methodFor } from '@/lib/suspicion';
-import { CHAPTERS, ENDING, type Message } from '@/lib/story';
+import { CHAPTERS, type Message } from '@/lib/story';
 import { play, setMuted } from '@/lib/sound';
 
 /**
@@ -28,6 +28,9 @@ import { play, setMuted } from '@/lib/sound';
  *
  * The player's pixels are read once and thrown away. What they see afterwards is
  * the world redrawn from authored art, which is the point of the whole thing.
+ *
+ * The layout is a HUD, not a page: one screen, nothing scrolls except the feed
+ * and the client thread, each inside its own panel.
  */
 
 type Pending = { report: DiffReport; flags: string[]; image: string };
@@ -35,45 +38,42 @@ type Pending = { report: DiffReport; flags: string[]; image: string };
 let seq = 0;
 const nextId = () => `i${seq++}`;
 
-/** ?job=3 opens straight on that job. Handy for testing a single level. */
-function startingLevel(): number {
-  if (typeof window === 'undefined') return 0;
-  const asked = Number(new URLSearchParams(window.location.search).get('job'));
-  if (!Number.isFinite(asked) || asked < 1) return 0;
-  return Math.min(LEVELS.length, Math.round(asked)) - 1;
-}
+export default function Game({
+  index,
+  onQuit,
+  onSolved,
+}: {
+  index: number;
+  onQuit: () => void;
+  onSolved: () => void;
+}) {
+  const level: Level = LEVELS[index];
+  const chapter = CHAPTERS[index];
 
-export default function Game() {
-  const [levelIndex, setLevelIndex] = useState(startingLevel);
   const [earned, setEarned] = useState<string[]>([]);
   const [choice, setChoice] = useState<string | null>(null);
   const [items, setItems] = useState<FeedItem[]>([]);
+  const [thread, setThread] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
+  const [beat, setBeat] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [previewsLeft, setPreviewsLeft] = useState(2);
   const [preview, setPreview] = useState<{ zone: string; image: string; verdict: string } | null>(null);
   const [lastReport, setLastReport] = useState<DiffReport | null>(null);
   const [suspicion, setSuspicion] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [thread, setThread] = useState<Message[]>([]);
-  const [beat, setBeat] = useState(false);
   const [sound, setSound] = useState(true);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
-
-  const level: Level = LEVELS[levelIndex];
-  const chapter = CHAPTERS[levelIndex];
+  const feedEnd = useRef<HTMLDivElement>(null);
 
   const clearTimers = useCallback(() => {
     timers.current.forEach((t) => window.clearTimeout(t));
     timers.current = [];
   }, []);
-
   const later = useCallback((ms: number, fn: () => void) => {
     timers.current.push(window.setTimeout(fn, ms));
   }, []);
-
   useEffect(() => clearTimers, [clearTimers]);
 
   const world = useMemo(() => {
@@ -84,8 +84,6 @@ export default function Game() {
 
   const source = useMemo(() => renderLevel(level, world), [level, world]);
   const solved = level.solved(world);
-
-  // features is a remount-tier option, so keep the object stable per level
   const options = useMemo(
     () => ({ theme: 'dark' as const, ...toolConfig(level) }),
     [level],
@@ -94,6 +92,14 @@ export default function Game() {
   const push = useCallback((item: Omit<FeedItem, 'id'>) => {
     setItems((prev) => [...prev, { ...item, id: nextId() }]);
   }, []);
+
+  // the brief arrives as a conversation. Only timers here, no direct setState
+  useEffect(() => {
+    const ids = CHAPTERS[index].dms.map((m, i) =>
+      window.setTimeout(() => setThread((prev) => [...prev, m]), 400 + i * 1100),
+    );
+    return () => ids.forEach((id) => window.clearTimeout(id));
+  }, [index]);
 
   // counters tick upward on their own, the way they do on a real feed
   useEffect(() => {
@@ -109,44 +115,9 @@ export default function Game() {
     return () => window.clearInterval(t);
   }, []);
 
-  /** The brief arrives as a conversation, not a paragraph nobody reads. */
-  const openThread = useCallback(
-    (index: number) => {
-      const ch = CHAPTERS[index];
-      setThread([]);
-      ch.dms.forEach((m, i) =>
-        timers.current.push(
-          window.setTimeout(() => setThread((prev) => [...prev, m]), 500 + i * 1100),
-        ),
-      );
-    },
-    [],
-  );
-
-  // The first job's thread has to start on its own, since no click opened it.
-  // Only timers are scheduled here — nothing is set during the effect itself.
   useEffect(() => {
-    const ch = CHAPTERS[startingLevel()];
-    const ids = ch.dms.map((m, i) =>
-      window.setTimeout(() => setThread((prev) => [...prev, m]), 400 + i * 1100),
-    );
-    return () => ids.forEach((id) => window.clearTimeout(id));
-  }, []);
-
-  function startLevel(index: number) {
-    clearTimers();
-    setBeat(false);
-    openThread(index);
-    setLevelIndex(index);
-    setEarned([]);
-    setChoice(null);
-    setItems([]);
-    setPending(null);
-    setPreview(null);
-    setPreviewsLeft(2);
-    setLastReport(null);
-    setSuspicion(0);
-  }
+    feedEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [items.length]);
 
   function resolve(report: DiffReport, flags: string[], image: string, picked: string | null) {
     const broken = brokenKeeps(level, report);
@@ -162,9 +133,7 @@ export default function Game() {
         push({
           kind: 'reply',
           who: 'nine_lives_vc',
-          text: report.unreadable
-            ? 'thats just a black square my guy'
-            : 'what am i even looking at',
+          text: report.unreadable ? 'thats just a black square my guy' : 'what am i even looking at',
           likes: 12,
         }),
       );
@@ -183,12 +152,7 @@ export default function Game() {
     // a post nobody believes changes nothing, no matter what it removed
     if (broken.length > 0) {
       later(700, () =>
-        push({
-          kind: 'reply',
-          who: 'marla_qt',
-          text: `${broken[0].why}. this could be anywhere.`,
-          likes: 88,
-        }),
+        push({ kind: 'reply', who: 'marla_qt', text: `${broken[0].why}. this could be anywhere.`, likes: 88 }),
       );
       later(1600, () =>
         push({ kind: 'system', who: '', text: 'NOBODY BELIEVED IT. NOTHING CHANGED.', likes: 0 }),
@@ -204,13 +168,14 @@ export default function Game() {
     const after = level.apply(level.initial, stuck);
     if (level.choice && (picked ?? choice)) after[level.choice.key] = (picked ?? choice) as string;
 
-    // what the street did about it
-    const said = level.flags.filter((f) => flags.includes(f.name)).map((f) => f.says);
-    said.forEach((line, i) =>
-      later(500 + i * 450, () => push({ kind: 'system', who: '', text: line.toUpperCase(), likes: 0 })),
-    );
+    level.flags
+      .filter((f) => flags.includes(f.name))
+      .forEach((f, i) =>
+        later(500 + i * 450, () =>
+          push({ kind: 'system', who: '', text: f.says.toUpperCase(), likes: 0 }),
+        ),
+      );
 
-    // the crowd, arriving one at a time and disagreeing with itself
     const crowd = [...level.reactions].sort(() => Math.random() - 0.5).slice(0, 3);
     crowd.forEach((text, i) =>
       later(1200 + i * 900, () => {
@@ -225,58 +190,45 @@ export default function Game() {
     );
 
     const hits: Tell[] = spotted(level, report, after);
-    const overTolerance = smell.total > level.tolerance;
     const fatal = hits.find((t) => t.fatal);
-
-    if (hits.length > 0 || overTolerance) {
+    if (hits.length > 0 || smell.total > level.tolerance) {
       const tell = hits[0];
       const zone = tell ? level.zones[tell.zone] : level.zones[Object.keys(level.zones)[0]];
       const text = tell
         ? tell.post
         : `something about this is off. ${smell.notes[0]?.note ?? 'it does not sit right'}.`;
-
       later(3600, () => {
         play('sting');
-        push({ kind: 'him', who: HIM, text, image: undefined, likes: 210, zoom: { image, zone } });
+        push({ kind: 'him', who: HIM, text, likes: 210, zoom: { image, zone } });
       });
-
       if (fatal?.reverts) {
         later(5200, () => {
           play('revert');
           setEarned((prev) => prev.filter((f) => f !== fatal.reverts));
           if (level.choice && fatal.reverts === level.choice.when) setChoice(null);
-          push({
-            kind: 'system',
-            who: '',
-            text: 'PEOPLE BELIEVED HIM. IT WENT BACK.',
-            likes: 0,
-          });
+          push({ kind: 'system', who: '', text: 'PEOPLE BELIEVED HIM. IT WENT BACK.', likes: 0 });
         });
       }
     }
 
-    // the job landing is what moves the story on, so the beat rides on the post
-    const done = level.solved(after) && !fatal;
-    if (done && !beat) {
+    const landed = level.solved(after) && !fatal;
+    if (landed && !beat) {
       setBeat(true);
       later(400, () => play('landed'));
       chapter.payoff.forEach((m, i) =>
         later(2400 + i * 1300, () => setThread((prev) => [...prev, m])),
       );
-      later(6400, () =>
-        push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 }),
-      );
+      later(6400, () => push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 }));
     }
 
     void editorRef.current?.editor?.reset(source);
   }
 
-  async function handleSave({ dataUrl }: ImageEditorSaveResult) {
+  async function readPost(dataUrl: string) {
     setBusy(true);
     try {
       const report = await diffImages(source, dataUrl, level.zones);
       const flags = readFlags(level, report);
-
       if (level.choice && flags.includes(level.choice.when) && !choice) {
         setPending({ report, flags, image: dataUrl });
         return;
@@ -285,6 +237,32 @@ export default function Game() {
     } finally {
       setBusy(false);
     }
+  }
+
+  /**
+   * Post from our own button.
+   *
+   * This presses the editor's own commit rather than reading the canvas, because
+   * a pending crop is not applied until that commit happens — `getImage()` hands
+   * back the picture with the crop still floating over it, so posting that way
+   * silently drops the one edit Level 1 is about. The editor's Save is hidden in
+   * the UI, but it is still the correct path, and `onSave` routes back here.
+   *
+   * If the editor's markup ever changes and the button cannot be found, fall back
+   * to reading the canvas: filters and overlays still come through, and a post
+   * that misses a crop beats a button that does nothing.
+   */
+  async function postIt() {
+    const root = document.querySelector('.editor-shell .image-editor-root');
+    const commit = Array.from(root?.querySelectorAll('button') ?? []).find(
+      (b) => b.textContent?.trim() === 'Save',
+    );
+    if (commit) {
+      (commit as HTMLButtonElement).click();
+      return;
+    }
+    const current = editorRef.current?.editor?.getImage();
+    if (current) await readPost(current);
   }
 
   /** Look at your own edit the way a skeptic would, before you commit to it. */
@@ -319,213 +297,213 @@ export default function Game() {
     }
   }
 
-  function nextLevel() {
-    if (levelIndex + 1 >= LEVELS.length) {
-      setFinished(true);
-      return;
-    }
-    startLevel(levelIndex + 1);
-  }
-
-  if (finished) {
-    return (
-      <main className="flex min-h-full flex-col items-center justify-center gap-4 bg-[#0d0f13] p-6 text-center text-[#e8e8e8]">
-        <p className="font-mono text-xs tracking-[0.3em] text-[#6b7078]">POSTED</p>
-        <h1 className="max-w-xl text-2xl leading-snug">{ENDING.headline}</h1>
-        <div className="flex max-w-lg flex-col gap-3">
-          {ENDING.body.map((line) => (
-            <p key={line.slice(0, 16)} className="text-sm leading-relaxed text-[#8d939c]">
-              {line}
-            </p>
-          ))}
-        </div>
-        <button
-          onClick={() => {
-            setFinished(false);
-            startLevel(0);
-          }}
-          className="mt-2 rounded border border-[#3a4049] px-4 py-1.5 font-mono text-xs text-[#9aa0aa] hover:border-[#5a626d]"
-        >
-          start over
-        </button>
-      </main>
-    );
-  }
+  const heat = Math.min(1, suspicion / level.tolerance);
+  const segments = 12;
+  const lit = Math.round(heat * segments);
 
   return (
-    <main className="flex min-h-full flex-col gap-3 bg-[#0d0f13] p-3 text-[#e8e8e8] xl:flex-row">
-      <section className="flex min-w-0 flex-1 flex-col rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-        <header className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-          <h1 className="font-mono text-sm tracking-widest text-[#9aa0aa]">
-            POSTED — JOB {level.id} OF {LEVELS.length}: {level.title.toUpperCase()}
-          </h1>
-          <span className="flex items-center gap-3 font-mono text-xs text-[#6b7078]">
-            {busy ? 'reading the post…' : `new tool: ${level.teaches}`}
-            <button
-              onClick={() => {
-                const next = !sound;
-                setSound(next);
-                setMuted(!next);
-              }}
-              className="rounded border border-[#2f343d] px-2 py-0.5 text-[10px] hover:border-[#5a626d]"
-            >
-              {sound ? 'sound on' : 'sound off'}
-            </button>
-          </span>
-        </header>
+    <main className="flex h-full w-full flex-col overflow-hidden bg-ink">
+      {/* ---------------------------------------------------------------- top bar */}
+      <header className="flex shrink-0 items-center gap-4 border-b border-line px-4 py-2.5">
+        <button
+          onClick={onQuit}
+          className="eyebrow border border-line px-2 py-1 text-[10px] text-mute hover:border-accent hover:text-text"
+        >
+          Jobs
+        </button>
+        <h1 className="display truncate text-lg text-text sm:text-2xl">
+          <span className="text-mute">Job {String(level.id).padStart(2, '0')}</span>{' '}
+          {level.title}
+        </h1>
+        <span className="hidden truncate text-[10px] tracking-[0.14em] text-dim lg:block">
+          NEW TOOL — {level.teaches.toUpperCase()}
+        </span>
 
-        <ImageEditor
-          key={level.id}
-          ref={editorRef}
-          image={source}
-          minHeight={560}
-          options={options}
-          onSave={handleSave}
-          onCancel={() => void editorRef.current?.editor?.reset(source)}
-        />
-
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[10px] tracking-widest text-[#6b7078]">
-            ZOOM PREVIEW ({previewsLeft} LEFT)
-          </span>
-          {Object.keys(level.zones).map((z) => (
-            <button
-              key={z}
-              data-testid={`preview-${z}`}
-              onClick={() => void runPreview(z)}
-              disabled={previewsLeft <= 0 || busy}
-              className="rounded border border-[#2f343d] px-2 py-1 font-mono text-[10px] text-[#8d939c] hover:border-[#5a626d] disabled:opacity-30"
-            >
-              {z.replace(/_/g, ' ')}
-            </button>
-          ))}
-        </div>
-
-        {preview && (
-          <div className="mt-2 rounded-lg border border-[#3a3050] bg-[#181526] p-2">
-            <p className="mb-1 font-mono text-[10px] tracking-widest text-[#a08ec8]">
-              WHAT A SKEPTIC SEES — {preview.zone.replace(/_/g, ' ').toUpperCase()}
-            </p>
-            <ZoomView
-              image={preview.image}
-              zone={level.zones[preview.zone]}
-              height={150}
-              ring={false}
-            />
-            <p className="mt-1 text-xs text-[#c9d0d8]">{preview.verdict}</p>
-          </div>
-        )}
-      </section>
-
-      <aside className="flex w-full shrink-0 flex-col gap-3 xl:w-[400px]">
-        <div className="rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-          <p className="font-mono text-xs text-[#6b7078]">
-            DM — {level.client}
-            <span className="ml-2 text-[#4e545d]">chapter {chapter.card}</span>
-          </p>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {thread.map((m, i) => (
-              <p
-                key={`${i}-${m.text.slice(0, 12)}`}
-                className={`max-w-[85%] rounded-lg px-2.5 py-1.5 text-sm leading-snug ${
-                  m.from === 'you'
-                    ? 'self-end bg-[#25406b] text-[#dce7f7]'
-                    : m.from === 'system'
-                      ? 'self-center bg-transparent text-center text-[11px] text-[#6b7078]'
-                      : 'self-start bg-[#232830] text-[#c9d0d8]'
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-[10px] tracking-[0.16em] text-mute">SUSPICION</span>
+          <div data-testid="suspicion" className="flex gap-[3px]" title={`${suspicion}/${level.tolerance}`}>
+            {Array.from({ length: segments }).map((_, i) => (
+              <span
+                key={i}
+                className={`h-3.5 w-2.5 ${
+                  i < lit ? (heat > 0.85 ? 'bg-accent' : 'bg-accent/80') : 'bg-line'
                 }`}
-              >
-                {m.text}
-              </p>
+              />
             ))}
           </div>
-          <p className="mt-2 font-mono text-[10px] text-[#6b7078]">
-            KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
-          </p>
-        </div>
-
-        <div className="rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-          <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="font-mono text-xs tracking-widest text-[#6b7078]">
-              THE STREET RIGHT NOW
-            </h2>
-            <span
-              data-testid="suspicion"
-              className={`font-mono text-[10px] ${
-                suspicion > level.tolerance ? 'text-[#ff8a8a]' : 'text-[#6b7078]'
-              }`}
-            >
-              suspicion {suspicion}/{level.tolerance}
-            </span>
-          </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            data-testid="world"
-            src={source}
-            alt="the world as it is now"
-            className="w-full rounded border border-[#262a31]"
-          />
-          <p data-testid="flags" className="mt-2 font-mono text-[10px] text-[#8d939c]">
-            {earned.length > 0 ? earned.join(' + ') : 'nothing has stuck yet'}
-          </p>
-        </div>
-
-        {solved && (
-          <div
-            data-testid="solved"
-            className="rounded-lg border border-[#2f5e42] bg-[#16241c] p-3"
+          <button
+            onClick={() => {
+              const next = !sound;
+              setSound(next);
+              setMuted(!next);
+            }}
+            className="eyebrow border border-line px-2 py-1 text-[10px] text-mute hover:border-accent hover:text-text"
           >
-            <p className="font-mono text-xs tracking-widest text-[#6ee7a8]">JOB DONE</p>
-            <p className="mt-1 text-sm text-[#c9d0d8]">{level.epilogue}</p>
+            {sound ? 'Sound on' : 'Sound off'}
+          </button>
+        </div>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
+        {/* ------------------------------------------------------------ workspace */}
+        <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* the editor fills whatever height is left; minHeight 0 stops its own
+              default 500px floor from pushing the page taller than the window */}
+          <div className="editor-shell flex min-h-0 flex-1 flex-col overflow-hidden [&>div]:flex [&>div]:min-h-0 [&>div]:flex-1">
+            <ImageEditor
+              key={level.id}
+              ref={editorRef}
+              image={source}
+              minHeight={0}
+              style={{ flex: 1, minHeight: 0 }}
+              options={options}
+              onSave={({ dataUrl }: ImageEditorSaveResult) => void readPost(dataUrl)}
+              onCancel={() => void editorRef.current?.editor?.reset(source)}
+            />
+          </div>
+
+          {/* ----------------------------------------------------- action row */}
+          <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-3 py-2.5">
+            <span className="text-[10px] tracking-[0.14em] text-dim">
+              ZOOM {previewsLeft}
+            </span>
+            {Object.keys(level.zones).map((z) => (
+              <button
+                key={z}
+                data-testid={`preview-${z}`}
+                onClick={() => void runPreview(z)}
+                disabled={previewsLeft <= 0 || busy}
+                className="border border-line px-2 py-1 text-[10px] text-mute hover:border-mute hover:text-text disabled:opacity-30"
+              >
+                {z.replace(/_/g, ' ')}
+              </button>
+            ))}
+
             <button
-              data-testid="next-level"
-              onClick={nextLevel}
-              className="mt-2 rounded border border-[#3a4049] px-3 py-1 font-mono text-xs text-[#9aa0aa] hover:border-[#5a626d]"
+              onClick={() => void editorRef.current?.editor?.reset(source)}
+              className="eyebrow ml-auto border border-line px-4 py-2 text-[11px] text-mute hover:border-accent hover:text-text"
             >
-              {levelIndex + 1 >= LEVELS.length ? 'see how it ends' : 'next job'}
+              Reset
+            </button>
+            <button
+              data-testid="post-it"
+              onClick={() => void postIt()}
+              disabled={busy}
+              className="display bg-accent px-7 py-2 text-lg text-accent-ink hover:brightness-110 disabled:opacity-50"
+            >
+              {busy ? 'Reading…' : 'Post it'}
             </button>
           </div>
-        )}
+        </section>
 
-        <div className="flex-1 rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-          <h2 className="mb-2 font-mono text-xs tracking-widest text-[#6b7078]">THE FEED</h2>
-          <Feed items={items} />
+        {/* ----------------------------------------------------------- right rail */}
+        <aside className="flex w-[300px] shrink-0 flex-col border-l border-line xl:w-[380px]">
+          {/* client */}
+          <div className="flex max-h-[38%] min-h-0 flex-col border-b border-line">
+            <div className="flex shrink-0 items-baseline justify-between px-3 pt-2.5">
+              <h2 className="eyebrow text-xs text-text">Client</h2>
+              <span className="text-[10px] text-dim">{level.client}</span>
+            </div>
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              <div className="flex flex-col gap-1.5">
+                {thread.map((m, i) => (
+                  <p
+                    key={`${i}-${m.text.slice(0, 10)}`}
+                    className={`rise max-w-[88%] px-2.5 py-1.5 text-xs leading-snug ${
+                      m.from === 'you'
+                        ? 'self-end bg-accent text-accent-ink'
+                        : m.from === 'system'
+                          ? 'self-center text-center text-[10px] text-dim'
+                          : 'self-start bg-raised text-text/90'
+                    }`}
+                  >
+                    {m.text}
+                  </p>
+                ))}
+              </div>
+            </div>
+            <p className="shrink-0 border-t border-line px-3 py-1.5 text-[10px] text-dim">
+              KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
+            </p>
+          </div>
+
+          {/* the street */}
+          <div className="shrink-0 border-b border-line">
+            <div className="flex items-baseline justify-between px-3 pt-2.5">
+              <h2 className="eyebrow text-xs text-text">The street</h2>
+              <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
+            </div>
+            <div className="p-3 pt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                data-testid="world"
+                src={source}
+                alt="the world as it is now"
+                className="w-full border border-line"
+              />
+              <p data-testid="flags" className="mt-1.5 text-[10px] text-dim">
+                {earned.length > 0 ? earned.join(' · ') : 'nothing has stuck yet'}
+              </p>
+            </div>
+          </div>
+
+          {/* feed */}
+          <div className="flex min-h-0 flex-1 flex-col">
+            <h2 className="eyebrow shrink-0 px-3 pt-2.5 text-xs text-text">Feed</h2>
+            <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              <Feed items={items} />
+              <div ref={feedEnd} />
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* ------------------------------------------------------------- overlays */}
+      {preview && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/85 p-6">
+          <div className="w-full max-w-lg border border-line bg-panel">
+            <p className="eyebrow border-b border-line px-4 py-2 text-xs text-accent">
+              What a skeptic sees — {preview.zone.replace(/_/g, ' ')}
+            </p>
+            <div className="p-4">
+              <ZoomView image={preview.image} zone={level.zones[preview.zone]} height={220} ring={false} />
+              <p className="mt-3 text-sm text-text/85">{preview.verdict}</p>
+              <button
+                onClick={() => setPreview(null)}
+                className="eyebrow mt-4 border border-line px-4 py-2 text-xs text-text hover:border-accent"
+              >
+                Back to it
+              </button>
+            </div>
+          </div>
         </div>
+      )}
 
-        {lastReport && (
-          <details className="rounded-lg border border-[#262a31] bg-[#14171d] p-3">
-            <summary className="cursor-pointer font-mono text-[10px] tracking-widest text-[#6b7078]">
-              WHAT THE DIFF SAW
-            </summary>
-            <dl className="mt-1 grid grid-cols-2 gap-x-3 font-mono text-[10px] text-[#8d939c]">
-              <dt className="text-[#6b7078]">brightness</dt>
-              <dd data-testid="gain">{lastReport.gain.toFixed(3)}×</dd>
-              <dt className="text-[#6b7078]">saved size</dt>
-              <dd>
-                {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
-              </dd>
-              <dt className="text-[#6b7078]">rotation / fit</dt>
-              <dd>
-                {lastReport.alignment.rotation}° / {lastReport.alignment.score.toFixed(3)}
-              </dd>
-              {Object.entries(lastReport.zones).map(([name, z]) => (
-                <ZoneRow key={name} name={name} z={z} />
-              ))}
-            </dl>
-          </details>
-        )}
-      </aside>
+      {solved && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/85 p-6">
+          <div data-testid="solved" className="w-full max-w-lg border border-line bg-panel p-6">
+            <p className="eyebrow text-xs tracking-[0.2em] text-good">Job done</p>
+            <h2 className="display mt-3 text-3xl text-text">{level.title}</h2>
+            <p className="mt-3 text-sm leading-relaxed text-text/80">{level.epilogue}</p>
+            <button
+              data-testid="next-level"
+              onClick={onSolved}
+              className="display mt-6 bg-accent px-6 py-2 text-xl text-accent-ink hover:brightness-110"
+            >
+              {index + 1 >= LEVELS.length ? 'See how it ends' : 'Next job'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {pending && level.choice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-sm rounded-lg border border-[#3a4049] bg-[#14171d] p-4">
-            <p className="font-mono text-xs tracking-widest text-[#6b7078]">
-              {level.choice.prompt.toUpperCase()}
-            </p>
-            <p className="mt-1 text-xs text-[#8d939c]">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-ink/90 p-6">
+          <div className="w-full max-w-sm border border-line bg-panel p-5">
+            <p className="eyebrow text-xs text-accent">{level.choice.prompt}</p>
+            <p className="mt-2 text-xs text-mute">
               The label changed, but nobody can read your handwriting from here.
             </p>
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="mt-4 flex flex-col gap-2">
               {level.choice.options.map((opt) => (
                 <button
                   key={opt}
@@ -535,7 +513,7 @@ export default function Game() {
                     setPending(null);
                     resolve(p.report, p.flags, p.image, opt);
                   }}
-                  className="rounded border border-[#2f343d] px-3 py-2 text-left font-mono text-sm text-[#d2d8df] hover:border-[#6ee7a8]"
+                  className="border border-line px-3 py-2 text-left text-sm text-text hover:border-accent"
                 >
                   {opt}
                 </button>
@@ -543,6 +521,29 @@ export default function Game() {
             </div>
           </div>
         </div>
+      )}
+
+      {lastReport && (
+        <details className="absolute bottom-2 left-3 z-30 max-w-md">
+          <summary className="cursor-pointer text-[10px] tracking-[0.14em] text-dim">
+            WHAT THE DIFF SAW
+          </summary>
+          <dl className="mt-1 grid grid-cols-2 gap-x-3 border border-line bg-panel p-2 text-[10px] text-mute">
+            <dt className="text-dim">brightness</dt>
+            <dd data-testid="gain">{lastReport.gain.toFixed(3)}×</dd>
+            <dt className="text-dim">saved size</dt>
+            <dd>
+              {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
+            </dd>
+            <dt className="text-dim">rotation / fit</dt>
+            <dd>
+              {lastReport.alignment.rotation}° / {lastReport.alignment.score.toFixed(3)}
+            </dd>
+            {Object.entries(lastReport.zones).map(([name, z]) => (
+              <ZoneRow key={name} name={name} z={z} />
+            ))}
+          </dl>
+        </details>
       )}
     </main>
   );
@@ -553,14 +554,14 @@ function ZoneRow({
   z,
 }: {
   name: string;
-  z: { missing: number; structure: number; detail: number; grain: number; drift: number };
+  z: { missing: number; structure: number; drift: number; grain: number };
 }) {
   return (
     <>
-      <dt className="text-[#6b7078]">{name.replace(/_/g, ' ')}</dt>
+      <dt className="text-dim">{name.replace(/_/g, ' ')}</dt>
       <dd>
         {z.missing.toFixed(2)} gone / {z.structure.toFixed(2)} changed /{' '}
-        {z.drift.toFixed(3)} drift / {z.grain.toFixed(3)} grain
+        {z.drift.toFixed(3)} drift
       </dd>
     </>
   );

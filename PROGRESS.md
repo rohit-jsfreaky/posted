@@ -33,7 +33,8 @@ What is in the build:
 - **An ending** after job five
 
 `npm run dev` → the game on `/`, the diff engine test bench on `/lab`.
-`/?job=3` opens any job directly, which is how the levels were tested.
+The game runs loading → start → jobs → play → ending, and fits the window without
+scrolling. Job select reaches any unlocked job directly.
 
 Lint clean, production build passes, **test bench 21/21 against the real art**.
 
@@ -60,7 +61,7 @@ Last updated: 2026-09-18.
 | 2 antagonist + feed | **done** | **yes — sloppy edit, he catches it, it reverts** |
 | 3 levels 2–5 + tool unlocks | **done** | **yes — all five playable, scored, in one sitting** |
 | 4 art | **done** | **yes — 21/21 against the art, job 1 replayed in the real editor** |
-| 5 story, sound, ending | written and wired, **unheard and unplayed** | no — needs a playthrough |
+| 5 story, sound, ending | written and wired, screens rebuilt, **unheard and unplayed** | no — needs a playthrough |
 | 6 ship | not started | no |
 
 ## Open questions
@@ -368,6 +369,49 @@ suspicion, cover it in a matching colour for **22**, do all three crudely for **
   a human, not a check.
 - The DM timing (messages 1.1s apart, payoff at 2.4s, his beat at 6.4s) is guesswork until
   somebody sits through it.
+
+## The interface rebuild
+
+The first playable build was a web page, not a game: it scrolled, every panel had
+the same weight, and there was no way in and no way out — you landed in the editor.
+
+Four screen designs were generated first (`docs/ui/`) and the build follows them.
+The art direction is GTA V and VI menu language: **flat colour, sharp corners,
+hairline rules, heavy condensed type over monospace, one accent used sparingly,
+and no gradients or glow in the interface** — the photographs carry the mood.
+
+- **`Loading`** — the bar tracks real decode progress, because the art genuinely
+  has to be in memory before the first frame.
+- **`Start`** — title, and a console-style menu where the selected row is a solid
+  block of accent with the label knocked out of it. Arrow keys work.
+- **`Jobs`** — five cards using each level's own background as its photograph, with
+  ticks for done, a pink border for selected and locks for what is out of reach.
+- **`Game`** — a HUD. Top bar carries the job and a segmented suspicion meter, the
+  editor fills the left, and the right rail stacks client / street / feed.
+- **`Ending`** — unchanged words, proper screen.
+
+`Shell.tsx` owns which screen is up.
+
+### It fits in the window now
+
+`html, body { height: 100%; overflow: hidden }` is set once, and every panel that
+can overflow scrolls inside itself — the feed and the client thread. The editor
+takes `minHeight={0}` so its own 500px floor cannot push the layout past the
+viewport. Checked at 1600x900: document height equals window height exactly.
+
+### Two things this turned up
+
+**The editor's Save is the only thing that commits a crop.** The new POST IT button
+first read the canvas with `getImage()`, which looked right and was wrong: a pending
+crop floats over the image until the editor's own Save applies it, so posting that
+way silently dropped the crop and only the brightness landed. POST IT now presses
+the editor's commit — hidden in the UI, still the correct path — and falls back to
+reading the canvas if that button ever moves.
+
+**Two commit buttons read as unfinished.** The editor's Cancel and Save are hidden
+with a single scoped rule that trims the trailing group of its toolbar and leaves
+undo, redo, layers and zoom alone. The editor comes off Unlayer's CDN, so if that
+markup changes the rule stops matching and the buttons simply come back.
 
 ## Decisions already made (do not reopen)
 

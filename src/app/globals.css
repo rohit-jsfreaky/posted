@@ -1,28 +1,88 @@
 @import "tailwindcss";
 
+/*
+ * POSTED — the look.
+ *
+ * Taken from the screen designs in docs/ui/. The rules are: flat colour, sharp
+ * corners, hairline dividers, heavy condensed type for headings and monospace for
+ * everything else. One accent, used sparingly. No gradients in the interface, no
+ * glow, no soft shadows — the photographs carry the mood, the interface stays out
+ * of the way.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #08080a;
+  --panel: #0e0e11;
+  --raised: #141418;
+  --line: #24242a;
+  --text: #f2f2f4;
+  --mute: #86868f;
+  --dim: #55555e;
+  --accent: #ff2e7e;
+  --accent-ink: #0a0a0b;
+  --good: #46e0a0;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-mute: var(--mute);
+  --color-dim: var(--dim);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-good: var(--good);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/*
+ * A game fills the window. It does not scroll.
+ *
+ * Every panel that can overflow handles it internally, which is why this is set
+ * once, here, rather than fought with per screen.
+ */
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* headings are the heavy condensed face, always uppercase */
+.display {
+  font-family: var(--font-display), ui-sans-serif, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 0.92;
+}
+
+/* the thin panel label that sits above every block in the HUD */
+.eyebrow {
+  font-family: var(--font-display), ui-sans-serif, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* scrollbars inside panels: present, but not loud */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* the camera pushing into the tell. --zoom-scale is set per use */
@@ -44,4 +104,34 @@ body {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 220ms ease-out both;
+}
+
+/*
+ * The editor ships its own Cancel and Save in its toolbar. Posting is the game's
+ * move, not the editor's, so the commit lives on one button we own — and two
+ * buttons that do the same thing read as an unfinished screen.
+ *
+ * This hides only the trailing button group of the editor's toolbar and leaves
+ * undo, redo, layers and zoom alone, since the ref exposes no way to rebuild
+ * those ourselves. The editor is loaded from Unlayer's CDN, so if its markup ever
+ * changes this selector stops matching and the buttons simply come back — a
+ * duplicated control, not a broken screen.
+ */
+.editor-shell .image-editor-root > div > div:first-child > div:last-child {
+  display: none;
 }
