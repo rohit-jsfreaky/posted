@@ -100,9 +100,9 @@ export const level4: Level = {
   solved: (s) => Boolean(s.car && s.shadow),
 
   hints: [
-    'This one adds instead of removing. Bay four is empty and it needs his car in it — Stickers.',
-    'Anything standing in that lot at half one throws a shadow. Draw a soft dark shape on the ground under the car, or nobody believes it is on the ground at all.',
-    'Then Filter > Noise, a little. The rest of the photo is grainy and a pasted car is not, and he zooms all the way in.',
+    'This one adds instead of removing. Bay four is the empty space in the middle. Open Stickers and scroll past the emoticons and the doodles to TRANSPORTATION — the car is in there. Drag it into the bay.',
+    'Anything standing in that lot at half one throws a shadow, and a pasted car does not. Open Draw, and before you touch the photo change the brush colour to black and pull the size slider right up — it starts red and thin. Then lay a flat dark band along the bottom of the car where it meets the tarmac.',
+    'He will still say the car is too clean against the rest of the grain, and he is right. Nothing in this editor grains something you pasted on — the filters only reach the photo underneath it. Let him say it; it does not cost you the job.',
   ],
   tells: [
     {
