@@ -11,16 +11,22 @@
  * the folder, if you bother to count the digits.
  */
 
-import { fill, label, person, reset, stamp, type Ctx } from '../draw';
+import { backdrop, fill, label, place, reset, stamp, type Ctx } from '../draw';
 import type { Level, WorldState } from '../level';
 import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
-  face: { x: 0.3, y: 0.26, w: 0.13, h: 0.17 },
-  label: { x: 0.06, y: 0.84, w: 0.34, h: 0.09 },
-  folder: { x: 0.58, y: 0.6, w: 0.26, h: 0.14 },
-  room: { x: 0.0, y: 0.0, w: 1.0, h: 0.6 },
+  face: { x: 0.45, y: 0.28, w: 0.12, h: 0.15 },
+  label: { x: 0.06, y: 0.86, w: 0.34, h: 0.09 },
+  folder: { x: 0.66, y: 0.65, w: 0.24, h: 0.12 },
+  room: { x: 0.0, y: 0.0, w: 1.0, h: 0.62 },
 };
+
+/** The seated witness, sized so their head lands in the face zone. */
+const SEAT = { x: 0.38, y: 0.26, w: 0.26, h: 0.35 };
+
+/** The blank white sticker already printed on the folder in the art. */
+const FOLDER_LABEL = { x: 0.71, y: 0.665, w: 0.14, h: 0.05 };
 
 export const REFERENCE_CASE = 'VCPD-7719042';
 
@@ -28,65 +34,34 @@ export const CASE_OPTIONS = ['VCPD-884213', 'VCPD-8842137', 'VCPD-88421'];
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
+  backdrop(ctx, 'bg-archive');
 
-  // a flat, clinical interior
-  fill(ctx, { x: 0, y: 0, w: 1, h: 1 }, '#b7b9b4');
-  fill(ctx, { x: 0, y: 0, w: 1, h: 0.58 }, '#c2c4bf');
-  fill(ctx, { x: 0, y: 0.58, w: 1, h: 0.42 }, '#9b9d99');
+  place(ctx, 'cut-witness', SEAT);
+  if (state.face !== 'visible') fill(ctx, ZONES.face, '#14161a');
 
-  // wall panels, a blind and a clock. An empty room is almost featureless, and
-  // the alignment search needs edges in both directions to hold on to
-  for (let i = 0; i < 7; i++) {
-    fill(ctx, { x: 0.02 + i * 0.14, y: 0.04, w: 0.002, h: 0.52 }, '#adafaa');
-  }
-  fill(ctx, { x: 0, y: 0.5, w: 1, h: 0.004 }, '#a8aaa5');
-  fill(ctx, { x: 0.62, y: 0.08, w: 0.3, h: 0.22 }, '#cfd1cc');
-  for (let i = 0; i < 8; i++) {
-    fill(ctx, { x: 0.62, y: 0.09 + i * 0.026, w: 0.3, h: 0.012 }, '#b9bcb7');
-  }
-  // a dark doorway and a dark chair back: this room was all mid greys, and a
-  // scene with no contrast range is a scene the alignment search cannot read
-  fill(ctx, { x: 0.86, y: 0.32, w: 0.12, h: 0.26 }, '#4b4e52');
-  fill(ctx, { x: 0.875, y: 0.34, w: 0.09, h: 0.22 }, '#33363a');
-  fill(ctx, { x: 0.2, y: 0.46, w: 0.06, h: 0.12 }, '#5c5f63');
-  fill(ctx, { x: 0.06, y: 0.1, w: 0.09, h: 0.09 }, '#d5d7d2');
-  fill(ctx, { x: 0.1, y: 0.115, w: 0.004, h: 0.035 }, '#3b3e42');
-  fill(ctx, { x: 0.1, y: 0.145, w: 0.028, h: 0.004 }, '#3b3e42');
+  // the folder's label is blank in the art, so the game prints the real case
+  // number on it. This is the number the player is meant to count the digits of
+  label(
+    ctx,
+    REFERENCE_CASE,
+    FOLDER_LABEL.x + FOLDER_LABEL.w / 2,
+    FOLDER_LABEL.y + FOLDER_LABEL.h / 2,
+    '#33363a',
+    22,
+  );
 
-  // table
-  fill(ctx, { x: 0.04, y: 0.56, w: 0.92, h: 0.04 }, '#8a8c88');
-  fill(ctx, { x: 0.04, y: 0.6, w: 0.92, h: 0.012 }, '#767872');
-  fill(ctx, { x: 0.12, y: 0.61, w: 0.03, h: 0.2 }, '#7c7e79');
-  fill(ctx, { x: 0.85, y: 0.61, w: 0.03, h: 0.2 }, '#7c7e79');
-  fill(ctx, { x: 0, y: 0.8, w: 1, h: 0.006 }, '#8e908c');
-
-  // the witness behind the table
-  person(ctx, { x: 0.28, y: 0.24, w: 0.17, h: 0.34 }, '#7e817c');
-  if (state.face === 'visible') {
-    fill(ctx, ZONES.face, '#cbb9a6');
-    fill(ctx, { x: 0.335, y: 0.31, w: 0.02, h: 0.018 }, '#4a4038');
-    fill(ctx, { x: 0.385, y: 0.31, w: 0.02, h: 0.018 }, '#4a4038');
-    fill(ctx, { x: 0.345, y: 0.37, w: 0.05, h: 0.012 }, '#6b5a4a');
-  } else {
-    fill(ctx, ZONES.face, '#14161a');
-  }
-
-  // the folder on the table, with a real case number printed on it
-  fill(ctx, ZONES.folder, '#d8d3c4');
-  fill(ctx, { x: 0.58, y: 0.6, w: 0.26, h: 0.025 }, '#c2bcaa');
-  label(ctx, REFERENCE_CASE, 0.71, 0.66, '#33363a', 22);
-  label(ctx, 'FILED', 0.71, 0.705, '#6d6f6a', 16);
-
-  // the label strip along the bottom
-  fill(ctx, ZONES.label, state.official ? '#e7e4da' : '#a5a7a2');
-  if (state.case_no) {
-    label(ctx, String(state.case_no), 0.23, 0.885, '#24272b', 26);
-  } else {
-    label(ctx, 'NO CASE NUMBER', 0.23, 0.885, '#6f716d', 20);
-  }
+  // the caption strip along the bottom, which only exists once it is claimed
+  fill(ctx, ZONES.label, state.official ? '#e7e4da' : '#7c7f7a');
+  label(
+    ctx,
+    state.case_no ? String(state.case_no) : 'NO CASE NUMBER',
+    ZONES.label.x + ZONES.label.w / 2,
+    ZONES.label.y + ZONES.label.h / 2,
+    state.case_no ? '#24272b' : '#c8ccc6',
+    state.case_no ? 30 : 24,
+  );
 
   if (state.official) {
-    // the border that makes a photograph a document
     const W = ctx.canvas.width;
     const H = ctx.canvas.height;
     ctx.strokeStyle = '#1d2024';
@@ -97,10 +72,10 @@ function composite(state: WorldState, ctx: Ctx) {
       W - ctx.lineWidth,
       H - ctx.lineWidth,
     );
-    label(ctx, 'EVIDENCE — VICE CITY PD', 0.5, 0.965, '#e7e4da', 20);
+    label(ctx, 'EVIDENCE - VICE CITY PD', 0.5, 0.968, '#e7e4da', 20);
   }
 
-  stamp(ctx, 'INTERVIEW ROOM 2   11:05', '#4b4e52');
+  stamp(ctx, 'INTERVIEW ROOM 2   11:05', '#e8e2d2');
 }
 
 export const level5: Level = {

@@ -6,8 +6,11 @@
 
 ## Where we are right now
 
-**Phases 0 to 3 are done. All five jobs are playable, the antagonist works, and the
-game has an ending.**
+**Phases 0 to 3 are done. Phase 4's art is generated and wired into all five scenes.**
+
+The grey boxes are gone. What is not done is proving the diff engine still behaves
+on photographic art — see "Not verified yet" below. That is the next thing to do,
+before anything else.
 
 ```
 composite(state) -> editor -> align -> diff -> flags -> suspicion -> he replies -> state -> composite(state)
@@ -29,11 +32,12 @@ What is in the build:
 `npm run dev` → the game on `/`, the diff engine test bench on `/lab`.
 `/?job=3` opens any job directly, which is how the levels were tested.
 
-Lint clean, production build passes, **test bench 21/21**.
+Lint clean, production build passes. **The test bench last ran 21/21 against grey
+boxes, and has not been run since the art went in.**
 
 **Still open from Phase 0: the deploy, blocked on a Vercel login Rohit has to do.**
 
-Evidence: `docs/phase0/`, `docs/phase1/`, `docs/phase3/`.
+Evidence: `docs/phase0/`, `docs/phase1/`, `docs/phase3/`, `tools/out/preview-*.png`.
 
 Last updated: 2026-09-18.
 
@@ -53,7 +57,7 @@ Last updated: 2026-09-18.
 | 1 diff → flags → re-render (**THE RISK**) | **done** | **yes — all four checks, real editor** |
 | 2 antagonist + feed | **done** | **yes — sloppy edit, he catches it, it reverts** |
 | 3 levels 2–5 + tool unlocks | **done** | **yes — all five playable, scored, in one sitting** |
-| 4 art | source images generated, **not wired in yet** | no |
+| 4 art | **wired in**, placement verified, engine numbers **not re-tested** | not yet — needs a `/lab` run |
 | 5 story, sound, ending | not started | no |
 | 6 ship | not started | no |
 
@@ -251,13 +255,39 @@ Rules the prompts had to enforce, and why:
 - **The car park is lit, not black**, for the reason in the Phase 3 notes.
 - 1536×1024 is 3:2, matching the 1200×800 scene box exactly, so nothing needs to be squashed.
 
-### Not done yet
+### Wiring it in
 
-- **None of it is wired into the game.** Every level still renders grey boxes. Swapping them in
-  means replacing the `composite()` in each `src/lib/levels/levelN.ts` and then **re-measuring
-  every zone against the new art** — the zones are fractions, and the art will not land where
-  the grey boxes did. The test bench has to be re-run after each level.
-- Missing cut-outs: the queue outside the club at night, and a standing witness for Level 2.
+All five scenes now draw the art. The grey boxes are gone, and so are the helpers that drew
+them (`person`, `circle`, `glow`, the seeded `grain`).
+
+Zones were **measured, not estimated**. `tools/grid.py` puts a labelled fractional grid over a
+background; `tools/preview.py` renders a level and outlines its zones on top. Every zone was
+read off the grid and then checked on the preview, which is how the queue was caught standing
+inside the bouncer zone — a figure there would have corrupted the one reading Level 1 turns on.
+
+Three things the art forced:
+
+1. **`tools/prep.py`.** Backgrounds became 1200×800 JPEGs and cut-outs were cropped to their
+   alpha bounding box. 16 MB became 3.0 MB. The trim matters for more than size: the generator
+   returns a figure floating in a transparent square, so untrimmed, a zone and the art in it
+   are not the same rectangle — and that equality is what the diff engine stands on.
+2. **The art loads before the first frame.** `composite()` is synchronous by design, so
+   `src/lib/assets.ts` preloads everything and both pages wait on it. `art()` throws rather
+   than returning nothing, because a half-drawn world is one the diff engine would happily
+   measure as real.
+3. **Level 4 moved to daylight and Level 3 gained a glare pass.** The lot reads as a bright
+   afternoon now, which kills the "nothing pasted in can match a black lot" problem for good.
+   The marina's window is mid-toned in the art, so the glass gets lit and the ghost is drawn
+   faint on top — the cheapest solution needs the window to be the first thing that clips.
+
+### Not verified yet
+
+- **The test bench has not been run against the art.** It needs a browser and the Playwright
+  MCP server dropped mid-session. Thresholds were tuned against flat grey boxes; photographic
+  art has far more texture, so `detail` and `grain` in particular may need re-tuning. Run
+  `/lab` first thing next session — that is the gate, not the build passing.
+- Missing cut-outs: a standing witness of its own for Level 2 (it reuses the Level 3 figure),
+  and the queue is the same man mirrored.
 - The UI chrome from `ART.md` (phone frame, feed card, composer) is still CSS, which is fine.
 
 ## Decisions already made (do not reopen)
@@ -351,7 +381,7 @@ Full field research and the kill table are in `CLAUDE.md`.
 
 1. **Rohit runs `npx vercel login`** (one time, interactive). Then the deploy is one command
    and Phase 0's finish line passes.
-2. **Finish Phase 4: wire the art in.** The images exist (see above). The work left is per
-   level: draw the background, place the cut-outs, then **re-measure the zones to match where
-   things actually are in the picture**, and re-run `/lab` until it is back to 21/21. Level 1
-   first, since it is the demo shot.
+2. **Run `/lab` against the art.** The wiring is done and placement is verified by eye, but the
+   diff thresholds have only ever been tested against grey boxes. Expect to re-tune, then play
+   all five jobs in the real editor again. This is the gate on Phase 4.
+3. **Phase 5** after that: the client DMs, sound, and the five-chapter arc with him.

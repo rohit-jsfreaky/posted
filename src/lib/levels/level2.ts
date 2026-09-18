@@ -3,63 +3,42 @@
  *
  * Teaches resize, and resize has exactly one job here: hide that you cropped.
  * He learned the shape trick in Level 1 and now he checks dimensions every time.
+ *
+ * The car sits against the kerb on the right, so a crop can take it. The street
+ * name plate is far left and stays — it is the only thing saying where this is.
  */
 
-import { fill, label, nightPass, person, reset, stamp, type Ctx } from '../draw';
+import { backdrop, label, nightPass, place, reset, stamp, type Ctx } from '../draw';
 import type { Level, WorldState } from '../level';
 import { looksPainted } from '../suspicion';
 import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
-  car: { x: 0.62, y: 0.54, w: 0.3, h: 0.16 },
-  street_sign: { x: 0.06, y: 0.2, w: 0.2, h: 0.08 },
-  witness: { x: 0.42, y: 0.46, w: 0.07, h: 0.26 },
-  block: { x: 0.0, y: 0.1, w: 0.58, h: 0.62 },
+  car: { x: 0.63, y: 0.51, w: 0.3, h: 0.22 },
+  street_sign: { x: 0.1, y: 0.05, w: 0.16, h: 0.09 },
+  witness: { x: 0.42, y: 0.44, w: 0.15, h: 0.26 },
+  block: { x: 0.0, y: 0.02, w: 0.62, h: 0.66 },
 };
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
+  backdrop(ctx, 'bg-street');
 
-  fill(ctx, { x: 0, y: 0, w: 1, h: 1 }, '#9aa4b0');
-  fill(ctx, ZONES.block, '#828d99');
+  if (state.witness) place(ctx, 'cut-subject', ZONES.witness);
+  if (state.car) place(ctx, 'cut-car', ZONES.car);
 
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 3; j++) {
-      fill(
-        ctx,
-        { x: 0.05 + i * 0.13, y: 0.16 + j * 0.16, w: 0.08, h: 0.1 },
-        '#6f7a86',
-      );
-    }
-  }
+  nightPass(ctx, '#4a5794');
 
-  // road
-  fill(ctx, { x: 0, y: 0.7, w: 1, h: 0.3 }, '#727c88');
-  fill(ctx, { x: 0, y: 0.7, w: 1, h: 0.015 }, '#8d959f');
-  for (let i = 0; i < 8; i++) {
-    fill(ctx, { x: 0.02 + i * 0.13, y: 0.86, w: 0.07, h: 0.012 }, '#aeb6bf');
-  }
+  // the plate is blank in the art, so the game writes the street name
+  label(
+    ctx,
+    'GRASSRIVERS',
+    ZONES.street_sign.x + ZONES.street_sign.w / 2,
+    ZONES.street_sign.y + ZONES.street_sign.h / 2,
+    '#eaf3ee',
+    26,
+  );
 
-  // the street name sign on its pole — this is the KEEP
-  fill(ctx, { x: 0.15, y: 0.28, w: 0.012, h: 0.42 }, '#5e6874');
-  fill(ctx, ZONES.street_sign, '#dfe5ea');
-  label(ctx, 'GRASSRIVERS', 0.16, 0.24, '#2b3138', 20);
-
-  if (state.witness) person(ctx, ZONES.witness, '#4e5661', 'WITNESS');
-
-  if (state.car) {
-    fill(ctx, ZONES.car, '#59626e');
-    fill(ctx, { x: 0.66, y: 0.5, w: 0.2, h: 0.06 }, '#69727e');
-    fill(ctx, { x: 0.68, y: 0.515, w: 0.07, h: 0.035 }, '#93a0ad');
-    fill(ctx, { x: 0.77, y: 0.515, w: 0.07, h: 0.035 }, '#93a0ad');
-    if (state.plate) {
-      fill(ctx, { x: 0.7, y: 0.645, w: 0.1, h: 0.035 }, '#e8edf1');
-      label(ctx, 'LEO 4412', 0.75, 0.6625, '#2b3138', 17);
-    }
-    label(ctx, 'HIS CAR', 0.77, 0.6, '#c3cbd4', 16);
-  }
-
-  nightPass(ctx, '#3f4a7d');
   stamp(ctx, 'GRASSRIVERS & 6TH   02:14', '#c2cade');
 }
 

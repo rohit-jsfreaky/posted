@@ -1,11 +1,12 @@
 /**
- * Grey-box drawing helpers.
+ * Scene drawing helpers.
  *
- * Every scene in the game is built from these until the real art lands in Phase 4.
- * Everything takes fractional coordinates so the scenes and the zones speak the
- * same language.
+ * Every scene is built from these, and everything takes fractional coordinates so
+ * the art and the zones speak the same language. A zone is both where the diff
+ * engine looks and where the art gets drawn — they cannot drift apart.
  */
 
+import { art, type AssetName } from './assets';
 import type { Zone } from './zones';
 
 export const SCENE_W = 1200;
@@ -18,11 +19,62 @@ export function fill(ctx: Ctx, z: Zone, colour: string) {
   ctx.fillRect(z.x * ctx.canvas.width, z.y * ctx.canvas.height, z.w * ctx.canvas.width, z.h * ctx.canvas.height);
 }
 
-export function circle(ctx: Ctx, cx: number, cy: number, r: number, colour: string) {
-  ctx.fillStyle = colour;
-  ctx.beginPath();
-  ctx.arc(cx * ctx.canvas.width, cy * ctx.canvas.height, r * ctx.canvas.width, 0, Math.PI * 2);
-  ctx.fill();
+/** Draw a background so it fills the whole frame. */
+export function backdrop(ctx: Ctx, name: AssetName) {
+  ctx.drawImage(art(name), 0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+/**
+ * Draw a cut-out into a zone.
+ *
+ * It fills the zone exactly rather than fitting inside it. The cut-outs are
+ * trimmed to their content, so the zone and the object are the same rectangle —
+ * which is the property the diff engine depends on. Zones are chosen to match
+ * each cut-out's proportions, so nothing is visibly stretched.
+ */
+export function place(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(art(name), z.x * W, z.y * H, z.w * W, z.h * H);
+  ctx.restore();
+}
+
+/** Draw a cut-out mirrored, for a reflection in glass. */
+export function placeMirrored(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate((z.x + z.w) * W, z.y * H);
+  ctx.scale(-1, 1);
+  ctx.drawImage(art(name), 0, 0, z.w * W, z.h * H);
+  ctx.restore();
+}
+
+/** Draw a cut-out upside down, for a reflection in water. */
+export function placeFlipped(ctx: Ctx, name: AssetName, z: Zone, alpha = 1) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(z.x * W, (z.y + z.h) * H);
+  ctx.scale(1, -1);
+  ctx.drawImage(art(name), 0, 0, z.w * W, z.h * H);
+  ctx.restore();
+}
+
+/** Blow light into a region, the way sun hits glass. */
+export function glare(ctx: Ctx, z: Zone, strength = 0.55) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = strength;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(z.x * W, z.y * H, z.w * W, z.h * H);
+  ctx.restore();
 }
 
 export function label(
@@ -39,18 +91,6 @@ export function label(
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
   ctx.fillText(text, x * ctx.canvas.width, y * ctx.canvas.height);
-}
-
-/** A person: body block plus a head, so removing one is visibly removing someone. */
-export function person(ctx: Ctx, z: Zone, colour: string, name?: string) {
-  const W = ctx.canvas.width;
-  const H = ctx.canvas.height;
-  ctx.fillStyle = colour;
-  ctx.fillRect(z.x * W, (z.y + z.h * 0.22) * H, z.w * W, z.h * 0.78 * H);
-  ctx.beginPath();
-  ctx.arc((z.x + z.w / 2) * W, (z.y + z.h * 0.13) * H, z.w * 0.3 * W, 0, Math.PI * 2);
-  ctx.fill();
-  if (name) label(ctx, name, z.x + z.w / 2, z.y + z.h * 0.6, '#d7dde5', 15);
 }
 
 /** A soft elliptical shadow on the ground under something. */
@@ -79,52 +119,6 @@ export function nightPass(ctx: Ctx, tint = '#39477f') {
   ctx.fillStyle = tint;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.globalCompositeOperation = 'source-over';
-}
-
-/** A lit sign or window, drawn after the night pass so it reads as a light source. */
-export function glow(ctx: Ctx, z: Zone, colour: string, spread = 0.02) {
-  const W = ctx.canvas.width;
-  const H = ctx.canvas.height;
-  ctx.globalCompositeOperation = 'screen';
-  ctx.fillStyle = '#2a1c3a';
-  ctx.fillRect(
-    (z.x - spread) * W,
-    (z.y - spread) * H,
-    (z.w + spread * 2) * W,
-    (z.h + spread * 2) * H,
-  );
-  ctx.globalCompositeOperation = 'source-over';
-  fill(ctx, z, colour);
-}
-
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-/**
- * Film grain, seeded so the same state always renders the same pixels.
- *
- * Level 4 needs this: a photo with grain everywhere is what makes a clean pasted
- * sticker stand out, and matching that grain is the counter-move.
- */
-export function grain(ctx: Ctx, amount = 16, seed = 7) {
-  const W = ctx.canvas.width;
-  const H = ctx.canvas.height;
-  const img = ctx.getImageData(0, 0, W, H);
-  const rand = mulberry32(seed);
-  for (let i = 0; i < img.data.length; i += 4) {
-    const n = (rand() - 0.5) * amount * 2;
-    img.data[i] = Math.max(0, Math.min(255, img.data[i] + n));
-    img.data[i + 1] = Math.max(0, Math.min(255, img.data[i + 1] + n));
-    img.data[i + 2] = Math.max(0, Math.min(255, img.data[i + 2] + n));
-  }
-  ctx.putImageData(img, 0, 0);
 }
 
 /** The timestamp burned into the corner of every photo in the game. */

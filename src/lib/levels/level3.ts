@@ -5,89 +5,77 @@
  * window, and mirrored again in the water. Crop — the obvious tool, the one every
  * other entry is built on — physically cannot reach the middle of a frame.
  *
- * Four tools reach the window at four different prices:
+ * Four ways to reach the window, at four different prices. Measured against the
+ * real editor, not assumed: its Blur slider works on the whole photo, not on a
+ * region, so "blur just the window" is not a move this editor can make. What is
+ * left is still a real choice:
+ *
  *   brightness up until it clips   cheapest — real photos blow highlights out
- *   blur it                        cheap, but only if nothing else is sharp
- *   cover it with something        medium
- *   paint over it                  expensive, the edges give it away
+ *   cover it in a matching colour  medium — it reads as glare if you pick well
+ *   sticker over it                medium — if the object belongs in the scene
+ *   paint a crude blob over it     expensive — the colour never matches
+ *   crop                           impossible, the window is mid-frame
+ *
+ * Shapes are here as well as draw, because covering something is only cheap when
+ * the colour you cover it with belongs in the photo.
+ *
+ * The glare pass matters mechanically. The window in the art is mid-toned, and
+ * the cheapest solution needs it to be the first thing that clips when the whole
+ * photo is brightened. So the glass gets lit, and the ghost in it is drawn faint
+ * on top, close enough in tone that the two blow out together.
  */
 
-import { fill, label, person, reset, stamp, type Ctx } from '../draw';
+import {
+  backdrop,
+  glare,
+  label,
+  nightPass,
+  place,
+  placeFlipped,
+  placeMirrored,
+  reset,
+  stamp,
+  type Ctx,
+} from '../draw';
 import type { Level, WorldState } from '../level';
 import { looksBlurred, looksPainted } from '../suspicion';
 import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
-  subject: { x: 0.44, y: 0.38, w: 0.1, h: 0.4 },
-  reflection: { x: 0.7, y: 0.3, w: 0.14, h: 0.22 },
-  water: { x: 0.4, y: 0.83, w: 0.16, h: 0.15 },
-  clock: { x: 0.12, y: 0.22, w: 0.09, h: 0.09 },
-  boat: { x: 0.04, y: 0.54, w: 0.26, h: 0.2 },
-  dock: { x: 0.0, y: 0.74, w: 1.0, h: 0.06 },
+  subject: { x: 0.4, y: 0.44, w: 0.16, h: 0.26 },
+  reflection: { x: 0.62, y: 0.3, w: 0.24, h: 0.26 },
+  water: { x: 0.4, y: 0.73, w: 0.16, h: 0.17 },
+  clock: { x: 0.17, y: 0.06, w: 0.09, h: 0.14 },
+  boat: { x: 0.0, y: 0.45, w: 0.24, h: 0.3 },
+  dock: { x: 0.24, y: 0.6, w: 0.72, h: 0.13 },
 };
+
+/** His shape inside the glass — smaller, and set back into the window. */
+const GHOST = { x: 0.68, y: 0.34, w: 0.1, h: 0.18 };
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
+  backdrop(ctx, 'bg-marina');
 
-  // night sky and far water
-  fill(ctx, { x: 0, y: 0, w: 1, h: 1 }, '#222a3d');
-  fill(ctx, { x: 0, y: 0.8, w: 1, h: 0.2 }, '#1b2233');
+  if (state.subject) place(ctx, 'cut-subject', ZONES.subject);
+  if (state.water) placeFlipped(ctx, 'cut-subject', ZONES.water, 0.42);
 
-  // the harbour building on the right
-  fill(ctx, { x: 0.62, y: 0.1, w: 0.38, h: 0.64 }, '#2c344a');
-  for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 2; j++) {
-      fill(
-        ctx,
-        { x: 0.66 + i * 0.16, y: 0.56 + j * 0.08, w: 0.1, h: 0.05 },
-        '#3a4358',
-      );
-    }
-  }
+  nightPass(ctx, '#5a6699');
 
-  // the lit window. it is the brightest thing in the shot on purpose: raise the
-  // global brightness far enough and this is what clips first
-  fill(ctx, ZONES.reflection, '#e9e6f5');
-  if (state.reflection) {
-    // his shape, mirrored in the glass
-    // faint, the way a reflection in a lit window actually is. Raise the global
-    // brightness far enough and the window and the ghost in it clip together
-    person(
-      ctx,
-      { x: 0.735, y: 0.335, w: 0.05, h: 0.17 },
-      '#cfcadd',
-    );
-  }
-  fill(ctx, { x: 0.7, y: 0.4, w: 0.14, h: 0.006 }, '#b9b6c9');
+  // sun on the glass, so the window is the brightest thing in the shot
+  glare(ctx, ZONES.reflection, 0.62);
+  if (state.reflection) placeMirrored(ctx, 'cut-subject', GHOST, 0.3);
 
-  // boat on the left — a KEEP
-  fill(ctx, ZONES.boat, '#39435c');
-  fill(ctx, { x: 0.1, y: 0.46, w: 0.05, h: 0.09 }, '#4a5570');
-  fill(ctx, { x: 0.08, y: 0.5, w: 0.16, h: 0.05 }, '#4a5570');
-  label(ctx, 'BOAT', 0.17, 0.64, '#93a0bb', 18);
+  label(
+    ctx,
+    String(state.clock),
+    ZONES.clock.x + ZONES.clock.w / 2,
+    ZONES.clock.y + ZONES.clock.h / 2,
+    '#2a3040',
+    30,
+  );
 
-  // the dock — a KEEP
-  fill(ctx, ZONES.dock, '#4b5064');
-  fill(ctx, { x: 0, y: 0.74, w: 1, h: 0.008 }, '#626983');
-
-  // clock on a post
-  fill(ctx, { x: 0.16, y: 0.3, w: 0.01, h: 0.44 }, '#39415a');
-  fill(ctx, ZONES.clock, '#cdd3e2');
-  label(ctx, String(state.clock), 0.165, 0.265, '#20263a', 19);
-
-  if (state.subject) person(ctx, ZONES.subject, '#5b6379', 'HIM');
-
-  // his reflection in the water, flipped and dimmer
-  if (state.water) {
-    ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.translate(0, ZONES.water.y * ctx.canvas.height * 2 + 30);
-    ctx.scale(1, -1);
-    person(ctx, { x: 0.44, y: 0.83, w: 0.1, h: 0.15 }, '#6b7389');
-    ctx.restore();
-  }
-
-  stamp(ctx, 'AMBROSIA MARINA   21:40', '#9fa9c4');
+  stamp(ctx, 'AMBROSIA MARINA   21:40', '#cfd7ee');
 }
 
 export const level3: Level = {
@@ -156,14 +144,6 @@ export const level3: Level = {
       post: 'the entire photo is smeared. thats not depth of field, thats someone hiding something.',
       fatal: true,
       reverts: 'reflection_removed',
-    },
-    {
-      id: 'water_smear',
-      test: (r) => looksPainted(r.zones.water),
-      zone: 'water',
-      post: 'water doesnt have straight edges. that patch does.',
-      fatal: true,
-      reverts: 'water_removed',
     },
   ],
 

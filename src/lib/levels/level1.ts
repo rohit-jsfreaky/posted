@@ -3,77 +3,86 @@
  *
  * Teaches crop, and the cost of it: a hard crop changes the shape of the photo.
  * He notices, but this time it is only a comment. Level 2 is where it bites.
+ *
+ * Zones were measured off the art with a fractional grid (`tools/grid.py`), not
+ * estimated. The bouncer stands right of the door and near enough to the edge
+ * that a crop can reach him while leaving the facade and the sign — the two
+ * KEEPs — intact.
  */
 
-import { fill, glow, label, nightPass, person, reset, stamp, type Ctx } from '../draw';
+import {
+  backdrop,
+  fill,
+  label,
+  nightPass,
+  place,
+  placeMirrored,
+  reset,
+  stamp,
+  type Ctx,
+} from '../draw';
 import type { Level, WorldState } from '../level';
 import { looksPainted } from '../suspicion';
 import type { ZoneMap } from '../zones';
 
 const ZONES: ZoneMap = {
-  bouncer: { x: 0.62, y: 0.4, w: 0.12, h: 0.35 },
-  sign: { x: 0.28, y: 0.18, w: 0.3, h: 0.1 },
-  door: { x: 0.4, y: 0.35, w: 0.18, h: 0.45 },
-  facade: { x: 0.16, y: 0.08, w: 0.68, h: 0.72 },
+  bouncer: { x: 0.72, y: 0.44, w: 0.14, h: 0.26 },
+  sign: { x: 0.35, y: 0.21, w: 0.3, h: 0.12 },
+  door: { x: 0.42, y: 0.41, w: 0.16, h: 0.28 },
+  facade: { x: 0.09, y: 0.13, w: 0.81, h: 0.59 },
 };
+
+/**
+ * Where the queue stands once the place is open.
+ *
+ * Kept well clear of the bouncer zone on the right: a figure standing inside it
+ * would muddy the one reading the whole level turns on. Alternate ones are
+ * mirrored so it does not read as the same man printed four times.
+ */
+const QUEUE = [0.1, 0.21, 0.32, 0.61].map((x, i) => ({
+  zone: { x, y: 0.48, w: 0.12, h: 0.2 },
+  mirrored: i % 2 === 1,
+}));
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
+  backdrop(ctx, 'bg-club');
 
-  fill(ctx, { x: 0, y: 0, w: 1, h: 1 }, '#aab3bd');
-  fill(ctx, ZONES.facade, '#8d97a2');
-
-  // windows give the facade structure, so the diff has something to hold on to
-  for (let i = 0; i < 5; i++) {
-    for (let j = 0; j < 2; j++) {
-      fill(
-        ctx,
-        {
-          x: 0.16 + 0.68 * (0.06 + i * 0.185),
-          y: 0.08 + 0.72 * (0.06 + j * 0.16),
-          w: 0.68 * 0.13,
-          h: 0.72 * 0.1,
-        },
-        '#7b858f',
-      );
-    }
-  }
-
-  fill(ctx, { x: 0, y: 0.72, w: 1, h: 0.28 }, '#79828d');
-  fill(ctx, { x: 0, y: 0.72, w: 1, h: 0.02 }, '#8a939d');
-
-  fill(ctx, ZONES.sign, '#e6ebf0');
-  label(ctx, String(state.sign), 0.43, 0.23, '#2b3138', 30);
-
-  fill(ctx, ZONES.door, '#3c434b');
-
+  // the queue is drawn before the night pass so it darkens with everything else
   if (state.crowd) {
-    for (let i = 0; i < 6; i++) {
-      person(
-        ctx,
-        { x: 0.08 + i * 0.13, y: 0.6, w: 0.035, h: 0.22 },
-        '#5f6871',
-      );
+    for (const q of QUEUE) {
+      if (q.mirrored) placeMirrored(ctx, 'cut-subject', q.zone);
+      else place(ctx, 'cut-subject', q.zone);
     }
   }
 
-  if (state.bouncer) person(ctx, ZONES.bouncer, '#4a525b', 'BOUNCER');
+  if (state.bouncer) place(ctx, 'cut-bouncer', ZONES.bouncer);
 
-  if (state.time === 'night') {
-    nightPass(ctx);
-    glow(ctx, ZONES.sign, '#f4f1ff', 0.02);
-    label(ctx, String(state.sign), 0.43, 0.23, '#2b1840', 30);
-  }
+  if (state.time === 'night') nightPass(ctx, '#41508c');
+
+  // the sign panel is blank in the art, so the game owns what it says
+  fill(ctx, ZONES.sign, state.time === 'night' ? '#f7f2ff' : '#f2eee9');
+  label(
+    ctx,
+    String(state.sign),
+    ZONES.sign.x + ZONES.sign.w / 2,
+    ZONES.sign.y + ZONES.sign.h / 2,
+    '#2b1840',
+    46,
+  );
 
   if (state.door === 'open') {
-    fill(ctx, ZONES.door, state.time === 'night' ? '#f0d79a' : '#c8b88a');
-    label(ctx, 'OPEN', 0.49, 0.575, '#5a4520', 24);
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    fill(ctx, ZONES.door, state.time === 'night' ? '#9a7a3e' : '#4a3a1c');
+    ctx.restore();
+    label(ctx, 'OPEN', 0.5, 0.55, '#ffeec4', 30);
   }
 
   stamp(
     ctx,
     `CLUB VANTABLACK   ${state.time === 'night' ? '23:41' : '14:20'}`,
-    state.time === 'night' ? '#b9c2d6' : '#3a4149',
+    state.time === 'night' ? '#cfd7ee' : '#3a3630',
   );
 }
 
@@ -156,5 +165,5 @@ export const level1: Level = {
 
   tolerance: 60,
   epilogue:
-    "The client got in. Somebody in the replies is still going on about the shape of the photo.",
+    'The client got in. Somebody in the replies is still going on about the shape of the photo.',
 };
