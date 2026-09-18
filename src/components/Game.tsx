@@ -80,6 +80,8 @@ export default function Game({
   const [notice, setNotice] = useState<{ head: string; body: string } | null>(null);
   /** how many hints the player has asked for on this job. Nothing is shown unasked */
   const [hints, setHints] = useState(0);
+  /** three hints fill the panel, so they fold away once they have been read */
+  const [hintsOpen, setHintsOpen] = useState(true);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const timers = useRef<number[]>([]);
@@ -534,21 +536,41 @@ export default function Game({
             </p>
 
             {/* working out which manipulation solves it is the game, so the hints
-                sit behind a button and come one at a time */}
-            {level.hints.slice(0, hints).map((h, i) => (
-              <p
-                key={h.slice(0, 14)}
-                data-testid="hint"
-                className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
-              >
-                <span className="text-accent">{i + 1}. </span>
-                {h}
-              </p>
-            ))}
+                sit behind a button and come one at a time. Once read they fold
+                away, because three of them push the client and the feed off the
+                bottom of the panel */}
+            {hints > 0 && (
+              <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
+                <span className="eyebrow text-[10px] text-mute">
+                  Hints {hints}/{level.hints.length}
+                </span>
+                <button
+                  data-testid="hint-fold"
+                  onClick={() => setHintsOpen((v) => !v)}
+                  className="eyebrow text-[10px] text-accent hover:text-text"
+                >
+                  {hintsOpen ? 'Hide' : 'Show'}
+                </button>
+              </div>
+            )}
+            {hintsOpen &&
+              level.hints.slice(0, hints).map((h, i) => (
+                <p
+                  key={h.slice(0, 14)}
+                  data-testid="hint"
+                  className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
+                >
+                  <span className="text-accent">{i + 1}. </span>
+                  {h}
+                </p>
+              ))}
             {hints < level.hints.length && (
               <button
                 data-testid="hint-button"
-                onClick={() => setHints((n) => n + 1)}
+                onClick={() => {
+                  setHints((n) => n + 1);
+                  setHintsOpen(true);
+                }}
                 className="eyebrow mt-2 w-full border border-line py-1.5 text-[10px] text-mute hover:border-accent hover:text-text"
               >
                 {hints === 0 ? 'Stuck? Get a hint' : `Another hint  ${hints}/${level.hints.length}`}
