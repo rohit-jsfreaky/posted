@@ -73,7 +73,27 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
 
   for (const f of level.flags) {
     const fat = `${at} flag ${f.name}`;
-    if (f.chatter.length === 0) fail(fat, 'has no chatter, so the street says nothing about it');
+    if (f.chatter.length < 2) {
+      fail(fat, `has ${f.chatter.length} chatter line(s) — a flag that fires alone repeats itself`);
+    }
+    /**
+     * A system line is shown on its own whenever that flag is the only one to
+     * fire, so it cannot open as though it is continuing a sentence.
+     */
+    if (/^(and|then|also|plus)\b/i.test(f.says.trim())) {
+      fail(fat, `says line starts mid-sentence: "${f.says}"`);
+    }
+    /**
+     * The crowd does not do forensics. That is the entire premise — "Nobody
+     * checked. They never do." — and the man zooming in is the only one who
+     * talks like this. A passer-by noticing a sensor's black point is the game
+     * arguing with itself.
+     */
+    const forensic =
+      /\b(sensor|pixel|halo|artefact|artifact|compression|aspect ratio|dimensions|1920|1080|metadata|exif|resolution|dpi)\b/i;
+    for (const c of f.chatter) {
+      if (forensic.test(c)) fail(fat, `a passer-by is doing forensics: "${c}"`);
+    }
     if (!f.goal.trim()) fail(fat, 'has no goal line');
     if (!f.says.trim()) fail(fat, 'has no says line');
     record(f.goal, `${fat} goal`);

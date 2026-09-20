@@ -116,7 +116,7 @@ export const level6: Level = {
       ],
       goal: 'Lose the thing that could not be there',
       test: (r) => r.zones.ev.changed,
-      says: 'And nothing in it argues with the date any more.',
+      says: 'Nothing left in it argues with the date.',
     },
   ],
   required: ['colour_gone', 'grain_added', 'ev_gone'],

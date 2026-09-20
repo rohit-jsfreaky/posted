@@ -99,7 +99,7 @@ export const level5: Level = {
       name: 'official',
       chatter: [
         'how has an evidence photo ended up on my timeline',
-        'thats an evidence photo, why is it on here',
+        'somebody has leaked this, surely',
       ],
       goal: 'Make it look like a file',
       test: (r) => r.ring.changed,
@@ -109,6 +109,7 @@ export const level5: Level = {
       name: 'face_hidden',
       chatter: [
         'face is blacked out like a real file',
+        'they even covered her up, thats thorough',
       ],
       goal: 'Cover the witness',
       // A bar over the eyes is the classic redaction precisely because covering
@@ -125,6 +126,7 @@ export const level5: Level = {
       name: 'case_numbered',
       chatter: [
         'seven digits, thats a real one',
+        'it has a reference on it and everything',
       ],
       goal: 'Put a case number on it',
       test: (r) => r.zones.label.changed,
@@ -192,7 +194,7 @@ export const level5: Level = {
 
   reactions: [
     'thats the interview room at the 8th, i recognise the table',
-    'if its evidence why is it on here',
+    'that whole precinct is on the news every other month',
     'the 8th leak like a sieve, this is not new',
     'my cousin sat in that exact chair once',
   ],

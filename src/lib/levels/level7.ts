@@ -84,8 +84,8 @@ export const level7: Level = {
     {
       name: 'tone_crushed',
       chatter: [
-        'the blacks are properly gone on this, thats a cheap sensor',
-        'looks like every other still off that yard',
+        'so this is off their camera then, not somebodys phone',
+        'security footage always looks this grim',
       ],
       goal: 'Crush it like a cheap sensor',
       // contrast scales the whole photo, which is exactly what the linear fit's
@@ -96,8 +96,8 @@ export const level7: Level = {
     {
       name: 'oversharpened',
       chatter: [
-        'why is everything on that camera so crunchy',
-        'you can see the halo round the van. classic',
+        'you can actually tell what you are looking at for once',
+        'if its off the yard system then it happened, simple as',
       ],
       goal: 'Oversharpen it the way they do',
       /**
@@ -110,7 +110,7 @@ export const level7: Level = {
        * thing sharpening actually changes.
        */
       test: (r) => r.zones.plate.edges > 1.2,
-      says: 'And it has the halo their processing puts on everything.',
+      says: 'It carries the halo their processing leaves on everything.',
     },
   ],
   required: ['ratio_fixed', 'tone_crushed', 'oversharpened'],

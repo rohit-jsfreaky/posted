@@ -132,6 +132,7 @@ export const level3: Level = {
       name: 'water_removed',
       chatter: [
         'waters dead calm. nothing in it',
+        'not so much as a ripple out there',
       ],
       goal: 'Him, out of the water',
       test: (r) => r.zones.water.changed,

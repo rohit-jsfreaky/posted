@@ -110,7 +110,7 @@ export const level1: Level = {
       name: 'night',
       chatter: [
         'wait it was open?? i walked past at 9 and it was dead',
-        'queue was mental last night',
+        'queue is mental tonight',
         'since when does vantablack have a line out the door',
       ],
       goal: 'Make it night',

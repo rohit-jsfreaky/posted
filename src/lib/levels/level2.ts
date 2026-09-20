@@ -75,8 +75,8 @@ export const level2: Level = {
     {
       name: 'dims_restored',
       chatter: [
-        'the frame is the same as every other one off that camera',
         'nothing weird about this one',
+        'i would not have looked twice at this',
       ],
       goal: 'Leave the frame the right size',
       /**
