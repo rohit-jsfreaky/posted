@@ -62,7 +62,7 @@ function Card({
       disabled={locked}
       onMouseEnter={() => !locked && onHover()}
       onClick={() => !locked && onOpen()}
-      className={`group relative flex ${height} w-[clamp(11rem,18vw,22rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
+      className={`group relative flex ${height} w-[265px] shrink-0 flex-col overflow-hidden border text-left transition-all ${
         selected && !locked ? 'border-accent' : 'border-line hover:border-mute'
       } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
       style={{ transform: selected && !locked ? 'scale(1.03)' : undefined }}
@@ -160,7 +160,7 @@ export default function Jobs({
                   <Card
                     key={level.id}
                     level={level}
-                    height="h-[min(23rem,38vh)]"
+                    height="h-[400px]"
                   caption={`JOB ${String(i + 1).padStart(2, '0')}`}
                     title={level.title}
                     done={i < progress.main}
@@ -185,7 +185,7 @@ export default function Jobs({
                     <Card
                       key={level.id}
                       level={level}
-                      height="h-[min(19rem,32vh)]"
+                      height="h-[400px]"
                     caption="SIDE JOB"
                       title={level.title}
                       done={progress.side.includes(level.id)}
