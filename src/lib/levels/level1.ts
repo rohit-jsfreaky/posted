@@ -150,9 +150,9 @@ export const level1: Level = {
   solved: (s) => !s.bouncer && s.time === 'night' && s.door === 'open',
 
   hints: [
-    'Two things have to be different: the hour of the day, and the man standing on the door.',
-    'He is right at the edge of the shot. Crop cuts things off an edge — and nothing on the building matters over there.',
-    'For the hour, Filter > Brightness, and take it a long way down. A small nudge still reads as daytime.',
+    'Two things are wrong for your client. It is the middle of the day, and there is a man standing on the door.',
+    'He is right at the edge of the picture. You do not have to do anything clever here, just cut that bit off. Nothing worth keeping is over there.',
+    'For the time of day, find the brightness slider and drag it a long way down. A small nudge still looks like the afternoon.',
   ],
   tells: [
     {
@@ -175,10 +175,9 @@ export const level1: Level = {
   ],
 
   reactions: [
-    'queue was mental last night',
-    'wait it was open?? i walked past at 9 and it was dead',
-    'bro that place has no bouncer now?',
-    'my ex works there, can confirm',
+    'vantablack is the only place open past two round there',
+    'that stretch of ocean is dead on a weeknight',
+    'the door policy there is a joke honestly',
     'unrelated but has anyone seen my bike',
   ],
 

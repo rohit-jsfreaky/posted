@@ -159,9 +159,9 @@ export const level7: Level = {
   ],
 
   hints: [
-    'Nothing in the photograph has to change. What took it does.',
-    'A fixed camera leaves three fingerprints. It crushes the blacks — Filter > Contrast, up hard. It oversharpens to cover a cheap lens — Filter > Sharpen, up. And it shoots 4:3, never the shape a phone hands you.',
-    'For the shape, open Crop and use the 4:3 preset rather than dragging the corners. Keep the van and the shutter in it or the photograph stops being about anything.',
+    'Nothing in this picture has to change. What took it does.',
+    'A cheap fixed camera leaves three marks. It crushes the dark parts, so push Contrast up hard. It over-sharpens to cover a bad lens, so push Sharpen up too. And it shoots 4:3, which is not the shape a phone hands you.',
+    'For the shape, open Crop and click the 4:3 button rather than dragging the corners about. Keep the van and the shutter in frame or the photograph stops being about anything.',
   ],
 
   reactions: [

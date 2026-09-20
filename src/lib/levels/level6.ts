@@ -174,15 +174,15 @@ export const level6: Level = {
   ],
 
   hints: [
-    'Two things make a photograph read as old, and one thing in this one argues with both.',
-    'For the age: Filter, and this time the top of the panel. A preset — Grayscale, Black & White, Sepia — or pull Saturation all the way down. Then Filter > Noise, up, because film has grain and a filter does not, and he checks.',
-    'The thing arguing with the date is the electric car at the right kerb. It is at the edge of the frame, so Crop takes it in one move — the same trick as the door job.',
+    'Two things make a photograph look old, and there is one thing in this one that argues with both of them.',
+    'For the age, go to Filter and use the top half of the panel for once. Any of the grey or sepia presets will do, or just pull Saturation to the floor. Then turn Noise up, because film has grain and a filter does not, and he knows the difference.',
+    'The thing arguing with the date is that electric car at the kerb. It is sitting on the edge, so you already know what to do with it.',
   ],
 
   reactions: [
     'ocean and 9th has not looked like that in my lifetime',
     'the flamingo is still there you know',
-    'love an old miami photo',
+    'they do a breakfast that would put you in hospital',
     'why is everyone posting old photos this week',
   ],
 

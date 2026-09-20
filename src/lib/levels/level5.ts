@@ -98,7 +98,7 @@ export const level5: Level = {
     {
       name: 'official',
       chatter: [
-        'where did this even come from',
+        'how has an evidence photo ended up on my timeline',
         'thats an evidence photo, why is it on here',
       ],
       goal: 'Make it look like a file',
@@ -124,7 +124,7 @@ export const level5: Level = {
     {
       name: 'case_numbered',
       chatter: [
-        'case number checks out',
+        'seven digits, thats a real one',
       ],
       goal: 'Put a case number on it',
       test: (r) => r.zones.label.changed,
@@ -158,9 +158,9 @@ export const level5: Level = {
   solved: (s) => Boolean(s.official) && s.face === 'redacted' && Boolean(s.case_no),
 
   hints: [
-    'Nothing in this photo has to change. Where it claims to have come from does.',
-    'Frame gives it the border of a filed document. For the witness, Blur or Pixelate her face, or lay a black bar across it the way a real file would.',
-    'Text writes the case number on the label. It will ask you what you wrote — VCPD numbers are seven digits long, and the folder on the table has one you can count.',
+    'Nothing in the photograph needs to change. Where it looks like it came from does.',
+    'Frame gives it the border a filed document has. For the witness, blur or pixelate her face, or lay a black bar across it the way a real file would.',
+    'Text puts the case number on the label. It will ask you what you typed, and VCPD numbers run to seven digits. There is one on the folder in the same photo if you want to count it.',
   ],
   tells: [
     {
@@ -191,10 +191,10 @@ export const level5: Level = {
   ],
 
   reactions: [
-    'where did this come from',
     'thats the interview room at the 8th, i recognise the table',
     'if its evidence why is it on here',
-    'case number checks out',
+    'the 8th leak like a sieve, this is not new',
+    'my cousin sat in that exact chair once',
   ],
 
   tolerance: 95,

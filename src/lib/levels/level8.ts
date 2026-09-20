@@ -148,16 +148,16 @@ export const level8: Level = {
   ],
 
   hints: [
-    'Every surface in this photograph is lit by the one sign, which is why turning all of it is honest here and nowhere else in the game.',
-    'Filter > Hue. Pink to red is a short turn, not a long one — watch the wet road rather than the sign, because the sign is too bright to read a colour off.',
-    'Do not run the slider to the end. The lamps hanging inside the bar are tungsten, and they are the one thing in frame the neon is not lighting — turn far enough and they go green, and he checks them.',
+    'Everything you can see is lit by that one sign, which is why turning all the colours at once is honest here and nowhere else in the game.',
+    'Filter, then Hue. Pink to red is a small turn. Watch the wet road rather than the sign itself, because the sign is too bright to read a colour off.',
+    'Do not drag it to the end. The lamps hanging inside the bar are ordinary bulbs, and they are the one thing that sign is not lighting. Go too far and they turn green, and that is the first place he looks.',
   ],
 
   reactions: [
     'that block has two bars and everyone mixes them up',
     'rosalinds or the magenta room, nobody can ever remember',
     'love this street when it rains',
-    'why is every photo this week slightly wrong',
+    'the fire escape on that building is held on with hope',
   ],
 
   tolerance: 80,

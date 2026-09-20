@@ -66,7 +66,7 @@ export const level2: Level = {
       chatter: [
         'wasnt there a car parked right there earlier',
         'the plate was readable an hour ago lol',
-        'i drive past there every night, never seen a car sat like that',
+        'nobody parks on that side, the kerb is too high',
       ],
       goal: 'Get the car out of the shot',
       test: (r) => r.zones.car.changed,
@@ -75,7 +75,7 @@ export const level2: Level = {
     {
       name: 'dims_restored',
       chatter: [
-        'looks like every other shot off that cam',
+        'the frame is the same as every other one off that camera',
         'nothing weird about this one',
       ],
       goal: 'Leave the frame the right size',
@@ -111,9 +111,9 @@ export const level2: Level = {
   solved: (s) => !s.car && s.dims === 'original',
 
   hints: [
-    'The car is parked against the kerb on the right. Crop takes it off that edge in one move.',
-    'But a crop leaves a smaller photo, and he checks the size of everything posted off that camera.',
-    'So crop the car out, then open Resize and put the photo back to 1200 x 800. Same picture, same frame, no car.',
+    'The car is at the kerb on the right, so the same edge trick works again.',
+    'Trouble is, cutting a piece off leaves you with a smaller photo, and he checks the size of everything that comes off that camera.',
+    'So take the car off, then open Resize and put it back to 1200 x 800. Same picture, right size, no car.',
   ],
   tells: [
     {
@@ -130,7 +130,7 @@ export const level2: Level = {
       id: 'smear',
       test: (r) => looksPainted(r.zones.car),
       zone: 'car',
-      post: 'the kerb line stops and starts again. something was painted over it.',
+      post: 'follow the kerb from the left. it runs, then it stops, then it starts again in the wrong place.',
       fatal: true,
       reverts: 'car_removed',
       fix: 'The car sits against the right kerb. Crop it out of the frame instead of painting over it.',
@@ -138,10 +138,10 @@ export const level2: Level = {
   ],
 
   reactions: [
-    'i drive past there every night, never seen a car parked like that anyway',
-    'wait wasnt there a car in this earlier',
-    'the plate was readable an hour ago lol',
     'grassrivers at 2am is genuinely scary',
+    'they still have not fixed the lights on that corner',
+    'that whole block is permit parking and nobody checks',
+    'why does this street look different every time i see it',
   ],
 
   tolerance: 55,
