@@ -47,17 +47,26 @@ const COST: Record<Method, number> = {
   covered: 22,
 };
 
-const NOTE: Record<Method, string> = {
-  cropped: 'cropped off the edge',
-  dimmed: 'lost in the dark',
-  blown: 'blown out by the light',
-  blurred: 'gone soft',
-  pasted: 'something pasted on top',
-  painted: 'painted over, and the edges show',
-  covered: 'covered up',
+/**
+ * What he says when he can smell something but has not found the tell.
+ *
+ * These are read out as a sentence, not as labels in a list — "cropped off the
+ * edge." on its own is a caption, and he types in sentences.
+ */
+export const NOTE: Record<Method, string> = {
+  cropped: 'something has come off the edge of this one',
+  dimmed: 'the light in this is not the light that was there',
+  blown: 'that highlight is doing an awful lot of work',
+  blurred: 'one part of this is softer than everything the same distance away',
+  pasted: 'something in this is sitting on top of the photo rather than in it',
+  painted: 'the edges in this do not match anything around them',
+  covered: 'a piece of this has been covered over',
 };
 
 /** Work out how a zone was most likely changed, from the numbers alone. */
+/** The same table, named for the content check so it cannot drift unnoticed. */
+export const NOTES_FOR_CHECK = NOTE;
+
 export function methodFor(z: Reading): Method | null {
   if (!z.changed) return null;
   if (z.missing > 0.45) return 'cropped';
@@ -87,7 +96,7 @@ export function assess(level: Level, report: DiffReport): Suspicion {
       zone: 'the frame',
       method: 'cropped',
       cost: 18,
-      note: 'the photo is a different shape than it should be',
+      note: 'this is not the shape the rest of them are',
     });
   }
 
@@ -97,9 +106,12 @@ export function assess(level: Level, report: DiffReport): Suspicion {
       zone: 'the light',
       method: 'dimmed',
       cost: COST.dimmed,
-      note: 'the light moved, but it moved everywhere at once',
+      note: 'the light moved in this, and it moved everywhere at once',
     });
   }
+
+  // worst first, so whoever reads this gets the thing he would actually lead with
+  notes.sort((a, b) => b.cost - a.cost);
 
   const total = Math.round(notes.reduce((s, n) => s + n.cost, 0));
   return { total, notes };

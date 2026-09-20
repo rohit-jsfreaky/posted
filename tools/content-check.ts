@@ -14,6 +14,8 @@
 
 import { ALL, MAIN, SIDE } from '../src/lib/levels';
 import { CHAPTERS, CROWD, ENDING, SIDE_BRIEFS } from '../src/lib/story';
+import { NOTES_FOR_CHECK } from '../src/lib/suspicion';
+import { readFileSync } from 'node:fs';
 import type { Level } from '../src/lib/level';
 
 const problems: string[] = [];
@@ -197,6 +199,23 @@ for (const [who, where] of clients) {
 
 MAIN.forEach((l) => checkLevel(l, 'run'));
 SIDE.forEach((l) => checkLevel(l, 'side'));
+
+/**
+ * Every method the engine can infer needs an answer in the zoom.
+ *
+ * `methodFor` can return `dimmed`, and the zoom had no branch for it, so a
+ * player who had only darkened a zone was told it "reads as covered" — an answer
+ * about an edit they had not made. A missing branch falls through silently, so
+ * nothing but this would have caught it.
+ */
+const game = readFileSync('src/components/Game.tsx', 'utf8');
+for (const [method, note] of Object.entries(NOTES_FOR_CHECK)) {
+  if (!note.trim()) fail('suspicion', `method "${method}" has no note`);
+  if (!game.includes(`method === '${method}'`)) {
+    fail('zoom preview', `no answer for "${method}" — it falls through to whatever is last`);
+  }
+  record(note, `suspicion note ${method}`);
+}
 
 if (!ENDING.headline.trim()) fail('ending', 'has no headline');
 if (ENDING.body.length === 0) fail('ending', 'has no body');

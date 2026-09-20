@@ -362,10 +362,20 @@ export default function Game({
     const fatal = hits.find((t) => t.fatal);
     if (hits.length > 0 || smell.total > level.tolerance) {
       const tell = hits[0];
-      const zone = tell ? level.zones[tell.zone] : level.zones[Object.keys(level.zones)[0]];
+      /**
+       * With no tell he is going on smell alone, so he leads with the worst
+       * thing he can see and zooms into the place he saw it. `notes` is sorted
+       * worst first; it used to take whichever note and whichever zone came out
+       * of the map first, so he could point at a corner nobody touched and
+       * complain about the cheapest edit in the photograph.
+       */
+      const worst = smell.notes[0];
+      const zone = tell
+        ? level.zones[tell.zone]
+        : (worst && level.zones[worst.zone]) ?? level.zones[Object.keys(level.zones)[0]];
       const text = tell
         ? tell.post
-        : `something about this is off. ${smell.notes[0]?.note ?? 'it does not sit right'}.`;
+        : `${worst?.note ?? 'something about this one does not sit right'}. cant put my finger on it yet.`;
       later(3600, () => {
         play('sting');
         push({
@@ -499,7 +509,14 @@ export default function Game({
                   ? 'gone, but the frame is a different shape now'
                   : method === 'blown'
                     ? 'blown out by the light. highlights do that on their own'
-                    : 'covered, and it reads as covered';
+                    : method === 'dimmed'
+                      ? 'darker than the rest of the photo says it should be'
+                      : method === 'covered'
+                        ? 'covered, and it reads as covered'
+                        // every method the engine infers has a branch above, and
+                        // the content check makes sure of it. This is here so a
+                        // new one shows up as nothing rather than as a wrong answer
+                        : 'something happened here, and I cannot tell you what';
       setPreview({ zone: zoneName, image: current, verdict });
       setPreviewsLeft((n) => n - 1);
     } finally {
