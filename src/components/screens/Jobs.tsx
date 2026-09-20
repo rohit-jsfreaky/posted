@@ -1,15 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LEVELS } from '@/lib/levels';
 import { CHAPTERS } from '@/lib/story';
 
 /**
  * Job select.
  *
- * Five cards, one per job, using each level's own background as its photograph —
- * so the card and the thing it opens are the same place. Done jobs get a tick,
- * the next one is selectable, later ones are locked until you reach them.
+ * One card per job, using that level's own background as its photograph, so the
+ * card and the thing it opens are the same place. Done jobs get a tick, the next
+ * one is selectable, later ones are locked until you reach them.
+ *
+ * The cards run in a strip that scrolls sideways rather than a grid. A grid with
+ * a column count in it is a grid that breaks the day a job is added — which is
+ * exactly what happened: the sixth wrapped onto a second row, off the bottom of a
+ * screen that does not scroll.
  */
 
 /** Keyed by level id, because the running order is not the order these were written in. */
@@ -33,6 +38,13 @@ export default function Jobs({
   onBack: () => void;
 }) {
   const [at, setAt] = useState(Math.min(done, LEVELS.length - 1));
+  const strip = useRef<HTMLDivElement>(null);
+  const current = useRef<HTMLButtonElement>(null);
+
+  // the job you are up to can be off the right-hand end of the strip on arrival
+  useEffect(() => {
+    current.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [at]);
   const selected = LEVELS[at];
   const chapter = CHAPTERS[at];
   const locked = (i: number) => i > done;
@@ -57,8 +69,11 @@ export default function Jobs({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 items-center px-6 sm:px-10">
-        <div className="grid w-full grid-cols-5 gap-3 sm:gap-4">
+      <div
+        ref={strip}
+        className="scroll-thin flex min-h-0 flex-1 items-center overflow-x-auto overflow-y-hidden px-6 sm:px-10"
+      >
+        <div className="flex h-[min(58vh,30rem)] gap-3 sm:gap-4">
           {LEVELS.map((level, i) => {
             const isLocked = locked(i);
             const isDone = i < done;
@@ -66,18 +81,19 @@ export default function Jobs({
             return (
               <button
                 key={level.id}
+                ref={isOn ? current : undefined}
                 data-testid={`job-${level.id}`}
                 disabled={isLocked}
                 onMouseEnter={() => !isLocked && setAt(i)}
                 onClick={() => !isLocked && onPick(i)}
-                className={`group relative flex h-full flex-col overflow-hidden border text-left transition-all ${
+                className={`group relative flex h-full w-[clamp(9rem,15vw,14rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
                   isOn && !isLocked
                     ? 'border-accent'
                     : 'border-line hover:border-mute'
                 } ${isLocked ? 'cursor-not-allowed opacity-40' : ''}`}
                 style={{ transform: isOn && !isLocked ? 'scale(1.03)' : undefined }}
               >
-                <div className="relative aspect-[3/4] w-full overflow-hidden">
+                <div className="relative min-h-0 flex-1 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={CARD_ART[level.id]}
@@ -90,12 +106,15 @@ export default function Jobs({
                     </span>
                   )}
                   {isLocked && (
-                    <span className="absolute inset-0 flex items-center justify-center text-2xl text-text/70">
+                    <span className="absolute inset-0 flex items-center justify-center bg-ink/45 text-2xl text-text/80">
                       ⬤
                     </span>
                   )}
                 </div>
-                <div className="flex flex-1 flex-col gap-1 bg-panel p-3">
+                {/* sizes to its text: the photograph takes everything else. It used
+                    to share the height with flex-1, which left half a card of
+                    empty panel under every title */}
+                <div className="flex shrink-0 flex-col gap-1 bg-panel p-3">
                   <span className="text-[10px] tracking-[0.16em] text-mute">
                     JOB {String(i + 1).padStart(2, '0')}
                   </span>
