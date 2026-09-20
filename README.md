@@ -142,8 +142,10 @@ globally brightened and missing a chunk of one edge.
 
 - 1-D axis profile matching to find scale and offset, so a crop-then-resize is separated into
   "this much came off that edge" and "and then it was scaled back"
-- a candidate search over four rotations, arbitrated in 2-D, because a flat scene like an empty
-  car park will happily match itself at the wrong offset
+- a candidate search over all eight orientations — four rotations and their mirrors — arbitrated
+  in 2-D, because a flat scene like an empty car park will happily match itself at the wrong
+  offset, and because without looking for mirrors a flipped photograph lands every zone on the
+  wrong half of the frame and hands out flags for pressing one button
 - a border exclusion, so adding a frame or a vignette does not wreck the alignment
 - an identity margin, so a photograph that was not moved is not "improved" into a false match by
   a repeating texture like a row of marina pilings
