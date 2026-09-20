@@ -105,14 +105,22 @@ are most comfortable with." So: do not over-scope. Polish beats scale.
 
 ## Folder map
 
-| file | what |
-|---|---|
-| `CLAUDE.md` | this — the operating contract |
-| `MASTER-PLAN.md` | phases, each with a finish line |
-| `DESIGN.md` | the game, the state model, the diff engine, the antagonist |
-| `LEVELS.md` | all 5 levels: zones, flags, layers, solutions |
-| `ART.md` | the asset list and how each is produced |
-| `PROGRESS.md` | **live state — read first, update last** |
+Everything below `CLAUDE.md` is **local only** — gitignored on purpose. The repo's front page is
+for somebody who wants to play the game or read the source, not for the plan, the level spec, the
+art brief or the running log. They still exist on this machine and in git history; they are just
+not in `git ls-files` any more. Keep updating them exactly as before.
+
+| file | what | in the repo? |
+|---|---|---|
+| `README.md` | what judges read | yes |
+| `CLAUDE.md` | this — the operating contract | yes |
+| `AGENTS.md` | written by `next dev`, leave it alone | yes |
+| `MASTER-PLAN.md` | phases, each with a finish line | no |
+| `DESIGN.md` | the game, the state model, the diff engine, the antagonist | no |
+| `LEVELS.md` | every level: zones, flags, layers, solutions | no |
+| `ART.md` | the asset list and how each is produced | no |
+| `PROGRESS.md` | **live state — read first, update last** | no |
+| `SHIP.md` | what is left before the submit button | no |
 
 ## Working rules
 

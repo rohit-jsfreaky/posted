@@ -3,8 +3,7 @@
  *
  * The game never sees which tool was used. It infers the method from the shape of
  * the measurements, which is the whole point: several tools reach the same flag at
- * different costs, and the skill is lying with the fewest, most plausible moves
- * (DESIGN.md sec 7).
+ * different costs, and the skill is lying with the fewest, most plausible moves.
  *
  *   crop an edge object      low     nothing left behind, but the frame changes
  *   brightness / hue         low     the whole photo moves together

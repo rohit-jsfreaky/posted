@@ -1,7 +1,7 @@
 /**
  * The five chapters, and the people talking in them.
  *
- * The arc is the one in DESIGN.md sec 6: he starts as an annoying reply, works out
+ * The arc: he starts as an annoying reply, works out
  * there is a pattern, and then becomes the job. Job four is where it turns — the
  * client who will not give a name wants a car put at a scene, and it is his car.
  * Job five is the file that finishes him. Then the last line is true.

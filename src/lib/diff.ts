@@ -6,7 +6,7 @@
  *
  * Nothing here looks at *how* the edit was made either. A zone counts as gone
  * whether it was cropped off, painted over, covered with a sticker or blurred to
- * mush (DESIGN.md sec 5). The method is inferred later, from the shape of the
+ * mush. The method is inferred later, from the shape of the
  * numbers, and that is what suspicion is built on.
  *
  * The whole-photo fit matters more than it looks. The editor's brightness slider

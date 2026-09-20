@@ -4,7 +4,7 @@
  * The inverse of every level before it. Removing is easy. Adding is hard, because
  * a pasted object has no shadow and no grain, and this photo has grain everywhere.
  *
- * LEVELS.md planned the counter-move as Filter -> Noise, to grain the pasted car
+ * The plan was to counter it with Filter -> Noise, graining the pasted car
  * until it matched the plate. Measured against the real editor, that does not
  * work: filters apply to the photo layer and never touch an added object, so the
  * noise grains the whole car park and leaves the pasted car perfectly clean.
