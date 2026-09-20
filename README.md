@@ -161,7 +161,7 @@ pressed.
 
 ### The test bench
 
-`/lab` runs **21 synthesised cases** against the real art — every valid solution, and the
+`/lab` runs **22 synthesised cases** against the real art — every valid solution, and the
 near-misses that must not fire. It is the reason a change to a threshold is a two-minute check
 rather than an afternoon of replaying levels by hand.
 

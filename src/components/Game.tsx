@@ -214,6 +214,31 @@ export default function Game({
         likes: 3,
       });
 
+    /**
+     * A flipped photograph is not an edit, it is the same photograph backwards.
+     *
+     * Every sign in it reads the wrong way round, so nobody in Leonida would
+     * believe it for a second — and before the aligner looked for mirrors, a flip
+     * put every zone on the wrong half of the frame and handed out flags for
+     * pressing one button.
+     */
+    if (report.alignment.mirrored) {
+      posted(image);
+      later(700, () =>
+        push({
+          kind: 'reply',
+          who: 'marla_qt',
+          text: 'every sign in this reads backwards lol',
+          likes: 64,
+        }),
+      );
+      later(1600, () =>
+        push({ kind: 'system', who: '', text: 'NOBODY BELIEVED IT. NOTHING CHANGED.', likes: 0 }),
+      );
+      void editorRef.current?.editor?.reset(source);
+      return;
+    }
+
     if (!report.trusted) {
       posted(image);
       later(700, () =>

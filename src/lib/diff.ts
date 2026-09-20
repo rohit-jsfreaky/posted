@@ -70,7 +70,7 @@ export type Reading = {
 export type DiffReport = {
   trusted: boolean;
   unreadable: boolean;
-  alignment: Pick<Alignment, 'rotation' | 'score' | 'coverage'> & {
+  alignment: Pick<Alignment, 'rotation' | 'mirrored' | 'score' | 'coverage'> & {
     kx: number;
     ky: number;
     offX: number;
@@ -430,6 +430,7 @@ export async function diffImages(
     unreadable,
     alignment: {
       rotation: al.rotation,
+      mirrored: al.mirrored,
       score: al.score,
       coverage: al.coverage,
       kx: al.x.k,

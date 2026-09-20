@@ -25,7 +25,7 @@ function untouched(zones: string[]): DiffReport {
   return {
     trusted: true,
     unreadable: false,
-    alignment: { rotation: 0, score: 1, coverage: 1, kx: 1, ky: 1, offX: 0, offY: 0 },
+    alignment: { rotation: 0, mirrored: false, score: 1, coverage: 1, kx: 1, ky: 1, offX: 0, offY: 0 },
     gain: 1,
     photometry: { a: 1, b: 0, contrast: 1 },
     dims: { orig: [1200, 800], saved: [1200, 800], changed: false, aspectChanged: false },

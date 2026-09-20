@@ -95,6 +95,7 @@ export const CASES: MutationCase[] = [
   { id: 'nothing', what: 'save without editing', level: 1, expect: [] },
   { id: 'sticker-corner', what: 'sticker in an empty corner', level: 1, expect: [] },
   { id: 'rotate90', what: 'rotate 90 degrees', level: 1, expect: [] },
+  { id: 'flip-h', what: 'flip the photo left to right', level: 1, expect: [] },
   { id: 'dim-15', what: 'brightness down a little', level: 1, expect: [] },
   { id: 'dim-25', what: 'brightness down properly', level: 1, expect: ['night'] },
   { id: 'crush-60', what: 'crushed to a black square', level: 1, expect: [] },
@@ -205,6 +206,20 @@ export async function buildMutation(
         (ctx) => {
           ctx.translate(h, 0);
           ctx.rotate(Math.PI / 2);
+          ctx.drawImage(img, 0, 0);
+        },
+        img,
+      );
+
+    // the editor has this button, and before the aligner looked for mirrors it
+    // was worth two free flags
+    case 'flip-h':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          ctx.translate(w, 0);
+          ctx.scale(-1, 1);
           ctx.drawImage(img, 0, 0);
         },
         img,

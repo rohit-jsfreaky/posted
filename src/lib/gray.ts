@@ -66,6 +66,23 @@ export function rotateGray(g: Gray, degrees: 0 | 90 | 180 | 270): Gray {
   return { w, h, data: out };
 }
 
+/**
+ * Mirror a plate left to right.
+ *
+ * Together with the four rotations this covers all eight ways a photograph can be
+ * put back into its own frame, which is what it takes to notice somebody flipped
+ * one rather than edited it.
+ */
+export function mirrorGray(g: Gray): Gray {
+  const out = new Float32Array(g.w * g.h);
+  for (let y = 0; y < g.h; y++) {
+    for (let x = 0; x < g.w; x++) {
+      out[y * g.w + x] = g.data[y * g.w + (g.w - 1 - x)];
+    }
+  }
+  return { w: g.w, h: g.h, data: out };
+}
+
 /** Bilinear sample. Returns null outside the plate, which is how a crop is seen. */
 export function sample(g: Gray, x: number, y: number): number | null {
   if (x < 0 || y < 0 || x > g.w - 1 || y > g.h - 1) return null;

@@ -106,7 +106,7 @@ work beat six where one is rough.
 
 | # | what | why it matters | size |
 |---|---|---|---|
-| D1 | **Flip is unhandled.** The aligner searches four rotations, not mirrors. A judge who presses Flip horizontal gets… something | Probably already safe: a mirrored photo should fail alignment and fall into the "what am I even looking at" path, which is a *fine* answer. **Verify rather than assume** — if it instead fires nonsense flags, that is a judge watching the game break | 10 min to check |
+| ~~D1~~ | ~~**Flip is unhandled.**~~ **Done, and it was a real bug.** Pressing Flip horizontal fired `bouncer_removed` — a free flag for one button, because every zone landed on the wrong half of the frame. The aligner now searches all eight orientations and a flipped post is rejected: *"every sign in this reads backwards lol"*. Bench case added, 22/22 | — |
 | D2 | **Suspicion is scored per post.** Splitting a job across several small posts costs less than doing it in one | Exploitable, but a judge will not find it in 15 minutes | 30 min |
 | D3 | **Job 2 reuses job 3's figure** as its witness, and job 1's queue is the same man mirrored five times | Visible if you look. The queue is the more obvious one | art job |
 

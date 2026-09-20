@@ -10,7 +10,7 @@
  * original, possibly stretched. Find the slice on each axis, then verify in 2-D.
  */
 
-import { type Gray, ncc, profiles, rotateGray, sample } from './gray';
+import { type Gray, mirrorGray, ncc, profiles, rotateGray, sample } from './gray';
 
 export type AxisFit = {
   /** saved pixels per original pixel */
@@ -22,6 +22,16 @@ export type AxisFit = {
 
 export type Alignment = {
   rotation: 0 | 90 | 180 | 270;
+  /**
+   * The saved photograph is the original reflected.
+   *
+   * Worth knowing rather than correcting. A street with readable signage in it
+   * cannot be mirrored and still be a photograph of that street, so this is not a
+   * manipulation the game should reward — and without looking for it, a flip
+   * lands every zone on the wrong half of the frame and reads as a huge honest
+   * edit. Pressing one button was earning flags nobody worked for.
+   */
+  mirrored: boolean;
   x: AxisFit;
   y: AxisFit;
   /** 2-D normalised correlation over the overlap, -1..1 */
@@ -33,6 +43,13 @@ export type Alignment = {
 };
 
 const ROTATIONS = [0, 90, 180, 270] as const;
+
+/**
+ * Below this, the upright search did not really find the photograph, so it is
+ * worth asking whether it is the photograph backwards. A genuine heavy edit sits
+ * under here too; that costs a second search and changes no answer.
+ */
+const MIRROR_SEARCH_BELOW = 0.92;
 
 /**
  * How much better than "untouched" a shifted fit has to score before it wins.
@@ -201,6 +218,7 @@ export function align(orig: Gray, saved: Gray): Alignment {
     if (check.score >= 0.99) {
       return {
         rotation: 0,
+        mirrored: false,
         x: identity,
         y: identity,
         score: check.score,
@@ -215,32 +233,48 @@ export function align(orig: Gray, saved: Gray): Alignment {
 
   let best: Alignment | null = null;
   let bestScore = -Infinity;
-  for (const rotation of ROTATIONS) {
-    const plate = rotateGray(saved, rotation);
-    // a rotation that leaves a wildly different aspect ratio is not worth searching
-    const ratio = plate.w / plate.h / (orig.w / orig.h);
-    if (ratio < 0.3 || ratio > 3.4) continue;
-    const p = profiles(plate);
-    const xs = axisCandidates(origProfiles.cols, p.cols);
-    const ys = axisCandidates(origProfiles.rows, p.rows);
-    for (const x of xs) {
-      for (const y of ys) {
-        const { score, coverage } = verify2d(orig, plate, x, y);
-        const untouched =
-          sameSize && rotation === 0 && x.k === 1 && x.off === 0 && y.k === 1 && y.off === 0;
-        const ranked = untouched ? score + IDENTITY_MARGIN : score;
-        if (ranked > bestScore) {
-          bestScore = ranked;
-          best = { rotation, x, y, score, coverage, plate };
+
+  const search = (source: Gray, mirrored: boolean) => {
+    for (const rotation of ROTATIONS) {
+      const plate = rotateGray(source, rotation);
+      // a rotation that leaves a wildly different aspect ratio is not worth searching
+      const ratio = plate.w / plate.h / (orig.w / orig.h);
+      if (ratio < 0.3 || ratio > 3.4) continue;
+      const p = profiles(plate);
+      const xs = axisCandidates(origProfiles.cols, p.cols);
+      const ys = axisCandidates(origProfiles.rows, p.rows);
+      for (const x of xs) {
+        for (const y of ys) {
+          const { score, coverage } = verify2d(orig, plate, x, y);
+          const untouched =
+            sameSize &&
+            !mirrored &&
+            rotation === 0 &&
+            x.k === 1 &&
+            x.off === 0 &&
+            y.k === 1 &&
+            y.off === 0;
+          const ranked = untouched ? score + IDENTITY_MARGIN : score;
+          if (ranked > bestScore) {
+            bestScore = ranked;
+            best = { rotation, mirrored, x, y, score, coverage, plate };
+          }
         }
       }
     }
-  }
+  };
+
+  search(saved, false);
+  // Only go looking for a reflection when nothing upright fitted well. A real edit
+  // never gets close to a clean fit backwards, and searching eight orientations on
+  // every post doubles the cost of the one thing in here that is slow.
+  if (bestScore < MIRROR_SEARCH_BELOW) search(mirrorGray(saved), true);
 
   if (!best) {
     const identity = { k: 1, off: 0, score: 0 };
     return {
       rotation: 0,
+      mirrored: false,
       x: identity,
       y: identity,
       score: -2,
