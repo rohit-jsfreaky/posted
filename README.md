@@ -7,7 +7,12 @@ to be true. You edit it, you post it, and the city rearranges itself to match yo
 
 Built for the Unlayer **Build With React Image Editor** Challenge.
 
-**Play it:** _(deployed URL goes here)_
+**Play it: [posted-omega.vercel.app](https://posted-omega.vercel.app/)**
+
+![Crop the bouncer off the edge of the frame, post it, and he is gone from the street](docs/shots/loop.gif)
+
+*Crop the bouncer off the right edge, post it, and he is no longer on that door — not in the
+picture, in the street. Everything below is that one idea, seven more times.*
 
 ![The title screen](docs/shots/1-start.jpg)
 
@@ -130,11 +135,15 @@ parts of the editor the run never needs, skippable entirely, and they do not tou
 The story does not grow to fit a feature list. Finish the run and the game ends; finish the run
 *and* every job going on the side and the file the city has on you says something different.
 
+![The job board: the run, and the side work you can ignore](docs/shots/7-board.jpg)
+
 **Cal Hampton** is the antagonist, and he is the only person in Leonida who checks. He starts as
 an annoying reply, works out there is a pattern, and then becomes the job. If he finds the flaw
 in your work, the crowd believes him and the city puts it back.
 
 ![The end of a chapter](docs/shots/5-him.jpg)
+
+![The neon job: a street where turning every colour at once is honest](docs/shots/8-neon.jpg)
 
 Finish a job and the city opens a file on you. It climbs with the run, and there is one
 classification above the top of that ladder that only a player who also took every job on the

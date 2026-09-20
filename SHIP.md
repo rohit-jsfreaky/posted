@@ -1,7 +1,10 @@
 # SHIP.md — everything between here and the submit button
 
 **Deadline:** 24 Sep 2026, 23:59 UTC = 25 Sep, 05:29 IST. **Target submit: 23 Sep.**
-Today is 20 Sep. Three days.
+
+Live at **https://posted-omega.vercel.app/**. Eight jobs: a run of five and three side jobs that
+can be skipped. Bench 39/39, identity check clean, README written with screenshots and a GIF of
+the loop.
 
 The game is finished and deployed. Everything below is either a rule we must not break, a real
 hole somebody could fall into, or upside. They are in that order on purpose.
@@ -17,9 +20,9 @@ thing they never knew about.
 
 | # | what | who | size |
 |---|---|---|---|
-| A1 | **Live URL into the README.** Deployed but the README still says _(deployed URL goes here)_ | Rohit sends the URL, I edit | 2 min |
+| ~~A1~~ | ~~Live URL into the README~~ **Done** — https://posted-omega.vercel.app/ | — | — |
 | A2 | **Star `github.com/unlayer/react-image-editor`** — it is on the rules list | Rohit | 10 sec |
-| A3 | **Demo video.** First shot is the bouncer disappearing | Rohit | — |
+| A3 | **Demo video.** First shot is the bouncer disappearing — `docs/shots/loop.gif` is exactly that shot if it helps | Rohit | — |
 | A4 | **Google Form**, before the deadline | Rohit | — |
 | A5 | **Screenshot of the judge's asset clarification**, saved here as `judge-asset-clarification.png` | Rohit | 2 min |
 | A6 | **Name collision check** — "POSTED" on itch.io and Steam. Backups: CLEAN PLATE, SOURCE, UNSOURCED | me | 5 min |

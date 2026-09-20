@@ -518,15 +518,86 @@ Full field research and the kill table are in `CLAUDE.md`.
 - Drove every level by hand in the real editor and found three places where the editor does
   not do what the design docs assumed (see above)
 
+## 2026-09-20 — shipped, then reshaped
+
+Deployed: **https://posted-omega.vercel.app/**
+
+### The game is a run of five with side work
+
+It was five jobs. Coverage jobs got added for the parts of the editor the story never touches,
+and they were sitting *inside* the story, which meant the story was growing to fit a feature
+list. Rohit called it: the run is five chapters again, and the coverage jobs are optional side
+work that does not touch the ending.
+
+| | |
+|---|---|
+| **The run** | door, car, reflection, lot, file. Gated in order, five chapters, one ending |
+| **Side work** | years ago, gantry camera, sign was red. Unlocked after job one, skippable |
+
+The file the city keeps on you climbs with the run — five classifications. **ABSOLUTE MENACE is
+not on that ladder**: it is for finishing the run *and* every job on the side.
+
+### What the side work covers
+
+Everything the run never needed. Filter **presets** and **Noise**; **Contrast**, **Sharpen** and
+the crop panel's **4:3 preset**; and **Hue**.
+
+What is still unused is Rotate, Straighten, corner radius and the text effect styles — and that
+is because none of them carries a puzzle, not because they were missed. Rotate is one click with
+one answer. Say that in the README rather than inventing a job for it.
+
+### Engine work this took
+
+- **Mirrors.** The aligner searched four rotations. Pressing Flip horizontal in the crop panel
+  fired `bouncer_removed` — one button, a free flag, because every zone landed on the wrong half
+  of the frame. It searches all eight orientations now, and only looks for a reflection when
+  nothing upright fitted, so the common post costs the same.
+- **Edges.** `detail` is a standard deviation and barely moves when a photograph is sharpened.
+  The top of the high-frequency distribution against the original's does, divided by the
+  photometric gain so contrast cannot fake it.
+- **Hue.** A circular mean weighted by saturation. Grey pixels have no hue, and 350 to 10 is a
+  turn of 20 rather than -340.
+- **`nearMiss` on a level.** Tells only run on a post that earned a flag, so overshooting came
+  back as "bro what did you even do". A level can now read the same measurements and say what
+  went wrong.
+
+### Two flags designed and cut
+
+`reads_lit` on the neon job asked for Vibrance. `colour` is a mean saturation difference, and CSS
+hue rotation is a fixed matrix rather than a rotation in HSL — a long turn moves saturation about
+as much as a real boost. At 0.09 a pure turn cleared it; at 0.16 a real boost did not. Nothing
+separated them, so it went. Same call as `grain_matched` in the car park job.
+
+### Bugs the bench and the checker caught
+
+- The bench resolved levels by **array index**, so reordering silently ran every level-four case
+  against the wrong scene. By id now.
+- `dims_restored` tested "the frame is the right size", which an untouched photo is — pressing
+  POST without editing earned a flag, and the bench had that written down as *expected*.
+  `tools/identity-check.ts` exists because of it: it walks every level and asserts nothing fires
+  on a photograph nobody touched.
+- The card read stored progress, but a job is not banked until the player leaves the done screen,
+  so it never counted the job it was celebrating.
+- `fitted` had a floor of 20 while the summary line starts at 17, so that line could never shrink
+  and the new top rank ran off the edge of the card.
+
+**Bench: 39/39. `npm run check:identity`: clean.**
+
+### Still not done
+
+- **Nobody has played the eight-job build end to end.** The five-job one, yes. This one, no.
+- **The sound has still never been heard by anyone.**
+- Job 3's three-flag solve is proved in the bench, not driven by hand in the editor.
+- Suspicion is scored per post, so splitting a job across several small posts costs less.
+- Job 2 reuses job 3's figure as its witness, and job 1's queue is the same man five times.
+
 ## Next action
 
-1. **Rohit runs `npx vercel login`** (one time, interactive). Then the deploy is one command
-   and Phase 0's finish line passes.
-2. **Run `/lab` against the art.** The wiring is done and placement is verified by eye, but the
-   diff thresholds have only ever been tested against grey boxes. Expect to re-tune, then play
-   all five jobs in the real editor again. This is the gate on Phase 4.
-2. **Play it end to end** and listen to it. Phase 5's content is in; what is missing is one
-   human sitting through all five jobs. Watch for: does the first job teach itself, is the DM
-   pacing right, and does his turn in job four actually land.
-3. **Phase 6** is the README, the demo video (first shot is the bouncer disappearing), the
-   deploy and the form.
+1. **Play the whole thing, 1 to 5, plus the side work.** This is the Phase 5 finish line and it
+   is still open. Watch for: does job one teach itself, is the DM pacing right, does his turn in
+   job four land.
+2. **Listen to it.** Nobody has.
+3. **Star `github.com/unlayer/react-image-editor`**, save the judge's asset clarification as
+   `judge-asset-clarification.png`, record the demo video, submit the form.
+
+`SHIP.md` has the full list with who owns what.
