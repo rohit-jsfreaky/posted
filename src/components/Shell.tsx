@@ -9,6 +9,7 @@ import Ending from './screens/Ending';
 import { preloadAssets } from '@/lib/assets';
 import { LEVELS } from '@/lib/levels';
 import { clearSave, loadDone, saveDone } from '@/lib/save';
+import { clearIdentity } from '@/lib/identity';
 
 /**
  * Which screen is on.
@@ -63,6 +64,8 @@ export default function Shell() {
 
   const wipe = useCallback(() => {
     clearSave();
+    // the file the city opened goes with the progress it was built from
+    clearIdentity();
     setDone(0);
     setAt(0);
   }, []);

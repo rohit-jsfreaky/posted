@@ -5,6 +5,7 @@ import ImageEditor, {
   type ImageEditorRef,
   type ImageEditorSaveResult,
 } from '@unlayer/react-image-editor';
+import CaseCard from './CaseCard';
 import Feed, { HIM, type FeedItem } from './Feed';
 import ZoomView from './ZoomView';
 import { type DiffReport, diffImages } from '@/lib/diff';
@@ -753,14 +754,20 @@ export default function Game({
 
       {solved && finale && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/85 p-6">
-          <div data-testid="solved" className="w-full max-w-lg border border-line bg-panel p-6">
+          <div
+            data-testid="solved"
+            className="scroll-thin max-h-full w-full max-w-lg overflow-y-auto border border-line bg-panel p-6"
+          >
             <p className="eyebrow text-xs tracking-[0.2em] text-good">Job done</p>
             <h2 className="display mt-3 text-3xl text-text">{level.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-text/80">{level.epilogue}</p>
+
+            <CaseCard done={index + 1} />
+
             <button
               data-testid="next-level"
               onClick={onSolved}
-              className="display mt-6 bg-accent px-6 py-2 text-xl text-accent-ink hover:brightness-110"
+              className="display mt-5 w-full bg-accent py-2 text-xl text-accent-ink hover:brightness-110"
             >
               {index + 1 >= LEVELS.length ? 'See how it ends' : 'Next job'}
             </button>
