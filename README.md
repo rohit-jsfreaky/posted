@@ -71,6 +71,7 @@ world**, and each job unlocks one more.
 | **Filter** — blur / pixelate | a face stops being recognisable |
 | **Filter** — presets and noise | how old the photograph is, and therefore whether it can be used against anybody |
 | **Filter** — contrast and sharpen | which device took it, and therefore whether it counts as evidence |
+| **Filter** — hue | what colour the one light in the photograph was, and therefore which bar was open |
 | **Crop** — the 4:3 preset | the shape a fixed camera shoots and a phone does not |
 | **Shapes** | cover something in a colour that belongs in the photograph |
 | **Stickers** | objects appear — a car in an empty bay that was empty all afternoon |
@@ -112,14 +113,19 @@ Five jobs, one chapter each, and one man who zooms in on everything you post.
 5. **Make it official** — change nothing about what the photograph shows, only where it claims to
    have come from.
 
-Then there is the **side work**, which is optional and says so. Two jobs built around the parts
-of the editor the run never needs, skippable entirely, and they do not touch the ending:
+Then there is the **side work**, which is optional and says so. Three jobs built around the
+parts of the editor the run never needs, skippable entirely, and they do not touch the ending:
 
 - **This is from years ago** — the only job that changes *when* a photograph was taken. Drain the
   colour with a preset, then give it grain, because a black and white frame with no grain in it
   is a filter and he says so.
 - **Off the gantry camera** — nothing in the picture changes. What changes is the fingerprint the
   device left on it: crushed blacks, oversharpening, and the 4:3 no phone hands you.
+- **The sign was red** — the only job whose answer is Hue, and the only one that could be. A
+  slider that turns every colour at once is useless for lying until the photograph is a street at
+  night lit by one neon sign, where turning everything *is* turning the light. Then the puzzle is
+  how far: short of the window it is still the wrong bar, past it the tungsten lamps inside go a
+  colour a filament cannot make.
 
 The story does not grow to fit a feature list. Finish the run and the game ends; finish the run
 *and* every job going on the side and the file the city has on you says something different.
@@ -183,7 +189,7 @@ pressed.
 
 ### The test bench
 
-`/lab` runs **34 synthesised cases** against the real art — every valid solution, and the
+`/lab` runs **39 synthesised cases** against the real art — every valid solution, and the
 near-misses that must not fire. It is the reason a change to a threshold is a two-minute check
 rather than an afternoon of replaying levels by hand.
 
@@ -195,7 +201,7 @@ right size" was quietly handing itself out to anyone who pressed POST without ed
 
 - **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~5,500 lines.
 - **Sound is synthesised** with Web Audio oscillators. No audio files ship.
-- **Art**: 12 files, 3.8 MB total — seven 1200×800 backgrounds and five trimmed RGBA cut-outs.
+- **Art**: 13 files, 4.1 MB total — eight 1200×800 backgrounds and five trimmed RGBA cut-outs.
   Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same
   rectangle, which is the property the diff engine depends on.
 - **Progress is kept in `localStorage`** — only the number of jobs finished, since everything else

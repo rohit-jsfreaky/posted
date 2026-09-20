@@ -196,6 +196,25 @@ export const SIDE_BRIEFS: Record<number, Chapter> = {
     himClosing:
       'thats a phone photo dressed as a camera still. i can see the 4:3 crop line. nobody else can apparently',
   },
+  8: {
+    card: 'Side job',
+    dms: [
+      { from: 'client', text: 'You do the quiet stuff, right.' },
+      {
+        from: 'client',
+        text: 'There are two bars on that block. One has a red sign, one has a pink one. I said I was at the red one.',
+      },
+      { from: 'you', text: 'and the photo says pink' },
+      { from: 'client', text: 'The photo says pink.' },
+      { from: 'client', text: 'Leave the front of the place in it. That is how anyone knows which one it is.' },
+    ],
+    payoff: [
+      { from: 'client', text: 'Red. Nobody has walked down there to check.' },
+      { from: 'client', text: 'We never spoke.' },
+    ],
+    himClosing:
+      'somebody turned the hue on a whole street last night. the neon is red now and the lamps inside are still warm, so they knew when to stop. thats not a beginner',
+  },
 };
 
 export const OPENING: Message[] = [

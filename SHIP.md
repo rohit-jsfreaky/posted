@@ -112,6 +112,35 @@ Bench **34/34**.
 
 ---
 
+## ~~C3~~ — The third side job: "The sign was red" — **DONE**
+
+Hue, which is the last control in the editor that could carry a job at all. A slider that turns
+every colour by the same amount is normally useless for lying — move a red car toward blue and
+the sky goes with it — so the scene is a street at night lit by one neon sign, where every
+surface genuinely is that colour and turning the whole photograph is turning the one light in it.
+
+That makes it a **window**, not a threshold: short of it the sign is still the pink bar, past it
+the tungsten lamps hanging inside go a colour a filament cannot produce. Verified in the real
+editor at three points — hue 5 "thats barely moved", hue 15 solved, hue 70 "the lamps inside are
+green now".
+
+**One flag was designed and then cut.** The job originally also asked for Vibrance, so the sign
+read as switched on. `colour` is a mean saturation difference, and CSS hue rotation is a fixed
+matrix rather than a rotation in HSL, so a long turn moves saturation about as much as a real
+saturation boost does. At 0.09 a pure turn cleared the flag; at 0.16 a real boost did not. No
+threshold separated them, so the requirement went rather than shipping a coin toss — the same
+call as `grain_matched` in the car park job.
+
+**And it turned up a hole in every level.** Tells only run on a post that earned a flag, so
+overshooting — the one failure this job is built around — was answered with "bro what did you
+even do". Levels can now carry a `nearMiss` that reads the same measurements and says what
+actually went wrong.
+
+Bench **39/39**. New art: bg-neon.jpg. The engine reads hue now, as a circular mean weighted by
+saturation, because grey pixels have no hue and 350 to 10 is a turn of 20 rather than -340.
+
+---
+
 ## D — Real holes, worth closing if C lands early
 
 | # | what | why it matters | size |

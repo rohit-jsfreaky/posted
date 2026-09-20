@@ -6,6 +6,7 @@ import { level4 } from './level4';
 import { level5 } from './level5';
 import { level6 } from './level6';
 import { level7 } from './level7';
+import { level8 } from './level8';
 
 /**
  * The run, and the work you can take on the side.
@@ -23,7 +24,7 @@ import { level7 } from './level7';
  */
 export const MAIN: Level[] = [level1, level2, level3, level4, level5];
 
-export const SIDE: Level[] = [level6, level7];
+export const SIDE: Level[] = [level6, level7, level8];
 
 /** Everything, for the test bench, which does not care what is optional. */
 export const ALL: Level[] = [...MAIN, ...SIDE];

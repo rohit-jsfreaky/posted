@@ -198,6 +198,18 @@ export const CASES: MutationCase[] = [
     expect: ['ratio_fixed', 'tone_crushed', 'oversharpened'],
   },
 
+  // level 8 — the one photograph where turning every colour at once is honest
+  { id: 'l8-untouched', what: 'save without editing', level: 8, expect: [] },
+  { id: 'l8-sat-only', what: 'saturation up, no turn', level: 8, expect: [] },
+  { id: 'l8-turn-small', what: 'a short turn toward red', level: 8, expect: ['turned_red'] },
+  {
+    id: 'l8-full',
+    what: 'a short turn and saturation up',
+    level: 8,
+    expect: ['turned_red'],
+  },
+  { id: 'l8-turn-far', what: 'run the hue slider a long way', level: 8, expect: [] },
+
   // level 5 — claim a source instead of changing a fact
   { id: 'l5-frame-only', what: 'add a frame', level: 5, expect: ['official'] },
   { id: 'l5-redact-only', what: 'black bar over the face', level: 5, expect: ['face_hidden'] },
@@ -264,6 +276,32 @@ export async function buildMutation(
         },
         img,
       );
+
+    case 'l8-untouched':
+      return render(w, h, (ctx) => ctx.drawImage(img, 0, 0), img);
+
+    case 'l8-sat-only':
+    case 'l8-turn-small':
+    case 'l8-full':
+    case 'l8-turn-far': {
+      const turn =
+        id === 'l8-turn-small' || id === 'l8-full' ? 30 : id === 'l8-turn-far' ? 150 : 0;
+      const sat = id === 'l8-sat-only' || id === 'l8-full';
+      return render(
+        w,
+        h,
+        (ctx) => {
+          // the editor's Hue and Saturation, near enough: both are CSS filters
+          const parts = [];
+          if (turn) parts.push(`hue-rotate(${turn}deg)`);
+          if (sat) parts.push('saturate(1.55)');
+          ctx.filter = parts.length ? parts.join(' ') : 'none';
+          ctx.drawImage(img, 0, 0);
+          ctx.filter = 'none';
+        },
+        img,
+      );
+    }
 
     case 'l7-untouched':
       return render(w, h, (ctx) => ctx.drawImage(img, 0, 0), img);

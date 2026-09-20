@@ -28,6 +28,7 @@ const CARD_ART: Record<number, string> = {
   5: '/art/bg-archive.jpg',
   6: '/art/bg-diner.jpg',
   7: '/art/bg-dock.jpg',
+  8: '/art/bg-neon.jpg',
 };
 
 type Pick = { kind: 'main'; at: number } | { kind: 'side'; id: number };
@@ -108,7 +109,7 @@ export default function Jobs({
 
   // the job you are up to can be off the right-hand end of the strip on arrival
   useEffect(() => {
-    current.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
+    current.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }, [at]);
 
   const selected =
@@ -145,13 +146,16 @@ export default function Jobs({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col justify-center gap-4 pb-2">
-        <section className="flex min-h-0 flex-col">
+      {/* the board scrolls down as well as sideways. Squeezing both sections into
+          whatever height was left meant the second one was cut in half on a
+          laptop, and it would only get worse with a third */}
+      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-3">
+        <section className="flex shrink-0 flex-col">
           <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-accent sm:px-10">
             The run
           </p>
           <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-            <div className="flex h-[min(38vh,19rem)] gap-3 sm:gap-4">
+            <div className="flex h-[17rem] gap-3 sm:gap-4">
               {MAIN.map((level, i) => (
                 <Card
                   key={level.id}
@@ -171,12 +175,12 @@ export default function Jobs({
         </section>
 
         {SIDE.length > 0 && (
-          <section className="flex min-h-0 flex-col">
+          <section className="flex shrink-0 flex-col">
             <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-mute sm:px-10">
               Side work — optional, and it does not touch the ending
             </p>
             <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-              <div className="flex h-[min(28vh,14rem)] gap-3 sm:gap-4">
+              <div className="flex h-[15rem] gap-3 sm:gap-4">
                 {SIDE.map((level) => (
                   <Card
                     key={level.id}

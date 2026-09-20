@@ -61,6 +61,15 @@ export type Reading = {
   /** how much more colourful the zone became. Stickers push this up */
   colour: number;
   /**
+   * How far the colour was turned, in degrees, -180 to 180.
+   *
+   * An angle, so it is averaged as one: the mean of unit vectors rather than the
+   * mean of numbers, or a shift from 350 to 10 would read as -340 instead of 20.
+   * Grey pixels have no hue at all, so only samples with real colour on both
+   * sides count, and a photograph with nothing colourful in the zone reports 0.
+   */
+  hueShift: number;
+  /**
    * Edge energy in the zone against what the original had there.
    *
    * `detail` is a standard deviation, so it describes contrast across a whole
@@ -127,8 +136,8 @@ function stats(v: number[]) {
   return { mean, std: Math.sqrt(acc / n) };
 }
 
-type Before = { luma: Gray; sat: Gray; hf: Gray };
-type After = { luma: Gray; sat: Gray; hf: Gray };
+type Before = { luma: Gray; sat: Gray; hue: Gray; hf: Gray };
+type After = { luma: Gray; sat: Gray; hue: Gray; hf: Gray };
 
 function mapPoint(al: Alignment, ox: number, oy: number) {
   return { x: (ox - al.x.off) * al.x.k, y: (oy - al.y.off) * al.y.k };
@@ -221,6 +230,10 @@ function readZone(
   const satAfter: number[] = [];
   const hfAfter: number[] = [];
   const hfBefore: number[] = [];
+  // the running sum of unit vectors at each sample's hue difference
+  let hueX = 0;
+  let hueY = 0;
+  let hueN = 0;
   let outside = 0;
   let total = 0;
 
@@ -244,6 +257,17 @@ function readZone(
       if (sb !== null && sa !== null) {
         satBefore.push(sb);
         satAfter.push(sa);
+        // hue is noise on anything close to grey, so only real colour votes
+        if (sb > 0.12 && sa > 0.12) {
+          const hb = sample(orig.hue, ox, oy);
+          const ha = sample(saved.hue, p.x, p.y);
+          if (hb !== null && ha !== null) {
+            const turn = (ha - hb) * Math.PI * 2;
+            hueX += Math.cos(turn);
+            hueY += Math.sin(turn);
+            hueN++;
+          }
+        }
       }
       // grain and edges live on the finer plates, so scale the coordinates up
       const hv = sample(saved.hf, p.x * grainScale, p.y * grainScale);
@@ -262,6 +286,7 @@ function readZone(
       drift: -1,
       detail: 0,
       colour: 0,
+      hueShift: 0,
       edges: 1,
       grain: 0,
       bright: 0,
@@ -289,6 +314,9 @@ function readZone(
   // object's own edges are high frequency too, so a detailed sticker would read
   // as grainy if we averaged. A low percentile ignores the edges and measures
   // the noise sitting between them, which is what film grain actually is.
+  const hueShift =
+    hueN === 0 ? 0 : (Math.atan2(hueY / hueN, hueX / hueN) * 180) / Math.PI;
+
   const grain = lowPercentile(hfAfter, 0.3);
 
   // The same distribution read from the other end: the floor is grain, the top is
@@ -334,6 +362,7 @@ function readZone(
     drift,
     detail,
     colour,
+    hueShift,
     edges,
     grain,
     bright: sa.mean,
@@ -376,6 +405,7 @@ function readRing(
     drift: mean((p) => p.drift),
     detail: mean((p) => p.detail),
     colour: mean((p) => p.colour),
+    hueShift: mean((p) => p.hueShift),
     edges: mean((p) => p.edges),
     grain: mean((p) => p.grain),
     bright: mean((p) => p.bright),
@@ -430,10 +460,16 @@ export async function diffImages(
   const hfUpright = rotateGray(hfPlate, al.rotation);
   const grainScale = hfUpright.w / Math.max(1, al.plate.w);
 
-  const orig: Before = { luma: origPlates.luma, sat: origPlates.sat, hf: hfOrig };
+  const orig: Before = {
+    luma: origPlates.luma,
+    sat: origPlates.sat,
+    hue: origPlates.hue,
+    hf: hfOrig,
+  };
   const saved: After = {
     luma: al.plate,
     sat: rotateGray(savedPlates.sat, al.rotation),
+    hue: rotateGray(savedPlates.hue, al.rotation),
     hf: hfUpright,
   };
 
@@ -451,6 +487,7 @@ export async function diffImages(
     drift: 0,
     detail: 1,
     colour: 0,
+    hueShift: 0,
     edges: 1,
     grain: 0,
     bright: 0,

@@ -133,6 +133,16 @@ export type Level = {
     maxLength: number;
     key: string;
   };
+  /**
+   * What to say when nothing fired but something was clearly attempted.
+   *
+   * Tells only run on a post that earned something, so a player who overshoots
+   * gets "bro what did you even do" and learns nothing — which is the worst
+   * possible answer for somebody who was one nudge away. This reads the same
+   * measurements and says what went wrong, or returns null and lets the crowd
+   * be its usual unhelpful self.
+   */
+  nearMiss?: (r: DiffReport) => string | null;
   /** what the street says when the post lands and holds up */
   reactions: string[];
   /** how much suspicion this job tolerates before he starts digging */

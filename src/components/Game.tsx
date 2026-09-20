@@ -262,8 +262,14 @@ export default function Game({
 
     if (flags.length === 0) {
       posted(image);
+      const missed = level.nearMiss?.(report) ?? null;
       later(700, () =>
-        push({ kind: 'reply', who: 'nine_lives_vc', text: 'bro what did you even do 😐', likes: 41 }),
+        push({
+          kind: 'reply',
+          who: 'nine_lives_vc',
+          text: missed ?? 'bro what did you even do 😐',
+          likes: missed ? 73 : 41,
+        }),
       );
       void editorRef.current?.editor?.reset(source);
       return;

@@ -148,16 +148,20 @@ export function ncc(a: ArrayLike<number>, b: ArrayLike<number>): number {
 }
 
 /**
- * Luma and saturation in one pass.
+ * Luma, saturation and hue in one pass.
  *
  * Saturation matters for spotting things that were *added*: a pasted sticker is
  * usually far more colourful than a photographed street.
+ *
+ * Hue is stored as a turn, 0..1 rather than 0..360, because it is an angle and
+ * everything that reads it has to wrap. It is meaningless where there is no
+ * colour, so whoever reads it has to check the saturation plate first.
  */
 export function platesFromImage(
   img: HTMLImageElement,
   w: number,
   h: number,
-): { luma: Gray; sat: Gray } {
+): { luma: Gray; sat: Gray; hue: Gray } {
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, w);
   canvas.height = Math.max(1, h);
@@ -167,6 +171,7 @@ export function platesFromImage(
   const px = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   const luma = new Float32Array(canvas.width * canvas.height);
   const sat = new Float32Array(canvas.width * canvas.height);
+  const hue = new Float32Array(canvas.width * canvas.height);
   for (let i = 0, p = 0; i < luma.length; i++, p += 4) {
     const r = px[p] / 255;
     const g = px[p + 1] / 255;
@@ -174,11 +179,22 @@ export function platesFromImage(
     luma[i] = 0.2126 * r + 0.7152 * g + 0.0722 * b;
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
-    sat[i] = max < 1e-4 ? 0 : (max - min) / max;
+    const d = max - min;
+    sat[i] = max < 1e-4 ? 0 : d / max;
+    if (d < 1e-4) {
+      hue[i] = 0;
+    } else {
+      let t: number;
+      if (max === r) t = ((g - b) / d + 6) % 6;
+      else if (max === g) t = (b - r) / d + 2;
+      else t = (r - g) / d + 4;
+      hue[i] = t / 6;
+    }
   }
   return {
     luma: { w: canvas.width, h: canvas.height, data: luma },
     sat: { w: canvas.width, h: canvas.height, data: sat },
+    hue: { w: canvas.width, h: canvas.height, data: hue },
   };
 }
 
