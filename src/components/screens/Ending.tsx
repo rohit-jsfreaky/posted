@@ -37,7 +37,7 @@ export default function Ending({ onRestart }: { onRestart: () => void }) {
           </div>
           {/* the last job was making a file about somebody else. This is the one the
             city kept on you, and it is the only rank with nothing above it */}
-          <div className="mt-8 w-full max-w-2xl">
+          <div className="mt-8 w-full max-w-3xl">
             <CaseCard done={5} />
           </div>
 

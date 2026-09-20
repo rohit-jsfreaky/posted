@@ -34,6 +34,7 @@ export default function CaseCard({ done }: { done: number }) {
   const [looking, setLooking] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [card, setCard] = useState<string | null>(null);
+  const [copied, setCopied] = useState<'no' | 'yes' | 'cannot'>('no');
   const probe = useRef<HTMLDivElement>(null);
 
   const make = useCallback(async (who: Identity) => {
@@ -64,6 +65,26 @@ export default function CaseCard({ done }: { done: number }) {
     } finally {
       setLooking(false);
     }
+  }
+
+  /**
+   * Put the card on the clipboard as an image.
+   *
+   * Every browser can save a file; not every browser will accept an image on the
+   * clipboard, and Firefox in particular refuses unless a flag is set. So this
+   * says plainly when it cannot rather than looking like it worked, and Save is
+   * always there beside it.
+   */
+  async function copy() {
+    if (!card) return;
+    try {
+      const blob = await (await fetch(card)).blob();
+      await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+      setCopied('yes');
+    } catch {
+      setCopied('cannot');
+    }
+    window.setTimeout(() => setCopied('no'), 2600);
   }
 
   function stayAnonymous() {
@@ -134,14 +155,27 @@ export default function CaseCard({ done }: { done: number }) {
             height={CARD_H}
             className="mt-3 w-full border border-line"
           />
-          <a
-            data-testid="card-download"
-            href={card}
-            download={`posted-${rank.title.toLowerCase().replace(/\s+/g, '-')}.png`}
-            className="eyebrow mt-3 block bg-accent py-2 text-center text-xs text-accent-ink hover:brightness-110"
-          >
-            Save the file
-          </a>
+          <div className="mt-3 flex gap-2">
+            <a
+              data-testid="card-download"
+              href={card}
+              download={`posted-${rank.title.toLowerCase().replace(/\s+/g, '-')}.png`}
+              className="eyebrow flex-1 bg-accent py-2 text-center text-xs text-accent-ink hover:brightness-110"
+            >
+              Save the file
+            </a>
+            <button
+              data-testid="card-copy"
+              onClick={() => void copy()}
+              className="eyebrow flex-1 border border-line py-2 text-center text-xs text-text hover:border-accent"
+            >
+              {copied === 'yes'
+                ? 'Copied'
+                : copied === 'cannot'
+                  ? 'Use Save instead'
+                  : 'Copy image'}
+            </button>
+          </div>
         </>
       ) : (
         <p className="mt-3 text-[11px] text-dim">Opening the file…</p>

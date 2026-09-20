@@ -756,7 +756,7 @@ export default function Game({
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/85 p-6">
           <div
             data-testid="solved"
-            className="scroll-thin max-h-full w-full max-w-lg overflow-y-auto border border-line bg-panel p-6"
+            className="scroll-thin max-h-full w-full max-w-3xl overflow-y-auto border border-line bg-panel p-7"
           >
             <p className="eyebrow text-xs tracking-[0.2em] text-good">Job done</p>
             <h2 className="display mt-3 text-3xl text-text">{level.title}</h2>
