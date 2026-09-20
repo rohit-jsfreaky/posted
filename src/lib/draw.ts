@@ -242,6 +242,52 @@ export function agePass(ctx: Ctx) {
   ctx.globalAlpha = 1;
 }
 
+/**
+ * A fixed camera's idea of a photograph.
+ *
+ * Cheap sensors with heavy processing all look the same way: the colour is thin,
+ * the blacks are crushed rather than rolled off, and the whole thing has been
+ * pushed until it is harsh. A phone photo has none of that, which is the thing
+ * the player has to supply and the thing the man zooming in checks for.
+ *
+ * Two notes on how, because both are easy to get wrong:
+ *
+ * The `saturation` blend mode *sets* saturation to the source's rather than
+ * scaling it, so filling with a low-but-nonzero saturation pushes grey concrete
+ * up to that figure and turns a loading bay purple. Going fully grey at a partial
+ * alpha is the only way to get part of the way there.
+ *
+ * And a `multiply` with grey darkens everything evenly, which is gloom, not
+ * contrast. Compositing the picture over itself with `overlay` is the S-curve
+ * that actually crushes the bottom and pushes the top.
+ */
+export function cameraPass(ctx: Ctx) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+
+  // most of the way to grey, not all of it
+  ctx.globalCompositeOperation = 'saturation';
+  ctx.globalAlpha = 0.72;
+  ctx.fillStyle = 'hsl(0, 0%, 50%)';
+  ctx.fillRect(0, 0, W, H);
+
+  // the S-curve: the picture over itself
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.62;
+  ctx.drawImage(ctx.canvas, 0, 0);
+
+  // and the flat cool cast of a sensor that was never meant for daylight
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.globalAlpha = 0.22;
+  ctx.fillStyle = '#9fa8b4';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+
 /** The timestamp burned into the corner of every photo in the game. */
 export function stamp(ctx: Ctx, text: string, colour: string) {
   ctx.fillStyle = colour;

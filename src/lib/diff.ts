@@ -61,6 +61,16 @@ export type Reading = {
   /** how much more colourful the zone became. Stickers push this up */
   colour: number;
   /**
+   * Edge energy in the zone against what the original had there.
+   *
+   * `detail` is a standard deviation, so it describes contrast across a whole
+   * zone and barely moves when a photograph is sharpened — the spread of values
+   * is the same, the edges are just harder. This is the top of the
+   * high-frequency distribution instead of its floor, so it rises exactly when
+   * somebody runs an unsharp mask over the picture and not otherwise.
+   */
+  edges: number;
+  /**
    * The noise floor inside the zone, as an absolute figure, not a ratio.
    *
    * A flat paste sits near 0 because it brought no grain of its own with it, and
@@ -117,7 +127,7 @@ function stats(v: number[]) {
   return { mean, std: Math.sqrt(acc / n) };
 }
 
-type Before = { luma: Gray; sat: Gray };
+type Before = { luma: Gray; sat: Gray; hf: Gray };
 type After = { luma: Gray; sat: Gray; hf: Gray };
 
 function mapPoint(al: Alignment, ox: number, oy: number) {
@@ -197,6 +207,7 @@ function readZone(
   zone: Zone,
   fit: Fit,
   grainScale: number,
+  origScale: number,
   steps = 26,
 ): Reading {
   const rx = zone.x * orig.luma.w;
@@ -209,6 +220,7 @@ function readZone(
   const satBefore: number[] = [];
   const satAfter: number[] = [];
   const hfAfter: number[] = [];
+  const hfBefore: number[] = [];
   let outside = 0;
   let total = 0;
 
@@ -233,9 +245,11 @@ function readZone(
         satBefore.push(sb);
         satAfter.push(sa);
       }
-      // grain lives on the finer plate, so scale the coordinates up to it
+      // grain and edges live on the finer plates, so scale the coordinates up
       const hv = sample(saved.hf, p.x * grainScale, p.y * grainScale);
       if (hv !== null) hfAfter.push(hv);
+      const hb = sample(orig.hf, ox * origScale, oy * origScale);
+      if (hb !== null) hfBefore.push(hb);
     }
   }
 
@@ -248,6 +262,7 @@ function readZone(
       drift: -1,
       detail: 0,
       colour: 0,
+      edges: 1,
       grain: 0,
       bright: 0,
       changed: true,
@@ -275,6 +290,15 @@ function readZone(
   // as grainy if we averaged. A low percentile ignores the edges and measures
   // the noise sitting between them, which is what film grain actually is.
   const grain = lowPercentile(hfAfter, 0.3);
+
+  // The same distribution read from the other end: the floor is grain, the top is
+  // how hard the edges are. Against the original's, so it is a ratio rather than
+  // something to recalibrate per piece of art — and divided by the photometric
+  // gain, because contrast multiplies high-frequency energy along with everything
+  // else and without that a contrast push alone read as sharpening.
+  const edgesAfter = lowPercentile(hfAfter, 0.92) / Math.max(0.2, Math.abs(fit.a));
+  const edgesBefore = lowPercentile(hfBefore, 0.92);
+  const edges = edgesBefore > 1e-4 ? edgesAfter / edgesBefore : 1;
 
   let structure: number;
   if (sb.std < FLAT) {
@@ -310,6 +334,7 @@ function readZone(
     drift,
     detail,
     colour,
+    edges,
     grain,
     bright: sa.mean,
     changed,
@@ -325,6 +350,7 @@ function readRing(
   al: Alignment,
   fit: Fit,
   grainScale: number,
+  origScale: number,
 ): Reading {
   const strips: Zone[] = [
     { x: 0, y: 0, w: 1, h: RING_THICKNESS },
@@ -338,7 +364,7 @@ function readRing(
     },
   ];
   const parts = strips.map((s) =>
-    readZone(orig, saved, al, s, fit, grainScale, 18),
+    readZone(orig, saved, al, s, fit, grainScale, origScale, 18),
   );
   const mean = (pick: (r: Reading) => number) =>
     parts.reduce((s, p) => s + pick(p), 0) / parts.length;
@@ -350,6 +376,7 @@ function readRing(
     drift: mean((p) => p.drift),
     detail: mean((p) => p.detail),
     colour: mean((p) => p.colour),
+    edges: mean((p) => p.edges),
     grain: mean((p) => p.grain),
     bright: mean((p) => p.bright),
     // a frame is a border that changed all the way round, not on one side
@@ -391,11 +418,19 @@ export async function diffImages(
     Math.max(1, Math.round(savedImg.naturalHeight * fineScale)),
   );
   const hfPlate = highFrequency(fineSaved);
+  const origFineScale = FINE_W / Math.max(1, origImg.naturalWidth);
+  const fineOrig = grayFromImage(
+    origImg,
+    FINE_W,
+    Math.max(1, Math.round(origImg.naturalHeight * origFineScale)),
+  );
+  const hfOrig = highFrequency(fineOrig);
+  const origScale = hfOrig.w / Math.max(1, origPlates.luma.w);
   // the saved plate may have been turned upright during alignment; match that
   const hfUpright = rotateGray(hfPlate, al.rotation);
   const grainScale = hfUpright.w / Math.max(1, al.plate.w);
 
-  const orig: Before = { luma: origPlates.luma, sat: origPlates.sat };
+  const orig: Before = { luma: origPlates.luma, sat: origPlates.sat, hf: hfOrig };
   const saved: After = {
     luma: al.plate,
     sat: rotateGray(savedPlates.sat, al.rotation),
@@ -416,6 +451,7 @@ export async function diffImages(
     drift: 0,
     detail: 1,
     colour: 0,
+    edges: 1,
     grain: 0,
     bright: 0,
     changed: false,
@@ -424,7 +460,7 @@ export async function diffImages(
   const readings: Record<string, Reading> = {};
   for (const [name, zone] of Object.entries(zones)) {
     readings[name] = trusted
-      ? readZone(orig, saved, al, zone, fit, grainScale)
+      ? readZone(orig, saved, al, zone, fit, grainScale, origScale)
       : blank;
   }
 
@@ -455,7 +491,7 @@ export async function diffImages(
       aspectChanged: Math.abs(ow / oh - sw / sh) > 0.02,
     },
     zones: readings,
-    ring: trusted ? readRing(orig, saved, al, fit, grainScale) : blank,
+    ring: trusted ? readRing(orig, saved, al, fit, grainScale, origScale) : blank,
   };
 }
 

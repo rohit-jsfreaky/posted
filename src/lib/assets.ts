@@ -17,6 +17,7 @@ export const ASSETS = {
   'bg-lot': '/art/bg-lot.jpg',
   'bg-archive': '/art/bg-archive.jpg',
   'bg-diner': '/art/bg-diner.jpg',
+  'bg-dock': '/art/bg-dock.jpg',
   'cut-bouncer': '/art/cut-bouncer.png',
   'cut-subject': '/art/cut-subject.png',
   'cut-car': '/art/cut-car.png',

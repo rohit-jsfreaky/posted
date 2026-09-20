@@ -86,6 +86,32 @@ Two things it broke on the way in, both fixed:
 
 ---
 
+## ~~C2~~ — The seventh job: "Off the gantry camera" — **DONE**
+
+Plays fifth. Rohit asked for coverage of the tools the first six skipped, so this one is built
+around the three nothing else touches: **Contrast**, **Sharpen**, and the crop panel's **4:3
+preset**. Nothing in the photograph changes — what changes is the fingerprint the device left on
+it, which is a different kind of lie again: not what is there, not when, but what took it.
+
+It needed one new measurement. `detail` is a standard deviation, so it describes contrast across
+a zone and barely moves when a picture is sharpened — the first bench run had "sharpen only"
+firing nothing. The engine now also reads the *top* of the high-frequency distribution against
+the original's, which is what an unsharp mask actually changes, divided by the photometric gain
+so that pushing contrast cannot fake it. That second part was also caught by the bench: before
+it, "crush the contrast only" fired the sharpening flag too.
+
+The camera pass took two goes. `saturation` as a blend mode *sets* saturation rather than
+scaling it, so filling with a low-but-nonzero value pushed grey concrete up to it and turned the
+loading bay purple; and a `multiply` with grey is gloom, not contrast. Mostly-grey at partial
+alpha, then the picture composited over itself with `overlay`, gives the real thing.
+
+Played it in the real editor: contrast 55, sharpen 55, the 4:3 preset, post — all three, solved,
+and the world came back as a camera still with CAM 04 in the corner.
+
+Bench **34/34**.
+
+---
+
 ## D — Real holes, worth closing if C lands early
 
 | # | what | why it matters | size |

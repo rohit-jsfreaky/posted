@@ -25,6 +25,7 @@ const CARD_ART: Record<number, string> = {
   4: '/art/bg-lot.jpg',
   5: '/art/bg-archive.jpg',
   6: '/art/bg-diner.jpg',
+  7: '/art/bg-dock.jpg',
 };
 
 export default function Jobs({

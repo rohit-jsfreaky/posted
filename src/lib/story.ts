@@ -106,6 +106,25 @@ export const CHAPTERS: Chapter[] = [
   {
     card: 'Five',
     dms: [
+      { from: 'client', text: 'It is me again. The marina one.' },
+      {
+        from: 'client',
+        text: "I have a photo of a van at the back of Delancey. Nobody cares about a photo somebody took on their phone.",
+      },
+      { from: 'you', text: 'so where did it come from' },
+      { from: 'client', text: 'Camera four. It needs to look like it came off camera four.' },
+      { from: 'client', text: 'The van stays in it. That is the whole point of it.' },
+    ],
+    payoff: [
+      { from: 'client', text: "They have taken it as footage. Nobody asked for the original." },
+      { from: 'client', text: 'I will not need you again.' },
+    ],
+    himClosing:
+      'five. thats a phone photo dressed as a camera still. im not the only one reading this thread now',
+  },
+  {
+    card: 'Six',
+    dms: [
       { from: 'client', text: 'No names. You do good work.' },
       { from: 'you', text: 'who is this' },
       {
@@ -124,7 +143,7 @@ export const CHAPTERS: Chapter[] = [
       "thats my car. i was home. i have the router logs. somebody is putting me somewhere i wasnt",
   },
   {
-    card: 'Six',
+    card: 'Seven',
     dms: [
       { from: 'client', text: 'Last one. Then we are done.' },
       {

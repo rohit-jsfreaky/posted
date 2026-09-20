@@ -45,17 +45,21 @@ export const RANKS = [
     line: 'Four. He has put them all in one thread, and people are reading it.',
   },
   {
+    title: 'Under investigation',
+    line: 'Five. The thread is long enough that other people are reading it.',
+  },
+  {
     title: 'Public enemy',
-    line: 'Five. He knows it is you now. He put himself in one of them.',
+    line: 'Six. He knows it is you now. He put himself in one of them.',
   },
   {
     title: 'Absolute menace',
-    line: 'Six. He was right about every single one, and nobody listened.',
+    line: 'Seven. He was right about every single one, and nobody listened.',
   },
 ];
 
 /** Short enough to sit in a row of five. */
-const JOBS = ['The door', 'The car', 'The reflection', 'The date', 'The lot', 'The file'];
+const JOBS = ['Door', 'Car', 'Reflection', 'Date', 'Camera', 'Lot', 'File'];
 
 export type CardFonts = { display: string; mono: string };
 

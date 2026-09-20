@@ -29,6 +29,7 @@ const same: Reading = {
   drift: 0,
   detail: 1,
   colour: 0,
+  edges: 1,
   grain: 0,
   bright: 0.5,
   changed: false,

@@ -186,6 +186,18 @@ export const CASES: MutationCase[] = [
     expect: ['colour_gone', 'ev_gone'],
   },
 
+  // level 7 — the fingerprint a device leaves, not the thing in the frame
+  { id: 'l7-untouched', what: 'save without editing', level: 7, expect: [] },
+  { id: 'l7-ratio', what: 'crop to 4:3, nothing else', level: 7, expect: ['ratio_fixed'] },
+  { id: 'l7-tone', what: 'crush the contrast only', level: 7, expect: ['tone_crushed'] },
+  { id: 'l7-sharp', what: 'sharpen only', level: 7, expect: ['oversharpened'] },
+  {
+    id: 'l7-full',
+    what: '4:3, crushed, and oversharpened',
+    level: 7,
+    expect: ['ratio_fixed', 'tone_crushed', 'oversharpened'],
+  },
+
   // level 5 — claim a source instead of changing a fact
   { id: 'l5-frame-only', what: 'add a frame', level: 5, expect: ['official'] },
   { id: 'l5-redact-only', what: 'black bar over the face', level: 5, expect: ['face_hidden'] },
@@ -252,6 +264,49 @@ export async function buildMutation(
         },
         img,
       );
+
+    case 'l7-untouched':
+      return render(w, h, (ctx) => ctx.drawImage(img, 0, 0), img);
+
+    case 'l7-ratio':
+    case 'l7-tone':
+    case 'l7-sharp':
+    case 'l7-full': {
+      const ratio = id === 'l7-ratio' || id === 'l7-full';
+      const tone = id === 'l7-tone' || id === 'l7-full';
+      const sharp = id === 'l7-sharp' || id === 'l7-full';
+      // 4:3 out of a 3:2 frame is a crop off the sides
+      const kw = ratio ? Math.round((h * 4) / 3) : w;
+      return render(
+        kw,
+        h,
+        (ctx) => {
+          if (tone) ctx.filter = 'contrast(1.45)';
+          ctx.drawImage(img, ratio ? -Math.round((w - kw) / 2) : 0, 0);
+          ctx.filter = 'none';
+          if (!sharp) return;
+          // an unsharp mask, which is what the editor's Sharpen is: the image
+          // plus its own difference from a blurred copy of itself
+          const base = ctx.getImageData(0, 0, kw, h);
+          ctx.save();
+          ctx.filter = 'blur(1.4px)';
+          ctx.drawImage(ctx.canvas, 0, 0);
+          ctx.restore();
+          ctx.filter = 'none';
+          const soft = ctx.getImageData(0, 0, kw, h);
+          const out = ctx.createImageData(kw, h);
+          for (let i = 0; i < out.data.length; i += 4) {
+            for (let c = 0; c < 3; c++) {
+              const v = base.data[i + c] + 1.5 * (base.data[i + c] - soft.data[i + c]);
+              out.data[i + c] = Math.max(0, Math.min(255, v));
+            }
+            out.data[i + 3] = 255;
+          }
+          ctx.putImageData(out, 0, 0);
+        },
+        img,
+      );
+    }
 
     case 'l6-untouched':
       return render(w, h, (ctx) => ctx.drawImage(img, 0, 0), img);
