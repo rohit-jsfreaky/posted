@@ -40,7 +40,11 @@ export default function Lab() {
     setRows([]);
     const out: Row[] = [];
     for (const test of CASES) {
-      const level = LEVELS[test.level - 1];
+      // by id, not by position: the running order is the story's and level 6
+      // plays fourth, so an index here silently ran every level-4 case against
+      // the wrong scene
+      const level = LEVELS.find((l) => l.id === test.level);
+      if (!level) throw new Error(`no level with id ${test.level}`);
       const src = renderLevel(level, level.initial);
       const saved = await buildMutation(test.id, src, level);
       const started = performance.now();

@@ -84,6 +84,28 @@ export const CHAPTERS: Chapter[] = [
   {
     card: 'Four',
     dms: [
+      { from: 'client', text: 'You did the marina job. Word travels.' },
+      {
+        from: 'client',
+        text: "There's a photo of the front of my place going round with a date on it. The date is the problem, not the photo.",
+      },
+      { from: 'you', text: 'how wrong does the date need to be' },
+      { from: 'client', text: 'About thirty years.' },
+      {
+        from: 'client',
+        text: 'The name over the door stays. Nobody can tell which diner it is without it.',
+      },
+    ],
+    payoff: [
+      { from: 'client', text: 'Thirty years. Nobody has asked once.' },
+      { from: 'client', text: 'That is the last I will bother you.' },
+    ],
+    himClosing:
+      'four now. im putting all of them in one thread tonight. somebody is doing this for money',
+  },
+  {
+    card: 'Five',
+    dms: [
       { from: 'client', text: 'No names. You do good work.' },
       { from: 'you', text: 'who is this' },
       {
@@ -102,7 +124,7 @@ export const CHAPTERS: Chapter[] = [
       "thats my car. i was home. i have the router logs. somebody is putting me somewhere i wasnt",
   },
   {
-    card: 'Five',
+    card: 'Six',
     dms: [
       { from: 'client', text: 'Last one. Then we are done.' },
       {

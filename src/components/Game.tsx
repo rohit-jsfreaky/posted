@@ -488,7 +488,7 @@ export default function Game({
           Jobs
         </button>
         <h1 className="display truncate text-lg text-text sm:text-2xl">
-          <span className="text-mute">Job {String(level.id).padStart(2, '0')}</span>{' '}
+          <span className="text-mute">Job {String(index + 1).padStart(2, '0')}</span>{' '}
           {level.title}
         </h1>
         <span className="hidden truncate text-[10px] tracking-[0.14em] text-dim lg:block">

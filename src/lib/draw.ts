@@ -156,6 +156,92 @@ export function nightPass(ctx: Ctx, tint = '#39477f') {
   ctx.globalCompositeOperation = 'source-over';
 }
 
+/**
+ * A grain tile, made once.
+ *
+ * Old film has grain and a clean digital frame does not, which is the whole point
+ * of the job this belongs to. Generating noise across 1200x800 on every render
+ * would be a million random numbers per redraw, so one tile is built lazily and
+ * tiled across the frame.
+ */
+let grainTile: HTMLCanvasElement | null = null;
+
+function grain(): HTMLCanvasElement {
+  if (grainTile) return grainTile;
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  const g = c.getContext('2d');
+  if (!g) throw new Error('canvas 2d context not available');
+  const img = g.createImageData(size, size);
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 110 + Math.random() * 90;
+    img.data[i] = v;
+    img.data[i + 1] = v;
+    img.data[i + 2] = v;
+    img.data[i + 3] = 255;
+  }
+  g.putImageData(img, 0, 0);
+  grainTile = c;
+  return c;
+}
+
+/**
+ * Age: the photograph as it would have come back from a lab decades ago.
+ *
+ * Built from blend modes rather than a per-pixel loop, so it stays cheap enough
+ * to run inside a synchronous composite. Colour goes first, then the blacks are
+ * lifted off the floor — the thing that actually makes an old print read as old
+ * is that nothing in it is truly black — then a warm cast, then grain.
+ *
+ * This is deliberately a *better* version of what the player did with a preset
+ * and the noise slider. Their edit is the instruction; this is what the city
+ * printed from it.
+ */
+export function agePass(ctx: Ctx) {
+  const W = ctx.canvas.width;
+  const H = ctx.canvas.height;
+  ctx.save();
+
+  // take the colour out
+  ctx.globalCompositeOperation = 'saturation';
+  ctx.fillStyle = 'hsl(0, 0%, 50%)';
+  ctx.fillRect(0, 0, W, H);
+
+  // nothing on an old print is truly black
+  ctx.globalCompositeOperation = 'lighten';
+  ctx.fillStyle = '#211c16';
+  ctx.fillRect(0, 0, W, H);
+
+  // and nothing on it is truly white either
+  ctx.globalCompositeOperation = 'darken';
+  ctx.fillStyle = '#efe7d6';
+  ctx.fillRect(0, 0, W, H);
+
+  // the warm cast the paper picked up
+  ctx.globalCompositeOperation = 'multiply';
+  ctx.fillStyle = '#d9c39c';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = '#241a0c';
+  ctx.fillRect(0, 0, W, H);
+
+  // film grain
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.5;
+  const tile = grain();
+  const pattern = ctx.createPattern(tile, 'repeat');
+  if (pattern) {
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.restore();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+}
+
 /** The timestamp burned into the corner of every photo in the game. */
 export function stamp(ctx: Ctx, text: string, colour: string) {
   ctx.fillStyle = colour;

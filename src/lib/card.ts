@@ -42,16 +42,20 @@ export const RANKS = [
   },
   {
     title: 'Wanted',
-    line: 'Four. He knows it is you. He put himself in one of them.',
+    line: 'Four. He has put them all in one thread, and people are reading it.',
+  },
+  {
+    title: 'Public enemy',
+    line: 'Five. He knows it is you now. He put himself in one of them.',
   },
   {
     title: 'Absolute menace',
-    line: 'Five. He was right about every single one, and nobody listened.',
+    line: 'Six. He was right about every single one, and nobody listened.',
   },
 ];
 
 /** Short enough to sit in a row of five. */
-const JOBS = ['The door', 'The car', 'The reflection', 'The lot', 'The file'];
+const JOBS = ['The door', 'The car', 'The reflection', 'The date', 'The lot', 'The file'];
 
 export type CardFonts = { display: string; mono: string };
 
@@ -157,8 +161,8 @@ function drawJobs(ctx: Ctx, done: number, f: CardFonts) {
     }
     ctx.textAlign = 'left';
     ctx.fillStyle = on ? TEXT : DIM;
-    ctx.font = `600 15px ${f.mono}`;
-    ctx.fillText(job.toUpperCase(), cx + 28, y + 10);
+    ctx.font = `600 14px ${f.mono}`;
+    ctx.fillText(job.toUpperCase(), cx + 26, y + 10);
   });
   ctx.textBaseline = 'alphabetic';
 }

@@ -69,6 +69,7 @@ world**, and each job unlocks one more.
 | **Filter** — brightness | time of day, and therefore who is around and what is open |
 | **Filter** — brightness up | blow a window out until the reflection in it stops existing |
 | **Filter** — blur / pixelate | a face stops being recognisable |
+| **Filter** — presets and noise | how old the photograph is, and therefore whether it can be used against anybody |
 | **Shapes** | cover something in a colour that belongs in the photograph |
 | **Stickers** | objects appear — a car in an empty bay that was empty all afternoon |
 | **Draw** | available, always crude, always the highest-suspicion answer. The trap |
@@ -88,7 +89,8 @@ than assuming:
   region of every photograph read as tampered with.
 - **Filters apply to the photo layer and never to an object pasted on top of it.** The original
   design had you matching film grain onto a pasted car with `Noise`; that is not a move this editor
-  can make, so the game says so in as many words rather than asking for it.
+  can make, so the game says so in as many words rather than asking for it — and job four gives
+  `Noise` the job it can actually do, graining the photograph itself.
 
 ![Editing a job](docs/shots/3-editing.jpg)
 
@@ -96,16 +98,19 @@ than assuming:
 
 ## The game
 
-Five jobs, one chapter each, and one man who zooms in on everything you post.
+Six jobs, one chapter each, and one man who zooms in on everything you post.
 
 1. **Get me inside** — a bouncer on a door. Teaches *crop*.
 2. **The car was never there** — teaches *resize*, whose only real job is hiding that you cropped.
 3. **He can't be in the reflection** — he is on the dock, in the window and in the water. Crop
    physically cannot reach the middle of a frame. Four tools get to the window at four different
    prices.
-4. **Put him at the scene** — the inverse of everything before it. Adding is hard, because a
+4. **This is from years ago** — the only job that changes *when* a photograph was taken rather
+   than what it shows. Drain the colour with a preset, and then give it grain, because a black
+   and white frame with no grain in it is a filter and he says so.
+5. **Put him at the scene** — the inverse of everything before it. Adding is hard, because a
    pasted object has no shadow.
-5. **Make it official** — change nothing about what the photograph shows, only where it claims to
+6. **Make it official** — change nothing about what the photograph shows, only where it claims to
    have come from.
 
 **Cal Hampton** is the antagonist, and he is the only person in Leonida who checks. He starts as
@@ -163,7 +168,7 @@ pressed.
 
 ### The test bench
 
-`/lab` runs **22 synthesised cases** against the real art — every valid solution, and the
+`/lab` runs **29 synthesised cases** against the real art — every valid solution, and the
 near-misses that must not fire. It is the reason a change to a threshold is a two-minute check
 rather than an afternoon of replaying levels by hand.
 
@@ -175,7 +180,7 @@ right size" was quietly handing itself out to anyone who pressed POST without ed
 
 - **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~5,500 lines.
 - **Sound is synthesised** with Web Audio oscillators. No audio files ship.
-- **Art**: 9 files, 3.0 MB total — five 1200×800 backgrounds and four trimmed RGBA cut-outs.
+- **Art**: 11 files, 3.6 MB total — six 1200×800 backgrounds and five trimmed RGBA cut-outs.
   Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same
   rectangle, which is the property the diff engine depends on.
 - **Progress is kept in `localStorage`** — only the number of jobs finished, since everything else

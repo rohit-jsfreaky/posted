@@ -12,12 +12,14 @@ import { CHAPTERS } from '@/lib/story';
  * the next one is selectable, later ones are locked until you reach them.
  */
 
+/** Keyed by level id, because the running order is not the order these were written in. */
 const CARD_ART: Record<number, string> = {
   1: '/art/bg-club.jpg',
   2: '/art/bg-street.jpg',
   3: '/art/bg-marina.jpg',
   4: '/art/bg-lot.jpg',
   5: '/art/bg-archive.jpg',
+  6: '/art/bg-diner.jpg',
 };
 
 export default function Jobs({
@@ -95,7 +97,7 @@ export default function Jobs({
                 </div>
                 <div className="flex flex-1 flex-col gap-1 bg-panel p-3">
                   <span className="text-[10px] tracking-[0.16em] text-mute">
-                    JOB {String(level.id).padStart(2, '0')}
+                    JOB {String(i + 1).padStart(2, '0')}
                   </span>
                   <span className="display text-[clamp(0.85rem,1.3vw,1.15rem)] text-text">
                     {level.title}

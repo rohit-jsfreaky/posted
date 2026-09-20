@@ -16,10 +16,12 @@ export const ASSETS = {
   'bg-marina': '/art/bg-marina.jpg',
   'bg-lot': '/art/bg-lot.jpg',
   'bg-archive': '/art/bg-archive.jpg',
+  'bg-diner': '/art/bg-diner.jpg',
   'cut-bouncer': '/art/cut-bouncer.png',
   'cut-subject': '/art/cut-subject.png',
   'cut-car': '/art/cut-car.png',
   'cut-witness': '/art/cut-witness.png',
+  'cut-ev': '/art/cut-ev.png',
 } as const;
 
 export type AssetName = keyof typeof ASSETS;

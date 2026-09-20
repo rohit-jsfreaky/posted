@@ -49,56 +49,40 @@ is either kept or turned off on purpose rather than by accident.
 
 ---
 
-## C — The sixth job: "This is from years ago"
+## ~~C~~ — The sixth job: "This is from years ago" — **DONE**
 
-The one piece of real upside left, and the reason is not "more content". It is that **most of the
-image editor is still untouched**, and the pitch gets sharper if the game covers it.
+It plays fourth, between the marina and the car park: by then he has said "same hand on all
+three", and this is the one that makes him go public. The lot job had to stay where it is,
+because that is where he stops commentating and becomes the job.
 
-All eight top-level tools are used across jobs 1–5. What is not used is everything *inside* them:
+**What it uses that nothing else did:** the filter panel's presets, and `Noise` — which is the
+point. Job five asked for Noise and could not have it, because filters reach the photo layer and
+never an object pasted on top of it. Here the grain belongs on the photograph, which is exactly
+what that slider does reach, and it is load-bearing: drain the colour without adding grain and he
+says *"thats not an old photo, thats a new one with a filter on it."*
 
-- **Filter presets** — Grayscale, Black & White, Sepia, Vintage, Polaroid, Kodachrome,
-  Technicolor, Brownie, Invert, Emboss. None.
-- **Saturation, Vibrance, Hue, Contrast, Gamma, Sharpen.** None.
-- **Noise** — used once, and only to say that it *cannot* work there.
-- **Crop's other half** — aspect ratio presets, Rotate, Flip, Straighten, corner radius. None.
-- **Text effect styles** — Neon, Typewriter, Marker, Meme. None.
+**Verified in the real editor, all three branches:**
 
-### The job
-
-A client needs something buried. The photograph has to read as decades old, not last week.
-
-**Three things have to be true:**
-
-1. **The colour is gone.** A preset (Grayscale, Sepia, Vintage) or Saturation pulled down. This
-   is the first time a preset is the answer to anything.
-2. **It has grain.** Noise up. Old film is grainy and a clean digital frame is not — **and this
-   is the fix for the dead end in job 4**, where the design asked for Noise and the editor could
-   not deliver it. Here it applies to the photo layer, which is exactly what Noise does reach.
-3. **The thing that dates it is gone.** Something in the frame did not exist back then. Crop it
-   out or cover it.
-
-**His tell:** *"nothing in that photo is from then except the photo."*
-
-### Why this one and not a flip job or a rotate job
-
-It passes the canvas test. "Which manipulation makes a photograph read as old" is a taste
-question with several right answers at different costs — which is the same shape as job 3, the
-best job in the game. "Flip the image" is one button and one answer.
-
-### What it needs
-
-| | |
+| what was done | what happened |
 |---|---|
-| **Measurement** | Already there. `colour` and `grain` are computed per zone today. The flags are `colour` collapsing and `grain` rising — no new engine work |
-| **Art** | Probably none. A period pass over an existing scene, the same way `nightPass` works. Reuse a scene the player already knows, so the change is legible |
-| **Bench** | 3 new cases in `mutations.ts`: preset only, preset + noise, and the near-miss that must not fire |
-| **Size** | Half a day if the period pass looks right first try. A day if the art fights back |
+| Grayscale alone | `colour_gone`, then the no-grain tell takes it back |
+| Grayscale + Noise, car still in frame | grain holds, the dated tell takes the colour back — *"nothing in that photo is from then except the photo"* |
+| Grayscale + Noise + crop the car off | all three, solved |
 
-**Finish line for C:** the bench is green including the new cases, `npm run check:identity` is
-still clean, and I have completed the job by hand in the real editor.
+**Noise only needs to reach 3 on the slider**, so the photograph still looks like a photograph.
+At 38 it is destroyed, which is worth knowing and is not required.
 
-**Cut rule:** if C is not finished and tested by end of 22 Sep, it does not ship. Five jobs that
-work beat six where one is rough.
+Bench is **29/29** including four new level-6 cases and three near-misses that must not fire:
+untouched, brightness-only, and grayscale-plus-crop-without-grain. That last one exists because
+`grain` is an absolute noise floor, so the only honest way to know the threshold clears the art's
+own JPEG noise is to run it against the art.
+
+Two things it broke on the way in, both fixed:
+
+- The bench resolved levels by array index, so reordering ran every level-4 case against the
+  wrong scene. It resolves by id now.
+- The jobs screen numbered by level id, so the fourth job read "JOB 06". Both screens number by
+  play order now.
 
 ---
 

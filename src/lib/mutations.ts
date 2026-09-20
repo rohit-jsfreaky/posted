@@ -158,6 +158,34 @@ export const CASES: MutationCase[] = [
     expect: ['car_placed', 'shadow_added'],
   },
 
+  // level 6 — the only job whose answer is in the top half of the filter panel
+  { id: 'l6-grey-only', what: 'drain the colour, nothing else', level: 6, expect: ['colour_gone'] },
+  {
+    id: 'l6-grey-grain',
+    what: 'drain the colour and add grain',
+    level: 6,
+    expect: ['colour_gone', 'grain_added'],
+  },
+  {
+    id: 'l6-full',
+    what: 'drain, grain, and crop the car off',
+    level: 6,
+    expect: ['colour_gone', 'grain_added', 'ev_gone'],
+  },
+  { id: 'l6-grain-only', what: 'add grain to a colour photo', level: 6, expect: ['grain_added'] },
+  // colour and grain are absolute measures, so the only honest check that the
+  // thresholds clear the art's own noise floor is the art itself
+  { id: 'l6-untouched', what: 'save without editing', level: 6, expect: [] },
+  { id: 'l6-dim', what: 'brightness down, colour intact', level: 6, expect: [] },
+  // cropping must not look like grain: a smaller frame is re-encoded and that
+  // alone could move an absolute noise floor if the threshold were too low
+  {
+    id: 'l6-grey-crop',
+    what: 'drain the colour and crop, no grain',
+    level: 6,
+    expect: ['colour_gone', 'ev_gone'],
+  },
+
   // level 5 — claim a source instead of changing a fact
   { id: 'l5-frame-only', what: 'add a frame', level: 5, expect: ['official'] },
   { id: 'l5-redact-only', what: 'black bar over the face', level: 5, expect: ['face_hidden'] },
@@ -224,6 +252,54 @@ export async function buildMutation(
         },
         img,
       );
+
+    case 'l6-untouched':
+      return render(w, h, (ctx) => ctx.drawImage(img, 0, 0), img);
+
+    case 'l6-dim':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          ctx.drawImage(img, 0, 0);
+          ctx.fillStyle = 'rgba(0,0,0,0.22)';
+          ctx.fillRect(0, 0, w, h);
+        },
+        img,
+      );
+
+    case 'l6-grey-only':
+    case 'l6-grey-grain':
+    case 'l6-grey-crop':
+    case 'l6-full':
+    case 'l6-grain-only': {
+      const grey = id !== 'l6-grain-only';
+      const noise = id !== 'l6-grey-only' && id !== 'l6-grey-crop';
+      // these two also lose the right edge, where the car is parked
+      const keep = id === 'l6-full' || id === 'l6-grey-crop' ? Math.round(w * 0.72) : w;
+      return render(
+        keep,
+        h,
+        (ctx) => {
+          if (grey) ctx.filter = 'grayscale(1)';
+          ctx.drawImage(img, 0, 0);
+          ctx.filter = 'none';
+          if (!noise) return;
+          // the editor's Noise slider, near enough: monochrome speckle over the
+          // whole photo layer
+          const px = ctx.getImageData(0, 0, keep, h);
+          const d = px.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const n = (Math.random() - 0.5) * 56;
+            d[i] = Math.max(0, Math.min(255, d[i] + n));
+            d[i + 1] = Math.max(0, Math.min(255, d[i + 1] + n));
+            d[i + 2] = Math.max(0, Math.min(255, d[i + 2] + n));
+          }
+          ctx.putImageData(px, 0, 0);
+        },
+        img,
+      );
+    }
 
     case 'dim-15':
     case 'dim-25':

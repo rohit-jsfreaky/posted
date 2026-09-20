@@ -9,6 +9,19 @@
 import { LEVELS } from '../src/lib/levels';
 import type { DiffReport, Reading } from '../src/lib/diff';
 
+/**
+ * A zone in a photograph nobody touched.
+ *
+ * The relative measures are exact: nothing missing, no structural change, no
+ * brightness drift, detail and colour unchanged from the original.
+ *
+ * `grain` is the one that cannot be written down here honestly, because it is an
+ * absolute noise floor and the real value depends on the art and its JPEG
+ * quality. 0 is the conservative end for the "fires when grain is high" flags
+ * this game has. A flag that fired when grain was *low* would slip past this
+ * check, so the authoritative test for absolute measures is the bench's untouched
+ * case per level, run against the real files.
+ */
 const same: Reading = {
   missing: 0,
   structure: 0,
@@ -16,7 +29,7 @@ const same: Reading = {
   drift: 0,
   detail: 1,
   colour: 0,
-  grain: 1,
+  grain: 0,
   bright: 0.5,
   changed: false,
 };

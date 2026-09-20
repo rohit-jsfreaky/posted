@@ -60,7 +60,15 @@ export type Reading = {
   detail: number;
   /** how much more colourful the zone became. Stickers push this up */
   colour: number;
-  /** grain in the zone vs grain in the whole photo. A flat paste sits near 0 */
+  /**
+   * The noise floor inside the zone, as an absolute figure, not a ratio.
+   *
+   * A flat paste sits near 0 because it brought no grain of its own with it, and
+   * a photograph somebody ran the Noise slider over sits well above whatever the
+   * art started at. Being absolute means a threshold on it has to be checked
+   * against the real art rather than reasoned about — which is what the bench's
+   * untouched cases are for.
+   */
   grain: number;
   /** absolute brightness the zone ended up at, 0..1. Near 1 means blown out */
   bright: number;
