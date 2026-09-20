@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { MAIN, SIDE } from '@/lib/levels';
 import { CHAPTERS } from '@/lib/story';
 import type { Level } from '@/lib/level';
@@ -15,8 +15,9 @@ import type { Progress } from '@/lib/save';
  * the editor the story never needs, and skipping all of it still finishes the
  * game. The only thing it changes is what the file on you ends up saying.
  *
- * Each list is a strip that scrolls sideways. A grid with a column count in it
- * is a grid that breaks the next time a job is added.
+ * Each list wraps. No column count, because a grid with one written into it
+ * breaks the next time a job is added — and no sideways scroll either, because a
+ * card that has gone off the right-hand edge is a card nobody knows is there.
  */
 
 /** Keyed by level id, because the running order is not the order these were written in. */
@@ -35,6 +36,7 @@ type Pick = { kind: 'main'; at: number } | { kind: 'side'; id: number };
 
 function Card({
   level,
+  height,
   caption,
   title,
   done,
@@ -42,9 +44,10 @@ function Card({
   selected,
   onHover,
   onOpen,
-  innerRef,
 }: {
   level: Level;
+  /** each card owns its height, now that the row is not a fixed-height strip */
+  height: string;
   caption: string;
   title: string;
   done: boolean;
@@ -52,16 +55,14 @@ function Card({
   selected: boolean;
   onHover: () => void;
   onOpen: () => void;
-  innerRef?: React.Ref<HTMLButtonElement>;
 }) {
   return (
     <button
-      ref={innerRef}
       data-testid={`job-${level.id}`}
       disabled={locked}
       onMouseEnter={() => !locked && onHover()}
       onClick={() => !locked && onOpen()}
-      className={`group relative flex h-full w-[clamp(11rem,18vw,22rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
+      className={`group relative flex ${height} w-[clamp(11rem,18vw,22rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
         selected && !locked ? 'border-accent' : 'border-line hover:border-mute'
       } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
       style={{ transform: selected && !locked ? 'scale(1.03)' : undefined }}
@@ -107,22 +108,6 @@ export default function Jobs({
     kind: 'main',
     at: Math.min(progress.main, MAIN.length - 1),
   });
-  const current = useRef<HTMLButtonElement>(null);
-
-  /**
-   * Bring the selected card into its own strip, sideways only.
-   *
-   * `scrollIntoView` walks every scrollable ancestor, so on a short screen it
-   * scrolled the board itself as well and opened the page halfway down, with the
-   * first row's tops cut off. This moves the one container that should move.
-   */
-  useEffect(() => {
-    const card = current.current;
-    const strip = card?.parentElement?.parentElement;
-    if (!card || !strip) return;
-    const left = card.offsetLeft - (strip.clientWidth - card.clientWidth) / 2;
-    strip.scrollTo({ left: Math.max(0, left) });
-  }, [at]);
 
   const selected =
     at.kind === 'main' ? MAIN[at.at] : (SIDE.find((l) => l.id === at.id) ?? SIDE[0]);
@@ -169,18 +154,18 @@ export default function Jobs({
             <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-accent sm:px-10">
               The run
             </p>
-            <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-              <div className="flex h-[min(23rem,38vh)] gap-3 sm:gap-4">
+            <div className="px-6 sm:px-10">
+              <div className="flex flex-wrap gap-3 sm:gap-4">
                 {MAIN.map((level, i) => (
                   <Card
                     key={level.id}
                     level={level}
-                    caption={`JOB ${String(i + 1).padStart(2, '0')}`}
+                    height="h-[min(23rem,38vh)]"
+                  caption={`JOB ${String(i + 1).padStart(2, '0')}`}
                     title={level.title}
                     done={i < progress.main}
                     locked={i > progress.main}
                     selected={at.kind === 'main' && at.at === i}
-                    innerRef={at.kind === 'main' && at.at === i ? current : undefined}
                     onHover={() => setAt({ kind: 'main', at: i })}
                     onOpen={() => onPick({ kind: 'main', at: i })}
                   />
@@ -194,20 +179,18 @@ export default function Jobs({
               <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-mute sm:px-10">
                 Side work — optional, and it does not touch the ending
               </p>
-              <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-                <div className="flex h-[min(19rem,32vh)] gap-3 sm:gap-4">
+              <div className="px-6 sm:px-10">
+                <div className="flex flex-wrap gap-3 sm:gap-4">
                   {SIDE.map((level) => (
                     <Card
                       key={level.id}
                       level={level}
-                      caption="SIDE JOB"
+                      height="h-[min(19rem,32vh)]"
+                    caption="SIDE JOB"
                       title={level.title}
                       done={progress.side.includes(level.id)}
                       locked={sideLocked}
                       selected={at.kind === 'side' && at.id === level.id}
-                      innerRef={
-                        at.kind === 'side' && at.id === level.id ? current : undefined
-                      }
                       onHover={() => setAt({ kind: 'side', id: level.id })}
                       onOpen={() => onPick({ kind: 'side', id: level.id })}
                     />
