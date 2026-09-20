@@ -13,7 +13,7 @@
  */
 
 import { ALL, MAIN, SIDE } from '../src/lib/levels';
-import { CHAPTERS, SIDE_BRIEFS } from '../src/lib/story';
+import { CHAPTERS, CROWD, SIDE_BRIEFS } from '../src/lib/story';
 import type { Level } from '../src/lib/level';
 
 const problems: string[] = [];
@@ -144,6 +144,33 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
   chapter.dms.forEach((m, i) => record(m.text, `${at} dm ${i + 1}`, true));
   chapter.payoff.forEach((m, i) => record(m.text, `${at} payoff ${i + 1}`, true));
   record(chapter.himClosing, `${at} his closing line`, true);
+}
+
+/**
+ * Two jobs may share a client only when they are the same person on purpose.
+ *
+ * Jobs four and five are: "one more and he stops being a problem", then "last
+ * one, then we are done". Everything else sharing a handle is an accident, and
+ * one of them was — the marina client was also the client of a side job whose
+ * own opening line is "Different client. Somebody passed on your name."
+ */
+const SAME_CLIENT_ON_PURPOSE = new Set(['no name given']);
+
+const crowd = new Set<string>(CROWD);
+const clients = new Map<string, string[]>();
+for (const l of [...MAIN, ...SIDE]) {
+  if (crowd.has(l.client)) {
+    fail(
+      `level ${l.id} (${l.title})`,
+      `client "${l.client}" is also one of the crowd, so the man replying to your post is the man who paid for it`,
+    );
+  }
+  clients.set(l.client, [...(clients.get(l.client) ?? []), `level ${l.id}`]);
+}
+for (const [who, where] of clients) {
+  if (where.length > 1 && !SAME_CLIENT_ON_PURPOSE.has(who)) {
+    fail('client used twice', `"${who}" hires you in ${where.join(' and ')}`);
+  }
 }
 
 MAIN.forEach((l) => checkLevel(l, 'run'));

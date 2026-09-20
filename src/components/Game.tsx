@@ -19,7 +19,7 @@ import {
   type Tell,
 } from '@/lib/level';
 import { assess, methodFor } from '@/lib/suspicion';
-import { type Chapter, type Message } from '@/lib/story';
+import { CROWD, type Chapter, type Message } from '@/lib/story';
 import { play, setMuted } from '@/lib/sound';
 
 /**
@@ -351,7 +351,7 @@ export default function Game({
         play('reply');
         push({
           kind: 'reply',
-          who: ['nine_lives_vc', 'marla_qt', 'boardwalk_dan', 'leonida_lurker'][i % 4],
+          who: CROWD[i % CROWD.length],
           text,
           likes: 4 + i * 11,
         });

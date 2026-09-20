@@ -54,7 +54,7 @@ function composite(state: WorldState, ctx: Ctx) {
 export const level7: Level = {
   id: 7,
   title: 'Off the gantry camera',
-  client: 'r_okafor',
+  client: 't_mazur',
   brief:
     "Nobody cares about a photo somebody took on their phone. I need this one to have come off camera four, and I need it to look like it.",
   goal: 'Change not what took the photograph, but what it claims took it.',

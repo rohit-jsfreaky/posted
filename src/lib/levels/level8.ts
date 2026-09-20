@@ -74,7 +74,7 @@ function composite(state: WorldState, ctx: Ctx) {
 export const level8: Level = {
   id: 8,
   title: 'The sign was red',
-  client: 'nine_lives_vc',
+  client: 'j_ferreira',
   brief:
     "Two bars on that block. One has a red sign, one has a pink one, and I said I was at the red one. The photo says otherwise.",
   goal: 'Turn the night from one bar into the other.',

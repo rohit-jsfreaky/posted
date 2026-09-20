@@ -26,6 +26,15 @@ export type Chapter = {
   card: string;
 };
 
+/**
+ * The people who reply to everything you post.
+ *
+ * Exported because the content check has to know them: a client handle that is
+ * also one of these means the man arguing with your post in the feed is the same
+ * man who paid for it, which nobody intended and everybody would notice.
+ */
+export const CROWD = ['nine_lives_vc', 'marla_qt', 'boardwalk_dan', 'leonida_lurker'] as const;
+
 export const CHAPTERS: Chapter[] = [
   {
     card: 'One',
@@ -205,7 +214,7 @@ export const SIDE_BRIEFS: Record<number, Chapter> = {
         text: 'There are two bars on that block. One has a red sign, one has a pink one. I said I was at the red one.',
       },
       { from: 'you', text: 'and the photo says pink' },
-      { from: 'client', text: 'The photo says pink.' },
+      { from: 'client', text: 'Bright pink. You can see it on the road.' },
       { from: 'client', text: 'Leave the front of the place in it. That is how anyone knows which one it is.' },
     ],
     payoff: [
