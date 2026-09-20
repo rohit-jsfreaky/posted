@@ -18,9 +18,8 @@ import {
   type Level,
   type Tell,
 } from '@/lib/level';
-import { LEVELS } from '@/lib/levels';
 import { assess, methodFor } from '@/lib/suspicion';
-import { CHAPTERS, type Message } from '@/lib/story';
+import { type Chapter, type Message } from '@/lib/story';
 import { play, setMuted } from '@/lib/sound';
 
 /**
@@ -40,16 +39,24 @@ let seq = 0;
 const nextId = () => `i${seq++}`;
 
 export default function Game({
-  index,
+  level,
+  chapter,
+  label,
+  progress,
+  isLastMain,
   onQuit,
   onSolved,
 }: {
-  index: number;
+  level: Level;
+  chapter: Chapter;
+  /** what the header calls this one: "Job 03", or "Side job" */
+  label: string;
+  progress: { main: number; side: number; sideTotal: number };
+  /** the run's last chapter, so the button offers the ending rather than the next job */
+  isLastMain: boolean;
   onQuit: () => void;
   onSolved: () => void;
 }) {
-  const level: Level = LEVELS[index];
-  const chapter = CHAPTERS[index];
 
   const [earned, setEarned] = useState<string[]>([]);
   const [choice, setChoice] = useState<string | null>(null);
@@ -142,11 +149,11 @@ export default function Game({
 
   // the brief arrives as a conversation. Only timers here, no direct setState
   useEffect(() => {
-    const ids = CHAPTERS[index].dms.map((m, i) =>
+    const ids = chapter.dms.map((m, i) =>
       window.setTimeout(() => setThread((prev) => [...prev, m]), 400 + i * 1100),
     );
     return () => ids.forEach((id) => window.clearTimeout(id));
-  }, [index]);
+  }, [chapter, later]);
 
   // counters tick upward on their own, the way they do on a real feed
   useEffect(() => {
@@ -488,7 +495,7 @@ export default function Game({
           Jobs
         </button>
         <h1 className="display truncate text-lg text-text sm:text-2xl">
-          <span className="text-mute">Job {String(index + 1).padStart(2, '0')}</span>{' '}
+          <span className="text-mute">{label}</span>{' '}
           {level.title}
         </h1>
         <span className="hidden truncate text-[10px] tracking-[0.14em] text-dim lg:block">
@@ -787,14 +794,14 @@ export default function Game({
             <h2 className="display mt-3 text-3xl text-text">{level.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-text/80">{level.epilogue}</p>
 
-            <CaseCard done={index + 1} />
+            <CaseCard progress={progress} />
 
             <button
               data-testid="next-level"
               onClick={onSolved}
               className="display mt-5 w-full bg-accent py-2 text-xl text-accent-ink hover:brightness-110"
             >
-              {index + 1 >= LEVELS.length ? 'See how it ends' : 'Next job'}
+              {isLastMain ? 'See how it ends' : 'Next job'}
             </button>
           </div>
         </div>

@@ -30,7 +30,7 @@ export const CHAPTERS: Chapter[] = [
   {
     card: 'One',
     dms: [
-      { from: 'client', text: "you the one who fixes photos?" },
+      { from: 'client', text: 'you the one who fixes photos?' },
       { from: 'you', text: 'depends what needs fixing' },
       {
         from: 'client',
@@ -38,7 +38,7 @@ export const CHAPTERS: Chapter[] = [
       },
     ],
     payoff: [
-      { from: 'client', text: "im inside. i dont know how you did that" },
+      { from: 'client', text: 'im inside. i dont know how you did that' },
       { from: 'client', text: 'sending the 200 now' },
     ],
     himClosing:
@@ -47,21 +47,24 @@ export const CHAPTERS: Chapter[] = [
   {
     card: 'Two',
     dms: [
-      { from: 'client', text: "You came recommended. I need this quiet." },
+      { from: 'client', text: 'You came recommended. I need this quiet.' },
       {
         from: 'client',
         text: "There's a photo going round of my car outside a place I have never been to in my life. Take the car out of it.",
       },
       { from: 'you', text: 'anything in the shot that has to stay?' },
-      { from: 'client', text: 'The street sign. People need to know which street it is.' },
+      {
+        from: 'client',
+        text: 'The street sign. People need to know which street it is.',
+      },
       { from: 'client', text: "And don't be sloppy. People check." },
     ],
     payoff: [
       { from: 'client', text: 'Good. Nobody has said a word.' },
-      { from: 'client', text: "Delete this thread." },
+      { from: 'client', text: 'Delete this thread.' },
     ],
     himClosing:
-      "second one this week. same feeling. im keeping the originals from now on",
+      'second one this week. same feeling. im keeping the originals from now on',
   },
   {
     card: 'Three',
@@ -72,7 +75,10 @@ export const CHAPTERS: Chapter[] = [
         from: 'client',
         text: "he's in the shot. he's in the window behind him. and he's in the water. all three.",
       },
-      { from: 'client', text: "the boat and the dock have to stay or it proves nothing" },
+      {
+        from: 'client',
+        text: 'the boat and the dock have to stay or it proves nothing',
+      },
     ],
     payoff: [
       { from: 'client', text: 'three of him. gone.' },
@@ -84,47 +90,6 @@ export const CHAPTERS: Chapter[] = [
   {
     card: 'Four',
     dms: [
-      { from: 'client', text: 'You did the marina job. Word travels.' },
-      {
-        from: 'client',
-        text: "There's a photo of the front of my place going round with a date on it. The date is the problem, not the photo.",
-      },
-      { from: 'you', text: 'how wrong does the date need to be' },
-      { from: 'client', text: 'About thirty years.' },
-      {
-        from: 'client',
-        text: 'The name over the door stays. Nobody can tell which diner it is without it.',
-      },
-    ],
-    payoff: [
-      { from: 'client', text: 'Thirty years. Nobody has asked once.' },
-      { from: 'client', text: 'That is the last I will bother you.' },
-    ],
-    himClosing:
-      'four now. im putting all of them in one thread tonight. somebody is doing this for money',
-  },
-  {
-    card: 'Five',
-    dms: [
-      { from: 'client', text: 'It is me again. The marina one.' },
-      {
-        from: 'client',
-        text: "I have a photo of a van at the back of Delancey. Nobody cares about a photo somebody took on their phone.",
-      },
-      { from: 'you', text: 'so where did it come from' },
-      { from: 'client', text: 'Camera four. It needs to look like it came off camera four.' },
-      { from: 'client', text: 'The van stays in it. That is the whole point of it.' },
-    ],
-    payoff: [
-      { from: 'client', text: "They have taken it as footage. Nobody asked for the original." },
-      { from: 'client', text: 'I will not need you again.' },
-    ],
-    himClosing:
-      'five. thats a phone photo dressed as a camera still. im not the only one reading this thread now',
-  },
-  {
-    card: 'Six',
-    dms: [
       { from: 'client', text: 'No names. You do good work.' },
       { from: 'you', text: 'who is this' },
       {
@@ -132,18 +97,24 @@ export const CHAPTERS: Chapter[] = [
         text: "Different job. Not removing. Adding. I need his car in bay four at half one yesterday. It wasn't there.",
       },
       { from: 'you', text: 'whose car' },
-      { from: 'client', text: "You already know. He's been posting about you for a week." },
-      { from: 'client', text: 'Gate number stays in frame. And it needs a shadow.' },
+      {
+        from: 'client',
+        text: "You already know. He's been posting about you for a week.",
+      },
+      {
+        from: 'client',
+        text: 'Gate number stays in frame. And it needs a shadow.',
+      },
     ],
     payoff: [
       { from: 'client', text: "That's him placed. Good." },
       { from: 'client', text: 'One more and he stops being a problem.' },
     ],
     himClosing:
-      "thats my car. i was home. i have the router logs. somebody is putting me somewhere i wasnt",
+      'thats my car. i was home. i have the router logs. somebody is putting me somewhere i wasnt',
   },
   {
-    card: 'Seven',
+    card: 'Five',
     dms: [
       { from: 'client', text: 'Last one. Then we are done.' },
       {
@@ -163,6 +134,69 @@ export const CHAPTERS: Chapter[] = [
     himClosing: 'ok',
   },
 ];
+
+/**
+ * The jobs you can take on the side, keyed by level id.
+ *
+ * They have a client and a payoff like anything else, and he still replies,
+ * because he reads everything. But none of it is a beat in the case he is
+ * building: the run is five chapters whether these are played or not.
+ */
+export const SIDE_BRIEFS: Record<number, Chapter> = {
+  6: {
+    card: 'Side job',
+    dms: [
+      { from: 'client', text: 'Word travels. I am told you fix photographs.' },
+      {
+        from: 'client',
+        text: "There's a photo of the front of my place going round with a date on it. The date is the problem, not the photo.",
+      },
+      { from: 'you', text: 'how wrong does the date need to be' },
+      { from: 'client', text: 'About thirty years.' },
+      {
+        from: 'client',
+        text: 'The name over the door stays. Nobody can tell which diner it is without it.',
+      },
+    ],
+    payoff: [
+      { from: 'client', text: 'Thirty years. Nobody has asked once.' },
+      { from: 'client', text: 'That is the last I will bother you.' },
+    ],
+    himClosing:
+      'somebody aged a photo of the flamingo by thirty years and the replies are all nostalgia. nobody checks anything',
+  },
+  7: {
+    card: 'Side job',
+    dms: [
+      {
+        from: 'client',
+        text: 'Different client. Somebody passed on your name.',
+      },
+      {
+        from: 'client',
+        text: 'I have a photo of a van at the back of Delancey. Nobody cares about a photo somebody took on their phone.',
+      },
+      { from: 'you', text: 'so where did it come from' },
+      {
+        from: 'client',
+        text: 'Camera four. It needs to look like it came off camera four.',
+      },
+      {
+        from: 'client',
+        text: 'The van stays in it. That is the whole point of it.',
+      },
+    ],
+    payoff: [
+      {
+        from: 'client',
+        text: 'They have taken it as footage. Nobody asked for the original.',
+      },
+      { from: 'client', text: 'I will not need you again.' },
+    ],
+    himClosing:
+      'thats a phone photo dressed as a camera still. i can see the 4:3 crop line. nobody else can apparently',
+  },
+};
 
 export const OPENING: Message[] = [
   {

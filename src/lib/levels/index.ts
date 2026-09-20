@@ -8,12 +8,22 @@ import { level6 } from './level6';
 import { level7 } from './level7';
 
 /**
- * Seven jobs, twenty minutes or so, then it ends. Not an endless mode.
+ * The run, and the work you can take on the side.
  *
- * The order is the story's, not the file names'. Levels 6 and 7 were written
- * last and play fourth and fifth: by then he has said "same hand on all three",
- * and those two are where the thread he is building gets long enough for other
- * people to read. The car park job has to stay where it is, because that is where
- * he stops being a commentator and becomes the job.
+ * MAIN is the story: five jobs, one chapter each, and a man who starts as a
+ * reply and finishes as the job. It is gated in order and it is the whole game
+ * as far as the ending is concerned. Nothing was added to it to cover more of
+ * the editor, because a story that grows to fit a feature list stops being one.
+ *
+ * SIDE is optional and always was. These are the jobs built around the parts of
+ * the editor the run never needs — filter presets and grain, contrast and
+ * sharpening and the aspect ratio nobody shoots by hand. Take them or do not;
+ * the ending does not move either way. The only thing they change is what the
+ * city is finally prepared to call you.
  */
-export const LEVELS: Level[] = [level1, level2, level3, level6, level7, level4, level5];
+export const MAIN: Level[] = [level1, level2, level3, level4, level5];
+
+export const SIDE: Level[] = [level6, level7];
+
+/** Everything, for the test bench, which does not care what is optional. */
+export const ALL: Level[] = [...MAIN, ...SIDE];

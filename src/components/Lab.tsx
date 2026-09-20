@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { type DiffReport, diffImages } from '@/lib/diff';
 import { readFlags, renderLevel, spotted } from '@/lib/level';
-import { LEVELS } from '@/lib/levels';
+import { ALL } from '@/lib/levels';
 import { CASES, buildMutation } from '@/lib/mutations';
 import { assess } from '@/lib/suspicion';
 
@@ -43,7 +43,7 @@ export default function Lab() {
       // by id, not by position: the running order is the story's and level 6
       // plays fourth, so an index here silently ran every level-4 case against
       // the wrong scene
-      const level = LEVELS.find((l) => l.id === test.level);
+      const level = ALL.find((l) => l.id === test.level);
       if (!level) throw new Error(`no level with id ${test.level}`);
       const src = renderLevel(level, level.initial);
       const saved = await buildMutation(test.id, src, level);

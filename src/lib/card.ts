@@ -26,7 +26,14 @@ const DIM = '#55555e';
 const ACCENT = '#ff2e7e';
 const GOOD = '#46e0a0';
 
-/** What the city is prepared to call you, by the number of jobs you have done. */
+/**
+ * What the city is prepared to call you.
+ *
+ * The first five come from the run, one per story job. The last one is not on
+ * that ladder at all: it is for somebody who finished the run *and* took every
+ * job going on the side, which is a different kind of person from somebody who
+ * simply got to the end.
+ */
 export const RANKS = [
   {
     title: 'Person of interest',
@@ -42,24 +49,27 @@ export const RANKS = [
   },
   {
     title: 'Wanted',
-    line: 'Four. He has put them all in one thread, and people are reading it.',
-  },
-  {
-    title: 'Under investigation',
-    line: 'Five. The thread is long enough that other people are reading it.',
+    line: 'Four. He knows it is you. He put himself in one of them.',
   },
   {
     title: 'Public enemy',
-    line: 'Six. He knows it is you now. He put himself in one of them.',
-  },
-  {
-    title: 'Absolute menace',
-    line: 'Seven. He was right about every single one, and nobody listened.',
+    line: 'Five. He was right about every single one, and nobody listened.',
   },
 ];
 
+export const MENACE = {
+  title: 'Absolute menace',
+  line: 'The run, and every job going on the side. Nothing here is a photograph now.',
+};
+
+/** Which one applies, given the run and the side work. */
+export function rankFor(main: number, side: number, sideTotal: number) {
+  if (main >= RANKS.length && sideTotal > 0 && side >= sideTotal) return MENACE;
+  return RANKS[Math.min(Math.max(main, 1), RANKS.length) - 1];
+}
+
 /** Short enough to sit in a row of five. */
-const JOBS = ['Door', 'Car', 'Reflection', 'Date', 'Camera', 'Lot', 'File'];
+const JOBS = ['Door', 'Car', 'Reflection', 'Lot', 'File'];
 
 export type CardFonts = { display: string; mono: string };
 
@@ -82,13 +92,26 @@ export function readFonts(el: HTMLElement | null): CardFonts {
 
 type Ctx = CanvasRenderingContext2D;
 
-/** Shrink until it fits, rather than running off the edge of the card. */
-function fitted(ctx: Ctx, text: string, family: string, start: number, room: number): number {
+/**
+ * Shrink until it fits, rather than running off the edge of the card.
+ *
+ * `floor` has to be given for anything that starts small. It used to be fixed at
+ * 20, which meant the one-line summary — set at 17 — was already under the floor
+ * and never shrank at all, so a long one simply ran off the right-hand edge.
+ */
+function fitted(
+  ctx: Ctx,
+  text: string,
+  family: string,
+  start: number,
+  room: number,
+  floor = 20,
+): number {
   let size = start;
   for (;;) {
     ctx.font = `700 ${size}px ${family}`;
-    if (ctx.measureText(text).width <= room || size <= 20) return size;
-    size -= 2;
+    if (ctx.measureText(text).width <= room || size <= floor) return size;
+    size -= 1;
   }
 }
 
@@ -142,8 +165,13 @@ function drawPhoto(ctx: Ctx, img: HTMLImageElement | null, id: Identity, f: Card
   ctx.fillText(`@${id.handle}`, x, y + s + 28);
 }
 
-/** The five jobs, and which of them are on the file. */
-function drawJobs(ctx: Ctx, done: number, f: CardFonts) {
+/** The run, and a tally of the work taken on the side. */
+function drawJobs(
+  ctx: Ctx,
+  progress: { main: number; side: number; sideTotal: number },
+  f: CardFonts,
+) {
+  const done = progress.main;
   const x = 64;
   const y = 470;
   const w = CARD_W - 128;
@@ -168,6 +196,19 @@ function drawJobs(ctx: Ctx, done: number, f: CardFonts) {
     ctx.font = `600 14px ${f.mono}`;
     ctx.fillText(job.toUpperCase(), cx + 26, y + 10);
   });
+
+  if (progress.sideTotal > 0) {
+    const all = progress.side >= progress.sideTotal;
+    ctx.textAlign = 'right';
+    ctx.fillStyle = all ? GOOD : DIM;
+    ctx.font = `600 14px ${f.mono}`;
+    ctx.fillText(
+      `SIDE WORK ${progress.side}/${progress.sideTotal}`,
+      x + w,
+      y + 10,
+    );
+    ctx.textAlign = 'left';
+  }
   ctx.textBaseline = 'alphabetic';
 }
 
@@ -178,7 +219,7 @@ function drawJobs(ctx: Ctx, done: number, f: CardFonts) {
  */
 export function drawCard(
   id: Identity,
-  done: number,
+  progress: { main: number; side: number; sideTotal: number },
   photo: HTMLImageElement | null,
   f: CardFonts,
 ): string {
@@ -188,7 +229,7 @@ export function drawCard(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('canvas 2d context not available');
 
-  const rank = RANKS[Math.min(Math.max(done, 1), RANKS.length) - 1];
+  const rank = rankFor(progress.main, progress.side, progress.sideTotal);
 
   ctx.fillStyle = INK;
   ctx.fillRect(0, 0, CARD_W, CARD_H);
@@ -233,14 +274,14 @@ export function drawCard(
   ctx.fillRect(left, ruleY, 110, 3);
 
   ctx.fillStyle = TEXT;
-  ctx.font = `600 ${fitted(ctx, id.name, f.mono, 26, room)}px ${f.mono}`;
+  ctx.font = `600 ${fitted(ctx, id.name, f.mono, 26, room, 13)}px ${f.mono}`;
   ctx.fillText(id.name, left, ruleY + 44);
 
   ctx.fillStyle = MUTE;
-  ctx.font = `600 ${fitted(ctx, rank.line, f.mono, 17, room)}px ${f.mono}`;
+  ctx.font = `600 ${fitted(ctx, rank.line, f.mono, 17, room, 11)}px ${f.mono}`;
   ctx.fillText(rank.line, left, ruleY + 78);
 
-  drawJobs(ctx, done, f);
+  drawJobs(ctx, progress, f);
 
   // ------------------------------------------------------------------ footer
   hairline(ctx, 64, CARD_H - 96, CARD_W - 128);

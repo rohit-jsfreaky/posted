@@ -7,8 +7,9 @@ import Jobs from './screens/Jobs';
 import Game from './Game';
 import Ending from './screens/Ending';
 import { preloadAssets } from '@/lib/assets';
-import { LEVELS } from '@/lib/levels';
-import { clearSave, loadDone, saveDone } from '@/lib/save';
+import { MAIN, SIDE } from '@/lib/levels';
+import { CHAPTERS, SIDE_BRIEFS } from '@/lib/story';
+import { clearProgress, EMPTY, loadProgress, saveProgress, type Progress } from '@/lib/save';
 import { clearIdentity } from '@/lib/identity';
 
 /**
@@ -20,19 +21,28 @@ import { clearIdentity } from '@/lib/identity';
  */
 type Screen = 'loading' | 'start' | 'jobs' | 'playing' | 'ending';
 
+/**
+ * Which job is open.
+ *
+ * A story job is identified by its place in the run, because that is what gates
+ * it. A side job is identified by its level id, because there is no order to
+ * them and there is not meant to be.
+ */
+type Open = { kind: 'main'; at: number } | { kind: 'side'; id: number };
+
 export default function Shell() {
   const [screen, setScreen] = useState<Screen>('loading');
-  const [progress, setProgress] = useState(0);
+  const [loaded, setLoaded] = useState(0);
   const [ready, setReady] = useState(false);
-  const [done, setDone] = useState(0);
-  const [at, setAt] = useState(0);
+  const [progress, setProgress] = useState<Progress>(EMPTY);
+  const [open, setOpen] = useState<Open>({ kind: 'main', at: 0 });
   const held = useRef(false);
 
   // only timers are scheduled here; nothing is set during the effect itself
   useEffect(() => {
     let alive = true;
     void preloadAssets((p) => {
-      if (alive) setProgress(p);
+      if (alive) setLoaded(p);
     }).then(() => {
       if (alive) setReady(true);
     });
@@ -46,39 +56,68 @@ export default function Shell() {
     if (!ready || held.current) return;
     held.current = true;
     const t = window.setTimeout(() => {
-      setDone(loadDone(LEVELS.length));
+      setProgress(loadProgress(MAIN.length));
       setScreen('start');
     }, 700);
     return () => window.clearTimeout(t);
   }, [ready]);
 
-  const finishJob = useCallback((index: number) => {
-    setDone((d) => {
-      const next = Math.max(d, index + 1);
-      saveDone(next);
-      return next;
-    });
-    if (index + 1 >= LEVELS.length) setScreen('ending');
-    else setScreen('jobs');
-  }, []);
+  const finish = useCallback(
+    (what: Open) => {
+      setProgress((p) => {
+        const next: Progress =
+          what.kind === 'main'
+            ? { ...p, main: Math.max(p.main, what.at + 1) }
+            : { ...p, side: Array.from(new Set([...p.side, what.id])) };
+        saveProgress(next);
+        return next;
+      });
+      // only the run has an ending; a side job hands you back to the board
+      if (what.kind === 'main' && what.at + 1 >= MAIN.length) setScreen('ending');
+      else setScreen('jobs');
+    },
+    [],
+  );
 
   const wipe = useCallback(() => {
-    clearSave();
+    clearProgress();
     // the file the city opened goes with the progress it was built from
     clearIdentity();
-    setDone(0);
-    setAt(0);
+    setProgress(EMPTY);
+    setOpen({ kind: 'main', at: 0 });
   }, []);
 
-  if (screen === 'loading') return <Loading progress={progress} />;
+  const counts = {
+    main: progress.main,
+    side: progress.side.length,
+    sideTotal: SIDE.length,
+  };
+
+  /**
+   * Progress with the open job counted as done.
+   *
+   * The card only ever appears on the job-done screen, and the run is not banked
+   * until the player leaves that screen — so handing it the stored figure showed
+   * a file that had not noticed the job they had just finished.
+   */
+  const banked = (() => {
+    if (open.kind === 'main') {
+      return { ...counts, main: Math.max(counts.main, open.at + 1) };
+    }
+    const side = new Set(progress.side);
+    side.add(open.id);
+    return { ...counts, side: side.size };
+  })();
+
+  if (screen === 'loading') return <Loading progress={loaded} />;
 
   if (screen === 'start') {
     return (
       <Start
-        done={done}
-        total={LEVELS.length}
+        done={progress.main}
+        total={MAIN.length}
         onStart={() => {
-          setAt(Math.min(done, LEVELS.length - 1));
+          setOpen({ kind: 'main', at: Math.min(progress.main, MAIN.length - 1) });
           setScreen('playing');
         }}
         onJobs={() => setScreen('jobs')}
@@ -90,10 +129,10 @@ export default function Shell() {
   if (screen === 'jobs') {
     return (
       <Jobs
-        done={done}
+        progress={progress}
         onBack={() => setScreen('start')}
-        onPick={(i) => {
-          setAt(i);
+        onPick={(what) => {
+          setOpen(what);
           setScreen('playing');
         }}
       />
@@ -103,6 +142,7 @@ export default function Shell() {
   if (screen === 'ending') {
     return (
       <Ending
+        progress={counts}
         onRestart={() => {
           wipe();
           setScreen('start');
@@ -111,12 +151,20 @@ export default function Shell() {
     );
   }
 
+  const level =
+    open.kind === 'main' ? MAIN[open.at] : (SIDE.find((l) => l.id === open.id) ?? SIDE[0]);
+  const chapter = open.kind === 'main' ? CHAPTERS[open.at] : SIDE_BRIEFS[level.id];
+
   return (
     <Game
-      key={at}
-      index={at}
+      key={open.kind === 'main' ? `m${open.at}` : `s${open.id}`}
+      level={level}
+      chapter={chapter}
+      label={open.kind === 'main' ? `Job ${String(open.at + 1).padStart(2, '0')}` : 'Side job'}
+      progress={banked}
+      isLastMain={open.kind === 'main' && open.at + 1 >= MAIN.length}
       onQuit={() => setScreen('jobs')}
-      onSolved={() => finishJob(at)}
+      onSolved={() => finish(open)}
     />
   );
 }

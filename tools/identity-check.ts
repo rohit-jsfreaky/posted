@@ -6,7 +6,7 @@
  * forging something they did not do. Both are silent — the game still runs — so
  * this walks every level and asks the question directly.
  */
-import { LEVELS } from '../src/lib/levels';
+import { ALL } from '../src/lib/levels';
 import type { DiffReport, Reading } from '../src/lib/diff';
 
 /**
@@ -49,7 +49,7 @@ function untouched(zones: string[]): DiffReport {
 }
 
 let bad = 0;
-for (const level of LEVELS) {
+for (const level of ALL) {
   const r = untouched(Object.keys(level.zones));
   const flags = level.flags.filter((f) => f.test(r)).map((f) => f.name);
   const tells = level.tells.filter((t) => t.test(r, level.initial)).map((t) => t.id);

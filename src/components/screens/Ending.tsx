@@ -4,7 +4,13 @@ import CaseCard from "../CaseCard";
 import { ENDING } from "@/lib/story";
 
 /** The last screen. Five jobs, and the man who was right about all of them. */
-export default function Ending({ onRestart }: { onRestart: () => void }) {
+export default function Ending({
+  progress,
+  onRestart,
+}: {
+  progress: { main: number; side: number; sideTotal: number };
+  onRestart: () => void;
+}) {
   return (
     <main className="relative h-full w-full overflow-hidden bg-ink">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -38,7 +44,7 @@ export default function Ending({ onRestart }: { onRestart: () => void }) {
           {/* the last job was making a file about somebody else. This is the one the
             city kept on you, and it is the only rank with nothing above it */}
           <div className="mt-8 w-full max-w-3xl">
-            <CaseCard done={7} />
+            <CaseCard progress={progress} />
           </div>
 
           <button

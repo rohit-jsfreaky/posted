@@ -100,22 +100,29 @@ than assuming:
 
 ## The game
 
-Seven jobs, one chapter each, and one man who zooms in on everything you post.
+Five jobs, one chapter each, and one man who zooms in on everything you post.
 
 1. **Get me inside** — a bouncer on a door. Teaches *crop*.
 2. **The car was never there** — teaches *resize*, whose only real job is hiding that you cropped.
 3. **He can't be in the reflection** — he is on the dock, in the window and in the water. Crop
    physically cannot reach the middle of a frame. Four tools get to the window at four different
    prices.
-4. **This is from years ago** — the only job that changes *when* a photograph was taken rather
-   than what it shows. Drain the colour with a preset, and then give it grain, because a black
-   and white frame with no grain in it is a filter and he says so.
-5. **Off the gantry camera** — nothing in the picture changes. What changes is the fingerprint
-   the device left on it: crushed blacks, oversharpening, and the 4:3 no phone hands you.
-6. **Put him at the scene** — the inverse of everything before it. Adding is hard, because a
+4. **Put him at the scene** — the inverse of everything before it. Adding is hard, because a
    pasted object has no shadow.
-7. **Make it official** — change nothing about what the photograph shows, only where it claims to
+5. **Make it official** — change nothing about what the photograph shows, only where it claims to
    have come from.
+
+Then there is the **side work**, which is optional and says so. Two jobs built around the parts
+of the editor the run never needs, skippable entirely, and they do not touch the ending:
+
+- **This is from years ago** — the only job that changes *when* a photograph was taken. Drain the
+  colour with a preset, then give it grain, because a black and white frame with no grain in it
+  is a filter and he says so.
+- **Off the gantry camera** — nothing in the picture changes. What changes is the fingerprint the
+  device left on it: crushed blacks, oversharpening, and the 4:3 no phone hands you.
+
+The story does not grow to fit a feature list. Finish the run and the game ends; finish the run
+*and* every job going on the side and the file the city has on you says something different.
 
 **Cal Hampton** is the antagonist, and he is the only person in Leonida who checks. He starts as
 an annoying reply, works out there is a pattern, and then becomes the job. If he finds the flaw
@@ -123,8 +130,9 @@ in your work, the crowd believes him and the city puts it back.
 
 ![The end of a chapter](docs/shots/5-him.jpg)
 
-Finish a job and the city opens a file on you. It climbs each time, and you can save it or copy
-it. Hand it a GitHub profile for the name and photograph, or stay anonymous and get an alias and
+Finish a job and the city opens a file on you. It climbs with the run, and there is one
+classification above the top of that ladder that only a player who also took every job on the
+side ever sees. You can save it or copy it. Hand it a GitHub profile for the name and photograph, or stay anonymous and get an alias and
 NO PHOTO ON FILE — which is arguably the better card, since the whole game is about being the
 person nobody can identify.
 

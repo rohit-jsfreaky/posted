@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CARD_H, CARD_W, drawCard, loadPhoto, readFonts, RANKS } from '@/lib/card';
+import { CARD_H, CARD_W, drawCard, loadPhoto, rankFor, readFonts, RANKS } from '@/lib/card';
 import {
   anonymousIdentity,
   loadIdentity,
@@ -21,7 +21,11 @@ import {
  * optional and always has been: an anonymous forger with no photograph on file
  * is a perfectly good card, and the game says so rather than nagging.
  */
-export default function CaseCard({ done }: { done: number }) {
+export default function CaseCard({
+  progress,
+}: {
+  progress: { main: number; side: number; sideTotal: number };
+}) {
   /**
    * Read straight off the device, not in an effect.
    *
@@ -46,8 +50,8 @@ export default function CaseCard({ done }: { done: number }) {
       // no font loading API, draw with whatever is resolved
     }
     const photo = await loadPhoto(who.photo);
-    setCard(drawCard(who, done, photo, readFonts(probe.current)));
-  }, [done]);
+    setCard(drawCard(who, progress, photo, readFonts(probe.current)));
+  }, [progress]);
 
   useEffect(() => {
     if (id) void make(id);
@@ -93,7 +97,7 @@ export default function CaseCard({ done }: { done: number }) {
     setId(alias);
   }
 
-  const rank = RANKS[Math.min(Math.max(done, 1), RANKS.length) - 1];
+  const rank = rankFor(progress.main, progress.side, progress.sideTotal);
 
   return (
     <div className="mt-5 border-t border-line pt-4">
@@ -103,7 +107,9 @@ export default function CaseCard({ done }: { done: number }) {
       <div className="flex items-baseline justify-between">
         <p className="eyebrow text-xs text-accent">The file on you</p>
         <p className="eyebrow text-[10px] text-dim">
-          {done}/{RANKS.length} · {rank.title}
+          {progress.main}/{RANKS.length}
+          {progress.sideTotal > 0 && ` · ${progress.side}/${progress.sideTotal} side`} ·{' '}
+          {rank.title}
         </p>
       </div>
 
