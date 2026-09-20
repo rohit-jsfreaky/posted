@@ -170,7 +170,7 @@ export default function Jobs({
               The run
             </p>
             <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-              <div className="flex h-[min(19rem,34vh)] gap-3 sm:gap-4">
+              <div className="flex h-[min(23rem,38vh)] gap-3 sm:gap-4">
                 {MAIN.map((level, i) => (
                   <Card
                     key={level.id}
@@ -195,7 +195,7 @@ export default function Jobs({
                 Side work — optional, and it does not touch the ending
               </p>
               <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-                <div className="flex h-[min(17rem,30vh)] gap-3 sm:gap-4">
+                <div className="flex h-[min(19rem,32vh)] gap-3 sm:gap-4">
                   {SIDE.map((level) => (
                     <Card
                       key={level.id}
