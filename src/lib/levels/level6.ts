@@ -189,5 +189,5 @@ export const level6: Level = {
   tolerance: 75,
 
   epilogue:
-    'The date on it is thirty years wrong and nobody has questioned it. He has started a thread.',
+    'The date on it is thirty years wrong and the replies are all nostalgia. Not one person asked.',
 };

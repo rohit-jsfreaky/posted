@@ -226,13 +226,6 @@ export const SIDE_BRIEFS: Record<number, Chapter> = {
   },
 };
 
-export const OPENING: Message[] = [
-  {
-    from: 'system',
-    text: 'In Leonida, whatever you post becomes true. Edit the photo. Post it. Watch the street change.',
-  },
-];
-
 export const ENDING = {
   headline: 'He was right about all of it.',
   body: [

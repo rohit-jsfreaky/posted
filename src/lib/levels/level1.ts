@@ -183,5 +183,5 @@ export const level1: Level = {
 
   tolerance: 60,
   epilogue:
-    'The client got in. Somebody in the replies is still going on about the shape of the photo.',
+    'The client got in and paid inside the hour. One reply is still picking at the photograph.',
 };

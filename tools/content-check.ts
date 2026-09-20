@@ -13,7 +13,7 @@
  */
 
 import { ALL, MAIN, SIDE } from '../src/lib/levels';
-import { CHAPTERS, CROWD, SIDE_BRIEFS } from '../src/lib/story';
+import { CHAPTERS, CROWD, ENDING, SIDE_BRIEFS } from '../src/lib/story';
 import type { Level } from '../src/lib/level';
 
 const problems: string[] = [];
@@ -128,6 +128,28 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
 
   level.reactions.forEach((r, i) => record(r, `${at} reaction ${i + 1}`, true));
 
+  if (!level.epilogue.trim()) fail(at, 'has no epilogue');
+  record(level.epilogue, `${at} epilogue`);
+  /**
+   * The last job's card and the ending screen are shown one after the other, and
+   * they said the same sentence. Nothing else in the game puts two lines that
+   * close together, so this is the one pair worth checking by hand.
+   */
+  if (
+    similar(level.epilogue, ENDING.headline) ||
+    level.epilogue.trim().toLowerCase() === ENDING.headline.trim().toLowerCase()
+  ) {
+    fail(at, `epilogue is the ending's headline: "${level.epilogue}"`);
+  }
+  /**
+   * Side work can be played in any order, or skipped entirely, so its epilogue
+   * cannot claim a place in a sequence — "he has noticed the thread is getting
+   * long" is wrong for anybody who took that job first.
+   */
+  if (kind === 'side' && /\b(thread|first|already|by now|getting|again|next)\b/i.test(level.epilogue)) {
+    fail(at, `side epilogue assumes an order: "${level.epilogue}"`);
+  }
+
   if (level.choice && !flagNames.has(level.choice.when)) {
     fail(at, `choice fires on "${level.choice.when}", which is not one of its flags`);
   }
@@ -175,6 +197,11 @@ for (const [who, where] of clients) {
 
 MAIN.forEach((l) => checkLevel(l, 'run'));
 SIDE.forEach((l) => checkLevel(l, 'side'));
+
+if (!ENDING.headline.trim()) fail('ending', 'has no headline');
+if (ENDING.body.length === 0) fail('ending', 'has no body');
+record(ENDING.headline, 'ending headline');
+ENDING.body.forEach((b, i) => record(b, `ending body ${i + 1}`));
 
 // ---------------------------------------------------------------- duplicates
 for (const [text, at] of lines) {

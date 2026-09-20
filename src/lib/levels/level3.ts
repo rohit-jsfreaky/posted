@@ -195,5 +195,5 @@ export const level3: Level = {
 
   tolerance: 85,
   epilogue:
-    'Three of him, gone in one post. He replied with a screenshot of your last four jobs side by side.',
+    'Three of him, gone in one post. He replied with a screenshot of all three, side by side.',
 };

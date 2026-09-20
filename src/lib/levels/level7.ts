@@ -174,5 +174,5 @@ export const level7: Level = {
   tolerance: 80,
 
   epilogue:
-    'It is a still off camera four now, and a still off camera four is evidence. He has noticed the thread is getting long.',
+    'It is a still off camera four now, and a still off camera four counts as evidence. One person can see the crop line.',
 };

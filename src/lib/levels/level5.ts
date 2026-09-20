@@ -200,5 +200,6 @@ export const level5: Level = {
   ],
 
   tolerance: 95,
-  epilogue: 'He was right about all of it.',
+  epilogue:
+    'Filed, labelled, and nobody asked to see the original. He replied with one word.',
 };
