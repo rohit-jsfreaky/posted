@@ -58,6 +58,25 @@ export default function Game({
   const [thread, setThread] = useState<Message[]>([]);
   const [busy, setBusy] = useState(false);
   const [beat, setBeat] = useState(false);
+  /**
+   * The chapter title, over the game, for a moment when the job opens.
+   *
+   * Five jobs with a story running through them read as five levels unless the
+   * story is allowed to announce itself.
+   */
+  const [card, setCard] = useState(true);
+  /** his closing line, alone on the screen, at the end of a chapter */
+  const [hisBeat, setHisBeat] = useState<string | null>(null);
+  /** the job-done card waits until the chapter has finished playing */
+  const [finale, setFinale] = useState(false);
+  /**
+   * The edit the player saved, held over the street while it dissolves into the
+   * photograph the world printed from it. The swap is the game; watching it
+   * happen in the window marked LIVE is the difference between a mechanic and a
+   * glitch.
+   */
+  const [sentShot, setSentShot] = useState<string | null>(null);
+  const [fading, setFading] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [previewsLeft, setPreviewsLeft] = useState(2);
   const [preview, setPreview] = useState<{ zone: string; image: string; verdict: string } | null>(null);
@@ -146,6 +165,11 @@ export default function Game({
     feedEnd.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [items.length]);
 
+  useEffect(() => {
+    const t = window.setTimeout(() => setCard(false), 2600);
+    return () => window.clearTimeout(t);
+  }, []);
+
   /**
    * Hand the editor the photograph the world produced.
    *
@@ -166,11 +190,31 @@ export default function Game({
     setSuspicion(smell.total);
     setLastReport(report);
 
-    push({ kind: 'post', who: 'you', text: level.goal, image, likes: 3 });
     play('post');
     setRail('feed');
 
+    /**
+     * What the street sees.
+     *
+     * Not the file the player saved. A forged photograph is a scruffy thing — a
+     * black bar sitting at an angle, a shape in roughly the right colour — and
+     * putting that in the feed makes the game look like a collage app. The edit
+     * is the instruction; what gets posted is the photograph Leonida produced
+     * from it, which is the entire premise. The one person who looks at the real
+     * file is the man zooming in, and his posts still carry it.
+     */
+    const posted = (img: string) =>
+      push({
+        kind: 'post',
+        who: 'you',
+        text: level.goal,
+        image: img,
+        sent: img === image ? undefined : image,
+        likes: 3,
+      });
+
     if (!report.trusted) {
+      posted(image);
       later(700, () =>
         push({
           kind: 'reply',
@@ -184,6 +228,7 @@ export default function Game({
     }
 
     if (flags.length === 0) {
+      posted(image);
       later(700, () =>
         push({ kind: 'reply', who: 'nine_lives_vc', text: 'bro what did you even do 😐', likes: 41 }),
       );
@@ -193,6 +238,7 @@ export default function Game({
 
     // a post nobody believes changes nothing, no matter what it removed
     if (broken.length > 0) {
+      posted(image);
       later(700, () =>
         push({ kind: 'reply', who: 'marla_qt', text: `${broken[0].why}. this could be anywhere.`, likes: 88 }),
       );
@@ -209,6 +255,18 @@ export default function Game({
 
     const after = level.apply(level.initial, stuck);
     if (level.choice && (picked ?? choice)) after[level.choice.key] = (picked ?? choice) as string;
+    const printed = renderLevel(level, after);
+    posted(printed);
+
+    // hold the saved file over the street, then let it resolve into what the
+    // world made of it. Two frames apart, so the transition actually runs
+    setSentShot(image);
+    setFading(false);
+    later(80, () => setFading(true));
+    later(2200, () => {
+      setSentShot(null);
+      setFading(false);
+    });
 
     level.flags
       .filter((f) => flags.includes(f.name))
@@ -290,9 +348,9 @@ export default function Game({
     if (!landed) {
       setNotice({
         head: 'The street changed',
-        body: 'This is the new photograph. Your edit did its job and went.',
+        body: 'Your pixels were only the instruction. This is what Leonida printed.',
       });
-      later(5000, () => setNotice(null));
+      later(5600, () => setNotice(null));
     }
     if (landed && !beat) {
       setBeat(true);
@@ -300,10 +358,20 @@ export default function Game({
       chapter.payoff.forEach((m, i) =>
         later(2400 + i * 1300, () => setThread((prev) => [...prev, m])),
       );
-      later(6400, () => push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 }));
+      later(6400, () => {
+        play('sting');
+        setHisBeat(chapter.himClosing);
+        push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 });
+      });
+      // the card used to cover the screen the instant the world moved, hiding the
+      // street changing, the client's reply and his closing line along with it
+      later(10200, () => {
+        setHisBeat(null);
+        setFinale(true);
+      });
     }
 
-    void editorRef.current?.editor?.reset(renderLevel(level, after));
+    void editorRef.current?.editor?.reset(printed);
   }
 
   async function readPost(dataUrl: string) {
@@ -444,10 +512,14 @@ export default function Game({
             />
           </div>
 
+          {/* The swap is the game, so it is shown rather than hidden. Side by side:
+              the file the player saved, and the photograph the street printed from
+              it. Without this the picture simply changes under them and reads as
+              their work being thrown away. */}
           {notice && (
             <div
               data-testid="world-changed"
-              className="rise pointer-events-none absolute left-1/2 top-16 z-30 w-[min(30rem,90%)] -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
+              className="rise pointer-events-none absolute left-1/2 top-4 z-30 w-[min(34rem,92%)] -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
             >
               <p className="eyebrow text-xs text-accent">{notice.head}</p>
               <p className="mt-0.5 text-[11px] leading-snug text-text/80">{notice.body}</p>
@@ -489,7 +561,7 @@ export default function Game({
         </section>
 
         {/* ----------------------------------------------------------- right rail */}
-        <aside className="flex w-[320px] shrink-0 flex-col border-l border-line xl:w-[390px]">
+        <aside className="flex w-[380px] shrink-0 flex-col border-l border-line xl:w-[450px]">
           {/* the street stays pinned: it is the payoff, and watching it change is
               the whole point of the game */}
           <div className="shrink-0 border-b border-line">
@@ -498,13 +570,31 @@ export default function Game({
               <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
             </div>
             <div className="p-3 pt-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                data-testid="world"
-                src={source}
-                alt="the world as it is now"
-                className="w-full border border-line"
-              />
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  data-testid="world"
+                  src={source}
+                  alt="the world as it is now"
+                  className="w-full border border-line"
+                />
+                {sentShot && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    data-testid="dissolve"
+                    src={sentShot}
+                    alt=""
+                    className={`absolute inset-0 h-full w-full border border-accent transition-opacity duration-[1400ms] ease-out ${
+                      fading ? 'opacity-0' : 'opacity-100'
+                    }`}
+                  />
+                )}
+              </div>
+              {sentShot && (
+                <p className="eyebrow mt-1.5 text-center text-[9px] text-accent">
+                  what you sent &rarr; what the street printed
+                </p>
+              )}
             </div>
           </div>
 
@@ -555,17 +645,23 @@ export default function Game({
                 </button>
               </div>
             )}
-            {hintsOpen &&
-              level.hints.slice(0, hints).map((h, i) => (
-                <p
-                  key={h.slice(0, 14)}
-                  data-testid="hint"
-                  className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
-                >
-                  <span className="text-accent">{i + 1}. </span>
-                  {h}
-                </p>
-              ))}
+            <div
+              className={
+                hintsOpen && hints > 0 ? 'max-h-52 overflow-y-auto scroll-thin' : undefined
+              }
+            >
+              {hintsOpen &&
+                level.hints.slice(0, hints).map((h, i) => (
+                  <p
+                    key={h.slice(0, 14)}
+                    data-testid="hint"
+                    className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
+                  >
+                    <span className="text-accent">{i + 1}. </span>
+                    {h}
+                  </p>
+                ))}
+            </div>
             {hints < level.hints.length && (
               <button
                 data-testid="hint-button"
@@ -655,7 +751,7 @@ export default function Game({
         </div>
       )}
 
-      {solved && (
+      {solved && finale && (
         <div className="absolute inset-0 z-40 flex items-center justify-center bg-ink/85 p-6">
           <div data-testid="solved" className="w-full max-w-lg border border-line bg-panel p-6">
             <p className="eyebrow text-xs tracking-[0.2em] text-good">Job done</p>
@@ -670,6 +766,43 @@ export default function Game({
             </button>
           </div>
         </div>
+      )}
+
+      {card && (
+        <button
+          data-testid="chapter-card"
+          onClick={() => setCard(false)}
+          className="absolute inset-0 z-[60] flex cursor-pointer flex-col items-center justify-center bg-ink px-8 text-center"
+        >
+          <p className="eyebrow text-xs tracking-[0.42em] text-accent">
+            Chapter {chapter.card}
+          </p>
+          <h2 className="display mt-4 text-[clamp(2rem,6vw,4.5rem)] text-text">
+            {level.title}
+          </h2>
+          <div className="mt-5 h-[2px] w-24 bg-accent" />
+          <p className="mt-5 max-w-md text-[11px] leading-relaxed text-mute">
+            {level.goal}
+          </p>
+        </button>
+      )}
+
+      {/* the end of a chapter belongs to him, not to the feed it would drown in */}
+      {hisBeat && (
+        <button
+          data-testid="his-beat"
+          onClick={() => {
+            setHisBeat(null);
+            setFinale(true);
+          }}
+          className="absolute inset-0 z-[55] flex cursor-pointer flex-col items-center justify-center bg-ink/95 px-8 text-center"
+        >
+          <p className="eyebrow text-xs tracking-[0.32em] text-accent">@{HIM}</p>
+          <p className="mt-5 max-w-2xl text-[clamp(1rem,2.4vw,1.6rem)] leading-relaxed text-text">
+            {hisBeat}
+          </p>
+          <p className="eyebrow mt-8 text-[10px] text-dim">Click to go on</p>
+        </button>
       )}
 
       {pending && level.choice && (

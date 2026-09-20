@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import ZoomView from './ZoomView';
 import type { Zone } from '@/lib/zones';
 
@@ -16,6 +17,14 @@ export type FeedItem = {
   who: string;
   text: string;
   image?: string;
+  /**
+   * The file the player actually saved, when it differs from what was posted.
+   *
+   * What goes out is the photograph the street printed. This is the working copy
+   * behind it — the black bar at an angle, the shape in roughly the right colour.
+   * Hiding it would be a cheat, so it is one click away and never the default.
+   */
+  sent?: string;
   likes: number;
   /** set on his posts: the bit of the photo he zoomed into */
   zoom?: { image: string; zone: Zone };
@@ -26,6 +35,31 @@ export const HIM = 'cal_hampton_77';
 function Likes({ n }: { n: number }) {
   return (
     <span className="text-[10px] text-dim">♥ {n.toLocaleString()}</span>
+  );
+}
+
+/** The posted photograph, with the working copy behind a toggle. */
+function PostImage({ printed, sent }: { printed: string; sent?: string }) {
+  const [raw, setRaw] = useState(false);
+  const showing = raw && sent ? sent : printed;
+  return (
+    <div className="mt-2">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={showing}
+        alt="posted"
+        className={`w-full border ${raw ? 'border-accent' : 'border-line'}`}
+      />
+      {sent && (
+        <button
+          data-testid="toggle-sent"
+          onClick={() => setRaw((v) => !v)}
+          className="eyebrow mt-1 text-[9px] text-dim hover:text-accent"
+        >
+          {raw ? '← what the street printed' : 'what you actually sent →'}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -72,14 +106,7 @@ export default function Feed({ items }: { items: FeedItem[] }) {
 
             <p className="mt-1 text-xs leading-snug text-text/85">{item.text}</p>
 
-            {item.image && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.image}
-                alt="posted"
-                className="mt-2 w-full border border-line"
-              />
-            )}
+            {item.image && <PostImage printed={item.image} sent={item.sent} />}
 
             {item.zoom && (
               <div className="mt-2">
