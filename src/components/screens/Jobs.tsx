@@ -61,7 +61,7 @@ function Card({
       disabled={locked}
       onMouseEnter={() => !locked && onHover()}
       onClick={() => !locked && onOpen()}
-      className={`group relative flex h-full w-[clamp(9rem,14vw,13rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
+      className={`group relative flex h-full w-[clamp(11rem,18vw,22rem)] shrink-0 flex-col overflow-hidden border text-left transition-all ${
         selected && !locked ? 'border-accent' : 'border-line hover:border-mute'
       } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
       style={{ transform: selected && !locked ? 'scale(1.03)' : undefined }}
@@ -86,7 +86,9 @@ function Card({
       </div>
       <div className="flex shrink-0 flex-col gap-1 bg-panel p-3">
         <span className="text-[10px] tracking-[0.16em] text-mute">{caption}</span>
-        <span className="display text-[clamp(0.8rem,1.2vw,1.05rem)] text-text">{title}</span>
+        <span className="display text-[clamp(0.9rem,1.4vw,1.3rem)] text-text">
+          {title}
+        </span>
       </div>
     </button>
   );
@@ -107,9 +109,19 @@ export default function Jobs({
   });
   const current = useRef<HTMLButtonElement>(null);
 
-  // the job you are up to can be off the right-hand end of the strip on arrival
+  /**
+   * Bring the selected card into its own strip, sideways only.
+   *
+   * `scrollIntoView` walks every scrollable ancestor, so on a short screen it
+   * scrolled the board itself as well and opened the page halfway down, with the
+   * first row's tops cut off. This moves the one container that should move.
+   */
   useEffect(() => {
-    current.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const card = current.current;
+    const strip = card?.parentElement?.parentElement;
+    if (!card || !strip) return;
+    const left = card.offsetLeft - (strip.clientWidth - card.clientWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, left) });
   }, [at]);
 
   const selected =
@@ -149,56 +161,62 @@ export default function Jobs({
       {/* the board scrolls down as well as sideways. Squeezing both sections into
           whatever height was left meant the second one was cut in half on a
           laptop, and it would only get worse with a third */}
-      <div className="scroll-thin flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pb-3">
-        <section className="flex shrink-0 flex-col">
-          <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-accent sm:px-10">
-            The run
-          </p>
-          <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-            <div className="flex h-[17rem] gap-3 sm:gap-4">
-              {MAIN.map((level, i) => (
-                <Card
-                  key={level.id}
-                  level={level}
-                  caption={`JOB ${String(i + 1).padStart(2, '0')}`}
-                  title={level.title}
-                  done={i < progress.main}
-                  locked={i > progress.main}
-                  selected={at.kind === 'main' && at.at === i}
-                  innerRef={at.kind === 'main' && at.at === i ? current : undefined}
-                  onHover={() => setAt({ kind: 'main', at: i })}
-                  onOpen={() => onPick({ kind: 'main', at: i })}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {SIDE.length > 0 && (
+      {/* `my-auto` rather than `justify-center`: centring a scrolling column clips
+          whatever overflows the top, and this one does overflow on a laptop */}
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto pb-3">
+        <div className="flex min-h-full flex-col justify-center gap-5">
           <section className="flex shrink-0 flex-col">
-            <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-mute sm:px-10">
-              Side work — optional, and it does not touch the ending
+            <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-accent sm:px-10">
+              The run
             </p>
             <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
-              <div className="flex h-[15rem] gap-3 sm:gap-4">
-                {SIDE.map((level) => (
+              <div className="flex h-[min(19rem,34vh)] gap-3 sm:gap-4">
+                {MAIN.map((level, i) => (
                   <Card
                     key={level.id}
                     level={level}
-                    caption="SIDE JOB"
+                    caption={`JOB ${String(i + 1).padStart(2, '0')}`}
                     title={level.title}
-                    done={progress.side.includes(level.id)}
-                    locked={sideLocked}
-                    selected={at.kind === 'side' && at.id === level.id}
-                    innerRef={at.kind === 'side' && at.id === level.id ? current : undefined}
-                    onHover={() => setAt({ kind: 'side', id: level.id })}
-                    onOpen={() => onPick({ kind: 'side', id: level.id })}
+                    done={i < progress.main}
+                    locked={i > progress.main}
+                    selected={at.kind === 'main' && at.at === i}
+                    innerRef={at.kind === 'main' && at.at === i ? current : undefined}
+                    onHover={() => setAt({ kind: 'main', at: i })}
+                    onOpen={() => onPick({ kind: 'main', at: i })}
                   />
                 ))}
               </div>
             </div>
           </section>
-        )}
+
+          {SIDE.length > 0 && (
+            <section className="flex shrink-0 flex-col">
+              <p className="eyebrow shrink-0 px-6 pb-2 text-[10px] text-mute sm:px-10">
+                Side work — optional, and it does not touch the ending
+              </p>
+              <div className="scroll-thin flex overflow-x-auto overflow-y-hidden px-6 sm:px-10">
+                <div className="flex h-[min(17rem,30vh)] gap-3 sm:gap-4">
+                  {SIDE.map((level) => (
+                    <Card
+                      key={level.id}
+                      level={level}
+                      caption="SIDE JOB"
+                      title={level.title}
+                      done={progress.side.includes(level.id)}
+                      locked={sideLocked}
+                      selected={at.kind === 'side' && at.id === level.id}
+                      innerRef={
+                        at.kind === 'side' && at.id === level.id ? current : undefined
+                      }
+                      onHover={() => setAt({ kind: 'side', id: level.id })}
+                      onOpen={() => onPick({ kind: 'side', id: level.id })}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
       </div>
 
       <footer className="flex items-center gap-6 border-t border-line px-6 py-3 sm:px-10">

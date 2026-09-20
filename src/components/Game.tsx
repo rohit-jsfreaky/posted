@@ -38,6 +38,16 @@ type Pending = { report: DiffReport; flags: string[]; image: string };
 let seq = 0;
 const nextId = () => `i${seq++}`;
 
+/**
+ * One panel at a time, full height.
+ *
+ * The street used to be pinned above the other two, which left the feed a
+ * squeezed strip at the bottom — the busiest panel in the game with the least
+ * room. Each of them now gets the whole rail when it is the one you want, and
+ * the game moves you between them at the moments that matter.
+ */
+type Rail = 'street' | 'client' | 'feed';
+
 export default function Game({
   level,
   chapter,
@@ -96,7 +106,9 @@ export default function Game({
    * squeezed strip at the bottom of the screen — which is where the game's whole
    * reaction happens, so it needs the height.
    */
-  const [rail, setRail] = useState<'client' | 'feed'>('client');
+  const [rail, setRail] = useState<Rail>('client');
+  /** DMs that arrived while the client tab was hidden */
+  const [unseen, setUnseen] = useState(0);
   const [unread, setUnread] = useState(0);
   /**
    * Shown over the workspace whenever the photograph under the editor is replaced.
@@ -199,7 +211,13 @@ export default function Game({
     setLastReport(report);
 
     play('post');
-    setRail('feed');
+    // the street first, because that is where the dissolve happens, then across
+    // to the replies once it has landed
+    setRail('street');
+    later(2600, () => {
+      setRail('feed');
+      setUnread(0);
+    });
 
     /**
      * What the street sees.
@@ -395,7 +413,10 @@ export default function Game({
       setBeat(true);
       later(400, () => play('landed'));
       chapter.payoff.forEach((m, i) =>
-        later(2400 + i * 1300, () => setThread((prev) => [...prev, m])),
+        later(2400 + i * 1300, () => {
+        setThread((prev) => [...prev, m]);
+        setUnseen((n) => n + 1);
+      }),
       );
       later(6400, () => {
         play('sting');
@@ -600,41 +621,33 @@ export default function Game({
         </section>
 
         {/* ----------------------------------------------------------- right rail */}
-        <aside className="flex w-[380px] shrink-0 flex-col border-l border-line xl:w-[450px]">
-          {/* the street stays pinned: it is the payoff, and watching it change is
-              the whole point of the game */}
-          <div className="shrink-0 border-b border-line">
-            <div className="flex items-baseline justify-between px-3 pt-2.5">
-              <h2 className="eyebrow text-xs text-text">The street</h2>
-              <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
-            </div>
-            <div className="p-3 pt-2">
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  data-testid="world"
-                  src={source}
-                  alt="the world as it is now"
-                  className="w-full border border-line"
-                />
-                {sentShot && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    data-testid="dissolve"
-                    src={sentShot}
-                    alt=""
-                    className={`absolute inset-0 h-full w-full border border-accent transition-opacity duration-[1400ms] ease-out ${
-                      fading ? 'opacity-0' : 'opacity-100'
-                    }`}
-                  />
-                )}
-              </div>
-              {sentShot && (
-                <p className="eyebrow mt-1.5 text-center text-[9px] text-accent">
-                  what you sent &rarr; what the street printed
-                </p>
-              )}
-            </div>
+        <aside className="flex w-[380px] shrink-0 flex-col border-l border-line xl:w-[460px]">
+          {/* one panel at a time, each of them the full height of the rail */}
+          <div className="flex shrink-0 border-b border-line">
+            {(['street', 'client', 'feed'] as const).map((tab) => {
+              const badge = tab === 'feed' ? unread : tab === 'client' ? unseen : 0;
+              return (
+                <button
+                  key={tab}
+                  data-testid={`tab-${tab}`}
+                  onClick={() => {
+                    setRail(tab);
+                    if (tab === 'feed') setUnread(0);
+                    if (tab === 'client') setUnseen(0);
+                  }}
+                  className={`eyebrow flex-1 px-2 py-2.5 text-[11px] ${
+                    rail === tab ? 'bg-accent text-accent-ink' : 'text-mute hover:text-text'
+                  }`}
+                >
+                  {tab === 'street' ? 'The street' : tab === 'client' ? 'Client' : 'Feed'}
+                  {badge > 0 && rail !== tab && (
+                    <span className="ml-1.5 bg-accent px-1 text-[10px] text-accent-ink">
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* what this job still needs. Without it, a player who does half the job
@@ -715,34 +728,44 @@ export default function Game({
             )}
           </div>
 
-          {/* client and feed share the rest of the height, one at a time */}
-          <div className="flex shrink-0 border-b border-line">
-            {(['client', 'feed'] as const).map((tab) => (
-              <button
-                key={tab}
-                data-testid={`tab-${tab}`}
-                onClick={() => {
-                  setRail(tab);
-                  if (tab === 'feed') setUnread(0);
-                }}
-                className={`eyebrow flex-1 px-3 py-2 text-[11px] ${
-                  rail === tab
-                    ? 'bg-accent text-accent-ink'
-                    : 'text-mute hover:text-text'
-                }`}
-              >
-                {tab === 'client' ? 'Client' : 'Feed'}
-                {tab === 'feed' && unread > 0 && rail !== 'feed' && (
-                  <span className="ml-1.5 bg-accent px-1 text-[10px] text-accent-ink">
-                    {unread}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-
           <div className="scroll-thin min-h-0 flex-1 overflow-y-auto px-3 py-2">
-            {rail === 'client' ? (
+            {rail === 'street' ? (
+              <div>
+                <div className="flex items-baseline justify-between pb-2">
+                  <h2 className="eyebrow text-xs text-text">As it is now</h2>
+                  <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
+                </div>
+                <div className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    data-testid="world"
+                    src={source}
+                    alt="the world as it is now"
+                    className="w-full border border-line"
+                  />
+                  {sentShot && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      data-testid="dissolve"
+                      src={sentShot}
+                      alt=""
+                      className={`absolute inset-0 h-full w-full border border-accent transition-opacity duration-[1400ms] ease-out ${
+                        fading ? 'opacity-0' : 'opacity-100'
+                      }`}
+                    />
+                  )}
+                </div>
+                {sentShot && (
+                  <p className="eyebrow mt-1.5 text-center text-[9px] text-accent">
+                    what you sent &rarr; what the street printed
+                  </p>
+                )}
+                <p className="mt-3 text-[11px] leading-snug text-mute">
+                  This is the photograph Leonida has. Every post you land rewrites it, and the
+                  next job starts from whatever it says.
+                </p>
+              </div>
+            ) : rail === 'client' ? (
               <div className="flex flex-col gap-1.5">
                 {thread.map((m, i) => (
                   <p
