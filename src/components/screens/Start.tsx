@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ColdOpen from '../ColdOpen';
 
 /**
  * The title screen.
@@ -62,12 +63,10 @@ export default function Start({
         if (e.key === 'Enter') choose(items[Math.min(at, items.length - 1)].id);
       }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/art/bg-street.jpg"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      {/* The first job, played by nobody, on a loop. Somebody landing here cold
+          reads "whatever you post becomes true" as a slogan until they have
+          watched it happen once, so it happens behind the menu. */}
+      <ColdOpen className="absolute inset-0 h-full w-full" />
       {/* one flat scrim over the whole photo. A partial one leaves a visible seam
           down the middle, which is worse than losing a little of the picture */}
       <div className="absolute inset-0 bg-ink/62" />
