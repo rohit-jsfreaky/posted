@@ -142,6 +142,8 @@ The **side work** covers the parts of the editor the run never needs: filter pre
 hue (*The sign was red* — the only job whose answer is a slider that turns every colour at once,
 on the only photograph where that is honest, because it is a street lit by one neon sign).
 
+![The ninth job: the photograph is a screenshot of him](docs/shots/9-him-post.jpg)
+
 And one that is not a photograph at all. **He never posted that** hands you a screenshot of Cal
 Hampton's own post about your very first forgery, and asks you to discredit him with it. Rewrite
 what he said — the game asks you what you typed, because the editor returns pixels and not words
