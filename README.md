@@ -245,14 +245,13 @@ Open **Forensics** in the bottom-left of any job to see exactly what it read off
 - **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~9,700 lines across `src/` and `tools/`.
 - **Sound is synthesised** with Web Audio — cues plus a per-scene bed of filtered noise and one low
   tone. No audio files ship, nothing to license.
-- **Art**: 14 backgrounds and cut-outs plus 11 portraits, 4.4 MB total. Every account that speaks
-  more than once has a face, cut from a single contact sheet rather than generated eleven times,
-  so at avatar size they are unmistakably the same hand. One account has no face on purpose: the
-  client who will not give a name.
-  One of those backgrounds is the ninth job compositing itself: a screenshot has no photograph to
-  generate, only interface, and interface is flat colour and type.
-  Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same
-  rectangle, which is the property the diff engine depends on.
+- **Art**: nine 1200×800 backgrounds, ten trimmed RGBA cut-outs and eleven portraits, 5.5 MB.
+  Every account that speaks more than once has a face, cut from a single contact sheet rather than
+  generated eleven separate times, so at avatar size they are unmistakably the same hand. One
+  account has no face on purpose: the client who will not give a name. Cut-outs are pre-trimmed to
+  their content so a zone and the art that fills it are the same rectangle, which is the property
+  the diff engine depends on. One of those backgrounds is the ninth job compositing itself: a
+  screenshot has no photograph to generate, only interface, and interface is flat colour and type.
 - **The title screen plays the first job on a loop** before you touch anything, composited from the
   same art the game uses, so it cannot drift from what you are about to do.
 - **Progress is in `localStorage`** — jobs finished, suspicion carried, and his thread. Every access

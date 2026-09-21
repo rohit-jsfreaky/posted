@@ -24,6 +24,13 @@ export const ASSETS = {
   'cut-car': '/art/cut-car.png',
   'cut-witness': '/art/cut-witness.png',
   'cut-ev': '/art/cut-ev.png',
+  // four different people in the queue, rather than one man mirrored four times
+  'cut-queue-1': '/art/cut-queue-1.png',
+  'cut-queue-2': '/art/cut-queue-2.png',
+  'cut-queue-3': '/art/cut-queue-3.png',
+  'cut-queue-4': '/art/cut-queue-4.png',
+  // and a witness of her own, so the street job stops borrowing the marina's man
+  'cut-witness-2': '/art/cut-witness-2.png',
   // the only portrait the world draws rather than the interface: his, inside
   // the screenshot of his own post
   'face-cal': '/art/faces/cal_hampton_77.jpg',

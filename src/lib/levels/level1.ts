@@ -16,7 +16,6 @@ import {
   label,
   nightPass,
   place,
-  placeMirrored,
   reset,
   stamp,
   type Ctx,
@@ -33,16 +32,24 @@ const ZONES: ZoneMap = {
 };
 
 /**
- * Where the queue stands once the place is open.
+ * The queue that appears once the sun is down.
  *
  * Kept well clear of the bouncer zone on the right: a figure standing inside it
- * would muddy the one reading the whole level turns on. Alternate ones are
- * mirrored so it does not read as the same man printed four times.
+ * would muddy the one reading the whole level turns on.
+ *
+ * It used to be one cut-out placed four times, mirrored on alternate copies,
+ * which is a fine trick at a glance and an obvious one the moment somebody looks
+ * — the same man, four times, outside the same door. Four people now, and each
+ * carries its own width, because they are standing figures of different builds
+ * and `place` fills the zone it is given exactly. A shared width would squash
+ * them all to the same shape, which is the thing being fixed.
  */
-const QUEUE = [0.1, 0.21, 0.32, 0.61].map((x, i) => ({
-  zone: { x, y: 0.48, w: 0.12, h: 0.2 },
-  mirrored: i % 2 === 1,
-}));
+const QUEUE = [
+  { art: 'cut-queue-1' as const, x: 0.1, w: 0.054 },
+  { art: 'cut-queue-2' as const, x: 0.2, w: 0.056 },
+  { art: 'cut-queue-3' as const, x: 0.29, w: 0.058 },
+  { art: 'cut-queue-4' as const, x: 0.6, w: 0.063 },
+].map((q) => ({ art: q.art, zone: { x: q.x, y: 0.48, w: q.w, h: 0.2 } }));
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
@@ -51,8 +58,7 @@ function composite(state: WorldState, ctx: Ctx) {
   // the queue is drawn before the night pass so it darkens with everything else
   if (state.crowd) {
     for (const q of QUEUE) {
-      if (q.mirrored) placeMirrored(ctx, 'cut-subject', q.zone);
-      else place(ctx, 'cut-subject', q.zone);
+      place(ctx, q.art, q.zone);
     }
   }
 

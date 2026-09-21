@@ -16,7 +16,8 @@ import type { ZoneMap } from '../zones';
 const ZONES: ZoneMap = {
   car: { x: 0.63, y: 0.51, w: 0.3, h: 0.22 },
   street_sign: { x: 0.107, y: 0.06, w: 0.156, h: 0.1 },
-  witness: { x: 0.42, y: 0.44, w: 0.15, h: 0.26 },
+  // 0.092 keeps her standing rather than stretched: `place` fills the zone exactly
+  witness: { x: 0.44, y: 0.44, w: 0.092, h: 0.26 },
   block: { x: 0.0, y: 0.02, w: 0.62, h: 0.66 },
 };
 
@@ -24,7 +25,7 @@ function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
   backdrop(ctx, 'bg-street');
 
-  if (state.witness) place(ctx, 'cut-subject', ZONES.witness);
+  if (state.witness) place(ctx, 'cut-witness-2', ZONES.witness);
   if (state.car) place(ctx, 'cut-car', ZONES.car);
 
   nightPass(ctx, '#4a5794');
