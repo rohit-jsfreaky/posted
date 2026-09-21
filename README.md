@@ -232,10 +232,10 @@ Open **Forensics** in the bottom-left of any job to see exactly what it read off
 
 | | what it proves |
 |---|---|
-| `/lab` | **39 synthesised edits** against the real art — every valid solution and the near-misses that must not fire |
+| `/lab` | **45 synthesised edits** against the real art — every valid solution and the near-misses that must not fire |
 | `npm run check:identity` | no flag and no tell fires on a photograph nobody touched. It exists because one did |
 | `npm run check:content` | no line is said twice, every fatal tell says what to do instead, every tool has a verb, every translation key still exists in the library's types |
-| `npm run check:sequence` | **108 outcomes** — every level against every way a post can go, including every fatal tell — produce a sequence that opens on the photograph, holds every beat, and ends where it says it does |
+| `npm run check:sequence` | **117 outcomes** — every level against every way a post can go, including every fatal tell — produce a sequence that opens on the photograph, holds every beat, and ends where it says it does |
 | `npm run play` | drives the **real editor in a real browser** with a real mouse: crop, resize, every filter slider, the aspect presets and the brush, across six of the nine jobs |
 
 ### Everything else

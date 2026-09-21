@@ -14,8 +14,8 @@
  *
  *   what he said        REWRITE, and then the game asks you what you wrote,
  *                       because the editor hands back pixels and not words
- *   what he attached    the photograph under it, cropped off the bottom or
- *                       boarded over in the panel's own colour
+ *   what he attached    the photograph under it, boarded over in the panel's
+ *                       own colour
  *
  * What is left is a man making an accusation with nothing under it, in his own
  * words, from his own account. The crowd does not check. They never do — which
@@ -26,8 +26,12 @@
  * first job's world uses, drawn into a rectangle; everything else is interface,
  * and interface is flat colour and type, which is what this game draws anyway.
  *
- * It is also the one job where a filter is the wrong answer and says so. Nobody
- * colour grades a screenshot, and he notices.
+ * It is also the one job where two familiar tools are both wrong, and it says so
+ * rather than letting them fail quietly. A filter is wrong because nobody colour
+ * grades a screenshot, and he posts about it. Crop is wrong because the
+ * attachment is most of the frame, so cutting it away leaves a strip that no
+ * longer reads as a screenshot of anything — the engine refuses to place it, and
+ * a person would say the same thing about it.
  */
 
 import { fill, label, place, reset, type Ctx } from '../draw';
@@ -156,6 +160,23 @@ export const level9: Level = {
     key: 'quote',
   },
 
+  /**
+   * The one job where two familiar tools are both the wrong answer.
+   *
+   * A filter is wrong because nobody colour grades a screenshot, and there is a
+   * tell for that. Crop is wrong for a harder reason: the attachment is most of
+   * the frame, so cropping it away leaves a strip the engine cannot recognise as
+   * having come from this picture at all — which is correct of it, and is also
+   * exactly what a human would say about a screenshot cropped down to two lines.
+   * Rather than promise a move that cannot work, the game says so.
+   */
+  nearMiss: (r) => {
+    if (!r.trusted && !r.unreadable) {
+      return 'thats not a screenshot any more, thats a strip of one. nobody is going to believe that';
+    }
+    return null;
+  },
+
   tells: [
     {
       /**
@@ -171,7 +192,7 @@ export const level9: Level = {
       post: 'somebody has painted over the bottom of a screenshot of me. badly. i still have the post.',
       fatal: true,
       reverts: 'proof_gone',
-      fix: 'Crop the attachment off the bottom, or board it over in the panel colour. Paint never matches a flat interface.',
+      fix: 'Board the attachment over in the panel colour instead. Paint never matches a flat interface, and cropping takes so much of the frame that it stops reading as a screenshot.',
     },
     {
       /** nobody colour grades a screenshot, and this is the job that knows it */
@@ -187,7 +208,7 @@ export const level9: Level = {
   hints: [
     'This one is not a photograph. It is a picture of a post, and what makes a post believable is not what makes a photograph believable.',
     'Two things have to go: what he said, and what he attached underneath to prove it. REWRITE reaches the first one, and the game will ask you what you wrote, because the editor hands back pixels rather than words.',
-    'For the attachment, crop it off the bottom or board it over in the same colour the panel already is. Do not paint it — a post is flat colour and a brush never matches flat colour, and that is the first thing he checks.',
+    'For the attachment, board it over in the same colour the panel already is. Do not crop it away — the photograph is most of the frame here, and what is left stops looking like a screenshot at all. Do not paint it either: a post is flat colour, and a brush never matches flat colour.',
   ],
 
   reactions: [

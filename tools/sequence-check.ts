@@ -220,8 +220,13 @@ for (const level of ALL) {
   const quiet = { total: 0, notes: [] };
 
   run(level, 'flipped', { kind: 'mirrored' });
-  run(level, 'unreadable', { kind: 'untrusted', unreadable: true });
-  run(level, 'not a photograph', { kind: 'untrusted', unreadable: false });
+  run(level, 'unreadable', { kind: 'untrusted', unreadable: true, missed: null });
+  run(level, 'not a photograph', { kind: 'untrusted', unreadable: false, missed: null });
+  run(level, 'unplaceable, and the level has a word for it', {
+    kind: 'untrusted',
+    unreadable: false,
+    missed: 'thats not a screenshot any more',
+  });
   run(level, 'nothing landed', { kind: 'nothing', missed: null });
   run(level, 'a near miss', { kind: 'nothing', missed: 'thats barely moved' });
   run(level, 'a keep destroyed', { kind: 'keeps', broken: [level.keeps[0]] });
@@ -320,7 +325,7 @@ for (const level of ALL) {
   if (idle.kind !== 'nothing') fail('judge', 'a post that earned nothing is not read as nothing');
 }
 
-const outcomes = ALL.reduce((n, l) => n + 10 + l.tells.length, 0);
+const outcomes = ALL.reduce((n, l) => n + 11 + l.tells.length, 0);
 if (problems.length === 0) {
   console.log(`clean: ${ALL.length} levels, ${outcomes} outcomes, every one of them watchable`);
 } else {

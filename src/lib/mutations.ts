@@ -210,6 +210,36 @@ export const CASES: MutationCase[] = [
   },
   { id: 'l8-turn-far', what: 'run the hue slider a long way', level: 8, expect: [] },
 
+  // level 9 — the picture that is a picture of him
+  { id: 'l9-untouched', what: 'save without editing', level: 9, expect: [] },
+  {
+    id: 'l9-graded',
+    what: 'colour grade the screenshot and nothing else',
+    level: 9,
+    expect: [],
+  },
+  { id: 'l9-rewrite', what: 'write over what he said', level: 9, expect: ['quote_changed'] },
+  // cropping the attachment away takes two thirds of the frame with it, and the
+  // aligner is right to refuse a strip it cannot place. The job says so now
+  {
+    id: 'l9-crop-proof',
+    what: 'crop the attachment off, which takes most of the frame',
+    level: 9,
+    expect: [],
+  },
+  {
+    id: 'l9-board-proof',
+    what: 'board the attachment over in the panel colour',
+    level: 9,
+    expect: ['proof_gone'],
+  },
+  {
+    id: 'l9-full',
+    what: 'rewrite him and take the attachment away',
+    level: 9,
+    expect: ['quote_changed', 'proof_gone'],
+  },
+
   // level 5 — claim a source instead of changing a fact
   { id: 'l5-frame-only', what: 'add a frame', level: 5, expect: ['official'] },
   { id: 'l5-redact-only', what: 'black bar over the face', level: 5, expect: ['face_hidden'] },
@@ -574,6 +604,99 @@ export async function buildMutation(
             ctx.lineWidth / 2,
             w - ctx.lineWidth,
             h - ctx.lineWidth,
+          );
+        },
+        img,
+      );
+
+    case 'l9-untouched':
+      return render(w, h, base, img);
+
+    /**
+     * A screenshot that has been through a filter.
+     *
+     * The one job where reaching for the filter panel is the wrong answer, so
+     * the engine has to agree that it changed nothing worth a flag: a global
+     * light shift is what the photometric fit is for, and no zone should read
+     * as touched because of it.
+     */
+    case 'l9-graded':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          base(ctx);
+          shiftLight(ctx, w, h, -0.12);
+        },
+        img,
+      );
+
+    // words typed over his words, which is all the engine can see of REWRITE
+    case 'l9-rewrite':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          base(ctx);
+          paint(ctx, w, h, Z.quote, '#12141b');
+          ctx.fillStyle = '#f2f2f4';
+          ctx.font = `600 ${Math.round(h * 0.037)}px monospace`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(
+            'i made the whole thing up',
+            Z.quote.x * w,
+            (Z.quote.y + Z.quote.h / 2) * h,
+          );
+        },
+        img,
+      );
+
+    /**
+     * The attachment cropped off the bottom.
+     *
+     * The frame keeps its width and loses everything below the photograph, which
+     * is a far more extreme crop than any other job asks for — worth a case of
+     * its own, because the aligner has to still recognise the strip that is left.
+     */
+    case 'l9-crop-proof': {
+      const keep = Math.round(Z.proof.y * h);
+      return render(
+        w,
+        keep,
+        (ctx) => ctx.drawImage(img, 0, 0, w, keep, 0, 0, w, keep),
+        img,
+      );
+    }
+
+    // or covered in the colour the panel already is, which is what BOARD UP does
+    case 'l9-board-proof':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          base(ctx);
+          paint(ctx, w, h, Z.proof, '#12141b');
+        },
+        img,
+      );
+
+    case 'l9-full':
+      return render(
+        w,
+        h,
+        (ctx) => {
+          base(ctx);
+          paint(ctx, w, h, Z.proof, '#12141b');
+          paint(ctx, w, h, Z.quote, '#12141b');
+          ctx.fillStyle = '#f2f2f4';
+          ctx.font = `600 ${Math.round(h * 0.037)}px monospace`;
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(
+            'i made the whole thing up',
+            Z.quote.x * w,
+            (Z.quote.y + Z.quote.h / 2) * h,
           );
         },
         img,

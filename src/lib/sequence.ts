@@ -45,7 +45,12 @@ const HIM = 'cal_hampton_77';
  */
 export type Verdict =
   | { kind: 'mirrored' }
-  | { kind: 'untrusted'; unreadable: boolean }
+  | {
+      kind: 'untrusted';
+      unreadable: boolean;
+      /** what this level says about a picture that came back unplaceable */
+      missed: string | null;
+    }
   | { kind: 'nothing'; missed: string | null }
   | { kind: 'keeps'; broken: Keep[] }
   | {
@@ -168,7 +173,21 @@ export function judge(
   },
 ): Verdict {
   if (report.alignment.mirrored) return { kind: 'mirrored' };
-  if (!report.trusted) return { kind: 'untrusted', unreadable: report.unreadable };
+  /**
+   * A picture the engine cannot place.
+   *
+   * The level gets asked first, because "what am i even looking at" is the right
+   * answer for a black square and the wrong one for a screenshot somebody has
+   * cropped down to two lines of text. Only one job has anything specific to say
+   * here, and it is the one whose picture is a post.
+   */
+  if (!report.trusted) {
+    return {
+      kind: 'untrusted',
+      unreadable: report.unreadable,
+      missed: level.nearMiss?.(report) ?? null,
+    };
+  }
   if (flags.length === 0) return { kind: 'nothing', missed: level.nearMiss?.(report) ?? null };
 
   const broken = brokenKeeps(level, report);
@@ -257,8 +276,10 @@ export function planPost(input: PlanInput): Sequence {
       {
         kind: 'reply',
         who: 'nine_lives_vc',
-        text: verdict.unreadable ? 'thats just a black square my guy' : 'what am i even looking at',
-        likes: 12,
+        text:
+          verdict.missed ??
+          (verdict.unreadable ? 'thats just a black square my guy' : 'what am i even looking at'),
+        likes: verdict.missed ? 58 : 12,
       },
       'NOTHING CHANGED.',
     );
