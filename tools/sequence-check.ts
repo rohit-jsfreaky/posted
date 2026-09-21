@@ -146,8 +146,9 @@ function run(level: Level, name: string, verdict: Verdict, opts: { beat?: boolea
   }
 
   // ---------------------------------------------------------------- it landed
-  const { hits, fatal, smell, after, stuck } = verdict;
-  const wantsZoom = hits.length > 0 || smell.total > level.tolerance;
+  const { hits, fatal, after, stuck } = verdict;
+  // he digs on what the job has cost him in total, not on the last upload alone
+  const wantsZoom = hits.length > 0 || verdict.heat > level.tolerance;
   const zoomAt = kinds.indexOf('zoom');
   if (wantsZoom && zoomAt === -1) fail(at, 'he had something to say and never said it');
   if (!wantsZoom && zoomAt !== -1) fail(at, 'he zoomed in on a post he had no reason to doubt');
@@ -229,6 +230,7 @@ for (const level of ALL) {
     ({
       kind: 'landed' as const,
       smell: quiet,
+      heat: 0,
       hits: [],
       fatal: null,
       after,
@@ -242,7 +244,46 @@ for (const level of ALL) {
   run(
     level,
     'landed, and he smells it',
-    landed({ smell: { total: level.tolerance + 1, notes: [{ zone: Object.keys(level.zones)[0], method: 'painted', cost: 34, note: 'the edges in this do not match anything around them' }] } }),
+    landed({
+      heat: level.tolerance + 1,
+      smell: {
+        total: level.tolerance + 1,
+        notes: [
+          {
+            zone: Object.keys(level.zones)[0],
+            method: 'painted',
+            cost: 34,
+            note: 'the edges in this do not match anything around them',
+          },
+        ],
+      },
+    }),
+    { picked },
+  );
+  /**
+   * The exploit this was built to close.
+   *
+   * Three careful little posts used to be strictly cheaper than one honest one,
+   * because only the newest was ever measured. A post that looks clean on its
+   * own still has to set him off once the job as a whole has cost too much.
+   */
+  run(
+    level,
+    'landed clean, but the job has cost too much by now',
+    landed({
+      heat: level.tolerance + 1,
+      smell: {
+        total: 4,
+        notes: [
+          {
+            zone: Object.keys(level.zones)[0],
+            method: 'dimmed',
+            cost: 4,
+            note: 'the light in this is not the light that was there',
+          },
+        ],
+      },
+    }),
     { picked },
   );
 
@@ -279,7 +320,7 @@ for (const level of ALL) {
   if (idle.kind !== 'nothing') fail('judge', 'a post that earned nothing is not read as nothing');
 }
 
-const outcomes = ALL.reduce((n, l) => n + 9 + l.tells.length, 0);
+const outcomes = ALL.reduce((n, l) => n + 10 + l.tells.length, 0);
 if (problems.length === 0) {
   console.log(`clean: ${ALL.length} levels, ${outcomes} outcomes, every one of them watchable`);
 } else {

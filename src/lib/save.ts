@@ -15,13 +15,21 @@ export type Progress = {
   main: number;
   /** the ids of the side jobs that are done, in no particular order */
   side: number[];
+  /**
+   * How much suspicion every finished job cost, added together.
+   *
+   * The one thing that does carry between jobs. Everything else about a job is
+   * meant to be forgotten when you leave it; this is the file he is building,
+   * and the ending reads from it.
+   */
+  heat: number;
 };
 
 const KEY = 'posted.progress';
 /** what the save was called when it was only a count of story jobs */
 const OLD_KEY = 'posted.jobs-done';
 
-export const EMPTY: Progress = { main: 0, side: [] };
+export const EMPTY: Progress = { main: 0, side: [], heat: 0 };
 
 export function loadProgress(mainTotal: number): Progress {
   try {
@@ -32,15 +40,19 @@ export function loadProgress(mainTotal: number): Progress {
         const p = parsed as Partial<Progress>;
         const main = typeof p.main === 'number' && Number.isFinite(p.main) ? p.main : 0;
         const side = Array.isArray(p.side) ? p.side.filter((n) => typeof n === 'number') : [];
+        // a save written before the city started keeping score reads as a clean one
+        const heat = typeof p.heat === 'number' && Number.isFinite(p.heat) ? Math.max(p.heat, 0) : 0;
         // a stale save from a build with fewer jobs must not point past the end
-        return { main: Math.min(Math.max(main, 0), mainTotal), side };
+        return { main: Math.min(Math.max(main, 0), mainTotal), side, heat };
       }
     }
     // somebody who played the older build keeps their place in the run
     const old = window.localStorage.getItem(OLD_KEY);
     if (old !== null) {
       const n = Number.parseInt(old, 10);
-      if (Number.isFinite(n)) return { main: Math.min(Math.max(n, 0), mainTotal), side: [] };
+      if (Number.isFinite(n)) {
+        return { main: Math.min(Math.max(n, 0), mainTotal), side: [], heat: 0 };
+      }
     }
     return { ...EMPTY };
   } catch {

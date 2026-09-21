@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CARD_H, CARD_W, drawCard, loadPhoto, rankFor, readFonts, RANKS } from '@/lib/card';
+import { bandFor, type Standing } from '@/lib/heat';
 import {
   anonymousIdentity,
   loadIdentity,
@@ -24,7 +25,7 @@ import {
 export default function CaseCard({
   progress,
 }: {
-  progress: { main: number; side: number; sideTotal: number };
+  progress: Standing;
 }) {
   /**
    * Read straight off the device, not in an effect.
@@ -50,7 +51,7 @@ export default function CaseCard({
       // no font loading API, draw with whatever is resolved
     }
     const photo = await loadPhoto(who.photo);
-    setCard(drawCard(who, progress, photo, readFonts(probe.current)));
+    setCard(drawCard(who, progress, photo, readFonts(probe.current), bandFor(progress.heat, progress.budget)));
   }, [progress]);
 
   useEffect(() => {

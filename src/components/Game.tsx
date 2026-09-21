@@ -11,6 +11,7 @@ import PostStage, { useSequence } from './PostStage';
 import ZoomView from './ZoomView';
 import { type DiffReport, diffImages } from '@/lib/diff';
 import { readFlags, renderLevel, toolConfig, type Level } from '@/lib/level';
+import { bandFor, CLOSENESS, type Standing } from '@/lib/heat';
 import { judge, planPost, type Final, type Step } from '@/lib/sequence';
 import { assess, methodFor } from '@/lib/suspicion';
 import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '@/lib/verbs';
@@ -56,11 +57,12 @@ export default function Game({
   chapter: Chapter;
   /** what the header calls this one: "Job 03", or "Side job" */
   label: string;
-  progress: { main: number; side: number; sideTotal: number };
+  progress: Standing;
   /** the run's last chapter, so the button offers the ending rather than the next job */
   isLastMain: boolean;
   onQuit: () => void;
-  onSolved: () => void;
+  /** what the job cost him, so the file can keep it */
+  onSolved: (cost: number) => void;
 }) {
 
   const [earned, setEarned] = useState<string[]>([]);
@@ -228,13 +230,21 @@ export default function Game({
   const busy = reading || stage.seq !== null;
 
   function resolve(report: DiffReport, flags: string[], image: string, picked: string | null) {
-    setSuspicion(assess(level, report).total);
+    /**
+     * Suspicion adds up over the job rather than describing the last upload.
+     *
+     * Measuring only the newest post made splitting a job across three small
+     * ones strictly cheaper than doing it in one, which is an exploit rather
+     * than a tactic. Everything you have shown him this job counts.
+     */
+    const carried = suspicion + assess(level, report).total;
+    setSuspicion(carried);
     setLastReport(report);
 
     const sequence = planPost({
       level,
       chapter,
-      verdict: judge(level, report, flags, { earned, choice, picked }),
+      verdict: judge(level, report, flags, { earned, choice, picked, carried }),
       image,
       source,
       earned,
@@ -356,6 +366,19 @@ export default function Game({
   const heat = Math.min(1, suspicion / level.tolerance);
   const segments = 12;
   const lit = Math.round(heat * segments);
+  /**
+   * The run so far, with this job counted in.
+   *
+   * The job you are on has not been banked yet, so the stored figure is one job
+   * behind — which would mean the card on the done screen, and the readout in
+   * the header, both ignoring the work being celebrated.
+   */
+  const standing: Standing = {
+    ...progress,
+    heat: progress.heat + suspicion,
+    budget: progress.budget + level.tolerance,
+  };
+  const band = bandFor(standing.heat, standing.budget);
 
   return (
     <main className="flex h-full w-full flex-col overflow-hidden bg-ink">
@@ -383,6 +406,16 @@ export default function Game({
         </span>
 
         <div className="ml-auto flex items-center gap-3">
+          {/* what the run has cost so far, in the only three words that matter */}
+          <span className="hidden items-baseline gap-1.5 md:flex">
+            <span className="text-[10px] tracking-[0.16em] text-dim">HOW CLOSE HE IS</span>
+            <span
+              data-testid="closeness"
+              className={`eyebrow text-[11px] ${band === 'nothing' ? 'text-good' : 'text-accent'}`}
+            >
+              {CLOSENESS[band]}
+            </span>
+          </span>
           <span className="text-[10px] tracking-[0.16em] text-mute">SUSPICION</span>
           <div data-testid="suspicion" className="flex gap-[3px]" title={`${suspicion}/${level.tolerance}`}>
             {Array.from({ length: segments }).map((_, i) => (
@@ -680,11 +713,11 @@ export default function Game({
             <h2 className="display mt-3 text-3xl text-text">{level.title}</h2>
             <p className="mt-3 text-sm leading-relaxed text-text/80">{level.epilogue}</p>
 
-            <CaseCard progress={progress} />
+            <CaseCard progress={standing} />
 
             <button
               data-testid="next-level"
-              onClick={onSolved}
+              onClick={() => onSolved(suspicion)}
               className="display mt-5 w-full bg-accent py-2 text-xl text-accent-ink hover:brightness-110"
             >
               {isLastMain ? 'See how it ends' : 'Next job'}

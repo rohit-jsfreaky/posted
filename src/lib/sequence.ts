@@ -50,7 +50,18 @@ export type Verdict =
   | { kind: 'keeps'; broken: Keep[] }
   | {
       kind: 'landed';
+      /** what this post on its own looked like: the notes he leads with */
       smell: Suspicion;
+      /**
+       * What the whole job has cost, this post included.
+       *
+       * Separate from `smell.total` because the two answer different questions.
+       * He points at the worst thing in the picture in front of him, but he
+       * starts digging on the strength of everything you have shown him — which
+       * is what stops three careful little posts being cheaper than one honest
+       * one.
+       */
+      heat: number;
       hits: Tell[];
       fatal: Tell | null;
       after: WorldState;
@@ -148,7 +159,13 @@ export function judge(
   level: Level,
   report: DiffReport,
   flags: string[],
-  ctx: { earned: string[]; choice: string | null; picked: string | null },
+  ctx: {
+    earned: string[];
+    choice: string | null;
+    picked: string | null;
+    /** suspicion for the whole job so far, this post included */
+    carried?: number;
+  },
 ): Verdict {
   if (report.alignment.mirrored) return { kind: 'mirrored' };
   if (!report.trusted) return { kind: 'untrusted', unreadable: report.unreadable };
@@ -163,9 +180,11 @@ export function judge(
   if (level.choice && written) after[level.choice.key] = written;
 
   const hits = spotted(level, report, after);
+  const smell = assess(level, report);
   return {
     kind: 'landed',
-    smell: assess(level, report),
+    smell,
+    heat: ctx.carried ?? smell.total,
     hits,
     fatal: hits.find((t) => t.fatal) ?? null,
     after,
@@ -306,7 +325,7 @@ export function planPost(input: PlanInput): Sequence {
     steps.push({ kind: 'react', ms: TIMING.reply, reply, posts: [reply], cue: 'reply' });
   }
 
-  if (hits.length > 0 || smell.total > level.tolerance) {
+  if (hits.length > 0 || verdict.heat > level.tolerance) {
     const tell = hits[0];
     /**
      * With no tell he is going on smell alone, so he leads with the worst thing

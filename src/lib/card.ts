@@ -12,6 +12,7 @@
  * came from a different product is not a reward.
  */
 
+import { STAMP, type Band } from './heat';
 import { caseNumber, type Identity } from './identity';
 
 export const CARD_W = 1200;
@@ -213,6 +214,33 @@ function drawJobs(
 }
 
 /**
+ * How much he has on you, stamped on the file the way a real one would be.
+ *
+ * The rank says how far you got. This says what it cost — and they are genuinely
+ * independent: somebody can finish the whole run without ever giving him a thing
+ * to point at, and somebody else can bulldoze the same five jobs with the paint
+ * brush and reach the end with him naming them out loud.
+ */
+function drawStamp(ctx: Ctx, band: Band, f: CardFonts) {
+  const text = STAMP[band];
+  const colour = band === 'nothing' ? GOOD : ACCENT;
+  ctx.font = `700 20px ${f.display}`;
+  const w = ctx.measureText(text).width + 28;
+  const x = CARD_W - 64 - w;
+  const y = 150;
+
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, 36);
+  ctx.fillStyle = colour;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x + w / 2, y + 19);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+/**
  * Draw the card and hand back a PNG data URL.
  *
  * `done` is how many jobs are finished, 1..5.
@@ -222,6 +250,7 @@ export function drawCard(
   progress: { main: number; side: number; sideTotal: number },
   photo: HTMLImageElement | null,
   f: CardFonts,
+  band: Band,
 ): string {
   const canvas = document.createElement('canvas');
   canvas.width = CARD_W;
@@ -249,6 +278,7 @@ export function drawCard(
   hairline(ctx, 64, 110, CARD_W - 128);
 
   drawPhoto(ctx, photo, id, f);
+  drawStamp(ctx, band, f);
 
   // --------------------------------------------------------------- the charge
   const left = 360;

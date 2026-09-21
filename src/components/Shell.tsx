@@ -11,6 +11,7 @@ import { MAIN, SIDE } from '@/lib/levels';
 import { CHAPTERS, SIDE_BRIEFS } from '@/lib/story';
 import { clearProgress, EMPTY, loadProgress, saveProgress, type Progress } from '@/lib/save';
 import { clearIdentity } from '@/lib/identity';
+import { budgetFor, type Standing } from '@/lib/heat';
 
 /**
  * Which screen is on.
@@ -63,12 +64,14 @@ export default function Shell() {
   }, [ready]);
 
   const finish = useCallback(
-    (what: Open) => {
+    (what: Open, cost: number) => {
       setProgress((p) => {
-        const next: Progress =
+        const banked: Progress =
           what.kind === 'main'
             ? { ...p, main: Math.max(p.main, what.at + 1) }
             : { ...p, side: Array.from(new Set([...p.side, what.id])) };
+        // what the job cost him goes on the file, and stays there
+        const next: Progress = { ...banked, heat: p.heat + cost };
         saveProgress(next);
         return next;
       });
@@ -87,10 +90,12 @@ export default function Shell() {
     setOpen({ kind: 'main', at: 0 });
   }, []);
 
-  const counts = {
+  const counts: Standing = {
     main: progress.main,
     side: progress.side.length,
     sideTotal: SIDE.length,
+    heat: progress.heat,
+    budget: budgetFor(progress),
   };
 
   /**
@@ -164,7 +169,7 @@ export default function Shell() {
       progress={banked}
       isLastMain={open.kind === 'main' && open.at + 1 >= MAIN.length}
       onQuit={() => setScreen('jobs')}
-      onSolved={() => finish(open)}
+      onSolved={(cost) => finish(open, cost)}
     />
   );
 }

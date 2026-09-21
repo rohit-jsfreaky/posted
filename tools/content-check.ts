@@ -16,6 +16,7 @@ import { ALL, MAIN, SIDE } from '../src/lib/levels';
 import { CHAPTERS, CROWD, ENDING, SIDE_BRIEFS } from '../src/lib/story';
 import { NOTES_FOR_CHECK } from '../src/lib/suspicion';
 import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '../src/lib/verbs';
+import { CLOSENESS, STAMP, VERDICT, type Band } from '../src/lib/heat';
 import { readFileSync } from 'node:fs';
 import type { Level } from '../src/lib/level';
 
@@ -299,6 +300,32 @@ if (!css.includes(SAVE_GROUP)) {
 if (!game.includes('SAVE_GROUP')) {
   fail('save group', 'Game.tsx no longer presses the button through SAVE_GROUP');
 }
+
+/**
+ * The three things the file can say about how close he got.
+ *
+ * These are the only lines in the game a player cannot reach by playing well —
+ * two of the three are for runs nobody on this machine has done — so nothing
+ * else would ever catch one of them being empty, or being the same sentence as
+ * something already said elsewhere.
+ */
+const BANDS: Band[] = ['nothing', 'feeling', 'name'];
+for (const band of BANDS) {
+  if (!CLOSENESS[band]?.trim()) fail('closeness', `band "${band}" has no readout`);
+  if (!STAMP[band]?.trim()) fail('stamp', `band "${band}" has no stamp`);
+  if (!VERDICT[band]?.trim()) fail('verdict', `band "${band}" has no closing line`);
+  record(VERDICT[band], `ending verdict (${band})`);
+  if (similar(VERDICT[band], ENDING.headline)) {
+    fail('verdict', `the "${band}" closing line restates the headline: "${VERDICT[band]}"`);
+  }
+  for (const line of ENDING.body) {
+    if (similar(VERDICT[band], line)) {
+      fail('verdict', `the "${band}" closing line repeats the ending: "${VERDICT[band]}"`);
+    }
+  }
+}
+const stamps = new Set(BANDS.map((b) => STAMP[b]));
+if (stamps.size !== BANDS.length) fail('stamp', 'two bands stamp the file with the same word');
 
 if (!ENDING.headline.trim()) fail('ending', 'has no headline');
 if (ENDING.body.length === 0) fail('ending', 'has no body');

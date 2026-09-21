@@ -2,13 +2,14 @@
 
 import CaseCard from "../CaseCard";
 import { ENDING } from "@/lib/story";
+import { bandFor, VERDICT, type Standing } from "@/lib/heat";
 
 /** The last screen. Five jobs, and the man who was right about all of them. */
 export default function Ending({
   progress,
   onRestart,
 }: {
-  progress: { main: number; side: number; sideTotal: number };
+  progress: Standing;
   onRestart: () => void;
 }) {
   return (
@@ -40,6 +41,14 @@ export default function Ending({
                 {line}
               </p>
             ))}
+            {/* the same ending either way — he was right, nobody checked — and
+                one line about whether it ever cost you anything */}
+            <p
+              data-testid="verdict"
+              className="mt-2 border-l-2 border-accent pl-3 text-sm leading-relaxed text-text"
+            >
+              {VERDICT[bandFor(progress.heat, progress.budget)]}
+            </p>
           </div>
           {/* the last job was making a file about somebody else. This is the one the
             city kept on you, and it is the only rank with nothing above it */}
