@@ -228,6 +228,17 @@ export const SIDE_BRIEFS: Record<number, Chapter> = {
 
 export const ENDING = {
   headline: 'He was right about all of it.',
+  /**
+   * The last thing he ever posts, and the only one that is about you.
+   *
+   * The whole game, the city has been building a file on the player and handing
+   * it back to them as a reward — a rank, a photograph, something to save and
+   * show people. This is the moment that reward turns around. He publishes it.
+   * Nothing in it changes; the same card, the same rank, the same handle. What
+   * changes is whose hands it is in.
+   */
+  hisPost:
+    'five of them. same hand on every one, and this is the hand. i built the file myself because nobody else was ever going to.',
   body: [
     'Five jobs. A bouncer, a car, a brother, a parking bay and a police file.',
     'Nobody went to the marina. Nobody parked in bay four. The man on the door still works there, as far as he knows.',

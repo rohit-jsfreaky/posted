@@ -3,6 +3,7 @@
 import CaseCard from "../CaseCard";
 import { ENDING } from "@/lib/story";
 import { bandFor, VERDICT, type Standing } from "@/lib/heat";
+import { HIM } from "../Feed";
 
 /** The last screen. Five jobs, and the man who was right about all of them. */
 export default function Ending({
@@ -50,10 +51,26 @@ export default function Ending({
               {VERDICT[bandFor(progress.heat, progress.budget)]}
             </p>
           </div>
-          {/* the last job was making a file about somebody else. This is the one the
-            city kept on you, and it is the only rank with nothing above it */}
-          <div className="mt-8 w-full max-w-3xl">
-            <CaseCard progress={progress} />
+          {/*
+            The file the city kept on you, in his hands.
+
+            All five jobs, the city has been building this and handing it back as
+            a reward — a rank, a photograph, a thing to save and show people.
+            Here he publishes it. Nothing about the card changes. What changes is
+            who is holding it, and that it is now the top post of the week.
+          */}
+          <div className="mt-10 w-full max-w-3xl">
+            <article
+              data-testid="his-file"
+              className="border-l-2 border-accent bg-panel/80 p-4"
+            >
+              <div className="flex items-baseline justify-between">
+                <p className="eyebrow text-xs tracking-[0.2em] text-accent">@{HIM}</p>
+                <span className="text-[10px] text-dim">♥ 41,208</span>
+              </div>
+              <p className="mt-2 text-sm leading-relaxed text-text/90">{ENDING.hisPost}</p>
+              <CaseCard progress={progress} />
+            </article>
           </div>
 
           <button

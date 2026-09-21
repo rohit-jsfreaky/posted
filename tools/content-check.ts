@@ -327,6 +327,21 @@ for (const band of BANDS) {
 const stamps = new Set(BANDS.map((b) => STAMP[b]));
 if (stamps.size !== BANDS.length) fail('stamp', 'two bands stamp the file with the same word');
 
+/**
+ * The one post of his that is about the player rather than a photograph.
+ *
+ * It sits on the last screen next to the card it is publishing, so it has to
+ * read as him and it must not repeat anything the ending already said.
+ */
+if (!ENDING.hisPost.trim()) fail('ending', 'he has nothing to say about the file he published');
+record(ENDING.hisPost, 'ending, his post');
+if (similar(ENDING.hisPost, ENDING.headline)) {
+  fail('ending', 'his last post restates the headline');
+}
+for (const line of ENDING.body) {
+  if (similar(ENDING.hisPost, line)) fail('ending', 'his last post repeats the ending body');
+}
+
 if (!ENDING.headline.trim()) fail('ending', 'has no headline');
 if (ENDING.body.length === 0) fail('ending', 'has no body');
 record(ENDING.headline, 'ending headline');
