@@ -6,12 +6,13 @@ import ImageEditor, {
   type ImageEditorSaveResult,
 } from '@unlayer/react-image-editor';
 import CaseCard from './CaseCard';
-import Feed, { type FeedItem } from './Feed';
+import Feed, { HIM, type FeedItem } from './Feed';
 import PostStage, { useSequence } from './PostStage';
 import ZoomView from './ZoomView';
 import { type DiffReport, diffImages } from '@/lib/diff';
 import { readFlags, renderLevel, toolConfig, type Level } from '@/lib/level';
 import { bandFor, CLOSENESS, type Standing } from '@/lib/heat';
+import { loadThread, remember, thumbnail, type HisPost } from '@/lib/thread';
 import { judge, planPost, type Final, type Step } from '@/lib/sequence';
 import { assess, methodFor } from '@/lib/suspicion';
 import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '@/lib/verbs';
@@ -98,6 +99,16 @@ export default function Game({
   /** DMs that arrived while the client tab was hidden */
   const [unseen, setUnseen] = useState(0);
   const [unread, setUnread] = useState(0);
+  /**
+   * Everything he has posted across the whole run, newest last.
+   *
+   * Read once, on the way in, rather than in an effect: the game only ever runs
+   * in the browser, so storage is there on the first render and an effect would
+   * mean a frame where he has forgotten everything.
+   */
+  const [his, setHis] = useState<HisPost[]>(() => loadThread());
+  /** the feed can show the job's thread, or his case against you */
+  const [onlyHim, setOnlyHim] = useState(false);
   /** how many hints the player has asked for on this job. Nothing is shown unasked */
   const [hints, setHints] = useState(0);
   /** three hints fill the panel, so they fold away once they have been read */
@@ -190,13 +201,29 @@ export default function Game({
         setThread((prev) => [...prev, ...dms]);
         setUnseen((n) => n + dms.length);
       }
+      /**
+       * Whatever he says goes on his own thread, which outlives the job.
+       *
+       * The thumbnail is worked out off the main path — it decodes an image, and
+       * nothing about a beat playing should wait on that.
+       */
+      if (step.kind === 'zoom' || step.kind === 'closing') {
+        const text = step.kind === 'zoom' ? step.text : step.text;
+        const shot = step.kind === 'zoom' ? step.image : undefined;
+        const zone = step.kind === 'zoom' ? (step.zone ?? undefined) : undefined;
+        void (async () => {
+          const small = shot ? await thumbnail(shot) : undefined;
+          setHis(remember({ job: label, title: level.title, text, shot: small, zone }));
+        })();
+      }
+
       // he was believed, so the street takes it back
       if (step.kind === 'revert') {
         setEarned(step.apply.earned);
         if (level.choice) setChoice(step.apply.choice);
       }
     },
-    [level, push],
+    [label, level, push],
   );
 
   /**
@@ -674,8 +701,60 @@ export default function Game({
               </div>
             ) : (
               <>
-                <Feed items={items} />
-                <div ref={feedEnd} />
+                {/* The whole point of him is that he remembers. Two chips: what
+                    is happening now, and the folder he has been building since
+                    job one — which is what "same hand on all three" means. */}
+                {his.length > 0 && (
+                  <div className="mb-2 flex gap-1">
+                    {([false, true] as const).map((mine) => (
+                      <button
+                        key={String(mine)}
+                        data-testid={mine ? 'feed-his' : 'feed-all'}
+                        onClick={() => setOnlyHim(mine)}
+                        className={`eyebrow px-2 py-1 text-[10px] ${
+                          onlyHim === mine
+                            ? 'bg-accent text-accent-ink'
+                            : 'border border-line text-mute hover:text-text'
+                        }`}
+                      >
+                        {mine ? `His case  ${his.length}` : 'This job'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {onlyHim ? (
+                  <div data-testid="his-thread" className="flex flex-col gap-2">
+                    <p className="text-[10px] leading-snug text-dim">
+                      Everything @{HIM} has posted about your work, oldest first. He keeps
+                      the originals.
+                    </p>
+                    {[...his].map((p, i) => (
+                      <article
+                        key={`${i}-${p.text.slice(0, 12)}`}
+                        className="border-l-2 border-accent bg-raised p-2"
+                      >
+                        <p className="eyebrow text-[9px] text-dim">
+                          {p.job} · {p.title}
+                        </p>
+                        <p className="mt-1 text-[11px] leading-snug text-text/90">{p.text}</p>
+                        {p.shot && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={p.shot}
+                            alt=""
+                            className="mt-1.5 w-full border border-line"
+                          />
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    <Feed items={items} />
+                    <div ref={feedEnd} />
+                  </>
+                )}
               </>
             )}
           </div>

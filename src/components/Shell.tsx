@@ -11,6 +11,7 @@ import { MAIN, SIDE } from '@/lib/levels';
 import { CHAPTERS, SIDE_BRIEFS } from '@/lib/story';
 import { clearProgress, EMPTY, loadProgress, saveProgress, type Progress } from '@/lib/save';
 import { clearIdentity } from '@/lib/identity';
+import { clearThread } from '@/lib/thread';
 import { budgetFor, type Standing } from '@/lib/heat';
 
 /**
@@ -84,8 +85,10 @@ export default function Shell() {
 
   const wipe = useCallback(() => {
     clearProgress();
-    // the file the city opened goes with the progress it was built from
+    // the file the city opened goes with the progress it was built from, and so
+    // does the one he was keeping on you
     clearIdentity();
+    clearThread();
     setProgress(EMPTY);
     setOpen({ kind: 'main', at: 0 });
   }, []);
