@@ -113,6 +113,8 @@ export default function Game({
   const [hints, setHints] = useState(0);
   /** three hints fill the panel, so they fold away once they have been read */
   const [hintsOpen, setHintsOpen] = useState(true);
+  /** the legend explains the new verb; the rest is there when it is asked for */
+  const [panelOpen, setPanelOpen] = useState(false);
 
   const editorRef = useRef<ImageEditorRef>(null);
   const feedEnd = useRef<HTMLDivElement>(null);
@@ -458,29 +460,33 @@ export default function Game({
           <span className="text-mute">{label}</span>{' '}
           {level.title}
         </h1>
-        <span className="hidden truncate text-[10px] tracking-[0.14em] text-dim lg:block">
-          {level.teachesTool ? (
-            <>
-              NEW VERB — <span className="text-accent">{VERBS[level.teachesTool].label}</span>{' '}
-              <span className="text-dim">· {VERBS[level.teachesTool].line}</span>
-            </>
-          ) : (
-            <>NEW TOOL — {level.teaches.toUpperCase()}</>
-          )}
-        </span>
+        {/* a chip, not a sentence: what it means is written out once, in the
+            panel, where somebody can read it without the toolbar shouting */}
+        {level.teachesTool && (
+          <span className="hidden shrink-0 border border-accent px-1.5 py-0.5 text-[10px] tracking-[0.14em] text-accent lg:block">
+            NEW · {VERBS[level.teachesTool].label}
+          </span>
+        )}
 
-        <div className="ml-auto flex items-center gap-3">
-          {/* what the run has cost so far, in the only three words that matter */}
-          <span className="hidden items-baseline gap-1.5 md:flex">
-            <span className="text-[10px] tracking-[0.16em] text-dim">HOW CLOSE HE IS</span>
+        <div className="ml-auto flex items-center gap-4">
+          {/*
+            Both meters are about the same man, so they read as one block: what
+            this job has shown him, and what the whole run has. Apart, they looked
+            like two unrelated systems.
+          */}
+          <div
+            className="flex items-center gap-2 border border-line px-2.5 py-1"
+            title={`This job has cost you ${suspicion} of ${level.tolerance}. Across the run he is at: ${CLOSENESS[band]}.`}
+          >
+            <span className="text-[10px] tracking-[0.16em] text-mute">HE HAS</span>
             <span
               data-testid="closeness"
               className={`eyebrow text-[11px] ${band === 'nothing' ? 'text-good' : 'text-accent'}`}
             >
               {CLOSENESS[band]}
             </span>
-          </span>
-          <span className="text-[10px] tracking-[0.16em] text-mute">SUSPICION</span>
+            <span className="h-3 w-px bg-line" />
+            <span className="text-[10px] tracking-[0.16em] text-dim">THIS JOB</span>
           <div data-testid="suspicion" className="flex gap-[3px]" title={`${suspicion}/${level.tolerance}`}>
             {Array.from({ length: segments }).map((_, i) => (
               <span
@@ -490,6 +496,7 @@ export default function Game({
                 }`}
               />
             ))}
+          </div>
           </div>
           <button
             onClick={() => {
@@ -537,8 +544,22 @@ export default function Game({
 
           {/* ----------------------------------------------------- action row */}
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-3 py-2.5">
+            {/*
+              This row used to read "ZOOM 2" and then four grey buttons with nouns
+              on them: the internal name for the feature, and the internal names of
+              the zones. It looked like debug output left in by mistake, and nobody
+              could have guessed it meant "look at this part of your edit the way he
+              will, and you get two looks".
+            */}
             <span className="text-[10px] tracking-[0.14em] text-dim">
-              ZOOM {previewsLeft}
+              {previewsLeft > 0 ? (
+                <>
+                  CHECK BEFORE YOU POST
+                  <span className="ml-1.5 text-mute">{previewsLeft} LEFT</span>
+                </>
+              ) : (
+                <span className="text-dim">NO CHECKS LEFT</span>
+              )}
             </span>
             {Object.keys(level.zones).map((z) => (
               <button
@@ -546,6 +567,7 @@ export default function Game({
                 data-testid={`preview-${z}`}
                 onClick={() => void runPreview(z)}
                 disabled={previewsLeft <= 0 || busy}
+                title={`See what a skeptic would notice about the ${z.replace(/_/g, ' ')}`}
                 className="border border-line px-2 py-1 text-[10px] text-mute hover:border-mute hover:text-text disabled:opacity-30"
               >
                 {z.replace(/_/g, ' ')}
@@ -554,9 +576,10 @@ export default function Game({
 
             <button
               onClick={() => void editorRef.current?.editor?.reset(source)}
-              className="eyebrow ml-auto border border-line px-4 py-2 text-[11px] text-mute hover:border-accent hover:text-text"
+              title="Throw your edit away and start this photograph again"
+              className="eyebrow ml-auto mr-2 border border-line px-4 py-2 text-[11px] text-mute hover:border-accent hover:text-text"
             >
-              Reset
+              Start the photo again
             </button>
             <button
               data-testid="post-it"
@@ -620,8 +643,12 @@ export default function Game({
                   );
                 })}
             </ul>
-            <p className="mt-2 text-[10px] text-dim">
-              KEEP IN SHOT: {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')}
+            {/* "KEEP IN SHOT: facade, sign" was the zone names and no verb.
+                Nobody reading it knew they were being told not to crop */}
+            <p className="mt-2 text-[10px] leading-snug text-dim">
+              <span className="text-mute">DO NOT CROP AWAY:</span>{' '}
+              {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')} — without
+              {level.keeps.length > 1 ? ' them' : ' it'} nobody believes the post
             </p>
 
             {/* working out which manipulation solves it is the game, so the hints
@@ -687,16 +714,36 @@ export default function Game({
                   alt="the world as it is now"
                   className="w-full border border-line"
                 />
-                <p className="mt-3 text-[11px] leading-snug text-mute">
-                  This is the photograph Leonida has. Every post you land rewrites it, and the
-                  next job starts from whatever it says.
-                </p>
+                {/* True on every job, worth saying on the first one. `progress`
+                    already counts the job you are in as done, so the very first
+                    one reads as main 1 and no side work rather than as zero. */}
+                {progress.main <= 1 && progress.side === 0 && (
+                  <p className="mt-3 text-[11px] leading-snug text-mute">
+                    This is the photograph Leonida has. Every post you land rewrites it, and the
+                    next job starts from whatever it says.
+                  </p>
+                )}
 
                 {/* What each control in the editor does to the city, rather than to
                     the picture. The rail says it in full because the editor's own
                     tool column only has room for the verb. */}
                 <div className="mt-4 border-t border-line pt-3">
-                  <h2 className="eyebrow text-xs text-text">The panel</h2>
+                  {/*
+                    Eight tools by the last job, each with a sentence, is sixteen
+                    lines of prose in a side panel nobody asked to read. The one
+                    being taught explains itself; the rest stay a list until
+                    somebody wants them.
+                  */}
+                  <div className="flex items-baseline justify-between">
+                    <h2 className="eyebrow text-xs text-text">What each tool does here</h2>
+                    <button
+                      data-testid="panel-fold"
+                      onClick={() => setPanelOpen((v) => !v)}
+                      className="eyebrow text-[10px] text-accent hover:text-text"
+                    >
+                      {panelOpen ? 'Less' : 'What they all do'}
+                    </button>
+                  </div>
                   <ul data-testid="panel" className="mt-2 flex flex-col gap-2">
                     {level.tools.map((t) => {
                       const v = VERBS[t];
@@ -713,7 +760,9 @@ export default function Game({
                               NEW
                             </span>
                           )}
-                          <p className="text-[11px] leading-snug text-mute">{v.line}</p>
+                          {(isNew || panelOpen) && (
+                            <p className="text-[11px] leading-snug text-mute">{v.line}</p>
+                          )}
                         </li>
                       );
                     })}
