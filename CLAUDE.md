@@ -121,6 +121,7 @@ not in `git ls-files` any more. Keep updating them exactly as before.
 | `ART.md` | the asset list and how each is produced | no |
 | `PROGRESS.md` | **live state — read first, update last** | no |
 | `SHIP.md` | what is left before the submit button | no |
+| `FIELD.md` | who else is in this, scored honestly, and what it changes | no |
 
 ## Working rules
 

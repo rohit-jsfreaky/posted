@@ -55,6 +55,8 @@ tools/out/
 /MASTER-PLAN.md
 /PROGRESS.md
 /SHIP.md
+# and a note about another entrant, which really does not belong in a public repo
+/FIELD.md
 
 # Screenshots taken while building. docs/shots/ is the set the README uses and
 # stays; these are the other sixteen megabytes.
