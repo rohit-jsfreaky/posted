@@ -2,19 +2,33 @@
 
 **In Leonida, whatever you post becomes true.**
 
-You are an anonymous photo forger. Somebody DMs you a photograph and tells you what they need
-to be true. You edit it, you post it, and the city rearranges itself to match your lie.
+You edit a photograph. The game reads what you did to it, **throws your pixels away**, and
+rebuilds the city from clean authored art to match your lie. Crop the man off the edge of the
+frame and he is no longer on that door — not in the picture, in the street. The next photograph
+you are handed was taken after he stopped showing up for work.
 
 Built for the Unlayer **Build With React Image Editor** Challenge.
 
-**Play it: [posted-omega.vercel.app](https://posted-omega.vercel.app/)**
+**▶ Play it: [posted-omega.vercel.app](https://posted-omega.vercel.app/)**
 
 ![Crop the bouncer off the edge of the frame, post it, and he is gone from the street](docs/shots/loop.gif)
 
-*Crop the bouncer off the right edge, post it, and he is no longer on that door — not in the
-picture, in the street. Everything below is that one idea, seven more times.*
+---
 
-![The title screen](docs/shots/1-start.jpg)
+## Challenge requirements
+
+| | requirement | where |
+|---|---|---|
+| ✅ | React Image Editor is a **core interactive part**, not decoration | It is the only way to play. Every puzzle is solved inside it — see [How the editor is used](#how-the-react-image-editor-is-used) |
+| ✅ | User can edit/customise at least one visual with it | Eight jobs, each one a different photograph edited in the editor |
+| ✅ | Public GitHub repo with complete source | This repository |
+| ✅ | Clear README: what it is · the idea · **how the editor is used** · screenshots · technical notes | This file |
+| ✅ | Deployed, publicly accessible live URL | [posted-omega.vercel.app](https://posted-omega.vercel.app/) |
+| ✅ | GTA VI-inspired concept | Leonida. The premise is Cal Hampton's own headline from Rockstar's character page |
+| ✅ | No Rockstar assets | All art generated for this project. Official material used as stylistic reference only |
+
+**Needs a laptop.** The whole game is a photo editor you drag handles around in; on a phone there
+is nowhere to put it, and the game says so rather than breaking.
 
 ---
 
@@ -26,11 +40,11 @@ Rockstar's own GTA VI character page gives the premise away. Cal Hampton's headl
 
 We built the game of that sentence.
 
-The point is not that you can edit a photo. It is that **the edit is load-bearing**. The game
-reads the photograph you saved, works out what you did to it, and changes the world to match.
-Crop the bouncer off the right edge of the frame and he is no longer on that door — not in the
-picture, in the street. The next photograph you are handed was taken after he stopped showing up
-for work.
+The point is not that you can edit a photo. It is that **the edit is load-bearing**. Nothing you
+draw is ever shown back to you as the world — your saved file is read once, for what it means,
+and then discarded. What comes back is the city, re-composited from authored layers to agree with
+you. That gap, between a scrappy edit going in and clean believable reality coming out, is the
+whole game.
 
 ### The test that decided every feature
 
@@ -53,103 +67,106 @@ flags mutate world state                       ->  the game re-composites
 the street is different                        ->  next problem
 ```
 
-**Your pixels are thrown away after the diff.** They only ever communicate intent. The world is
-always re-rendered from authored art, which is the trick: a scrappy edit comes back as clean,
-believable reality. The game shows you this happening rather than hiding it — the street panel
-holds your saved file for a beat, then dissolves into the photograph Leonida printed from it.
-
-![Your edit dissolving into the world's photograph](docs/shots/4-dissolve.jpg)
-
 ---
 
 ## How the React Image Editor is used
 
-Not as decoration, and not as a paint program. **Every tool is a different verb for changing the
-world**, and each job unlocks one more.
+**The editor is the control panel, and it says so.** The library lets a host app rename every
+control it renders and hand it a different icon, so the tool rail is not Crop/Resize/Filter — it
+is what those things *do to Leonida*. Same editor, same tools, our words:
 
-| tool | what it changes in the world |
-|---|---|
-| **Crop** | the thing at the edge of the frame is now gone from the street, permanently |
-| **Resize** | put the frame back to the size the camera shoots, so nobody can tell you cropped |
-| **Filter** — brightness | time of day, and therefore who is around and what is open |
-| **Filter** — brightness up | blow a window out until the reflection in it stops existing |
-| **Filter** — blur / pixelate | a face stops being recognisable |
-| **Filter** — presets and noise | how old the photograph is, and therefore whether it can be used against anybody |
-| **Filter** — contrast and sharpen | which device took it, and therefore whether it counts as evidence |
-| **Filter** — hue | what colour the one light in the photograph was, and therefore which bar was open |
-| **Crop** — the 4:3 preset | the shape a fixed camera shoots and a phone does not |
-| **Shapes** | cover something in a colour that belongs in the photograph |
-| **Stickers** | objects appear — a car in an empty bay that was empty all afternoon |
-| **Draw** | available, always crude, always the highest-suspicion answer. The trap |
-| **Text** | signs, prices, case numbers. The world accepts the new writing |
-| **Frame** | "this is an official photograph", and the city believes it |
+| the editor now says | tool | the job it answers | what the engine measures |
+|---|---|---|---|
+| **ERASE** | crop | a doorman standing at the edge of the frame | how much of his zone fell outside the saved frame |
+| **COVER UP** | resize | he checks dimensions now, so put the frame back | saved width × height against what you were handed |
+| **LIGHT** | filter | the hour, the weather, and how old the photograph is | a trimmed least-squares fit of the whole image |
+| **PAINT** | draw | always available, always crude, always the trap | hard edges that match nothing around them |
+| **REWRITE** | text | a case number on an evidence label | that the label region changed, then it asks you what you wrote |
+| **BOARD UP** | shapes | cover a face in a colour that belongs | detail collapsing, or a third of the zone replaced |
+| **PLANT** | stickers | a car in a bay that was empty all afternoon | new content in a flat region, and whether it throws a shadow |
+| **OFFICIAL** | frame | this came from a police archive, not a phone | the outer 4% ring changing on three sides or more |
 
-The editor is mounted with `@unlayer/react-image-editor`, and each job is configured with only
-the tools it is about via `features.imageEditor.tools`, so the toolbar itself teaches the level.
+The editor's own commit button reads **POST IT**, because that is what pressing it does. Its
+`Noise` slider reads **GRAIN**. All eight icons are ours. This is `options.translations` and a
+per-tool `icon`, applied through `updateOptions` so nothing remounts.
 
-Three things about the editor shaped the design, and all three were found by measuring it rather
-than assuming:
+Each job is configured with only the tools it is about, so the rail itself teaches the level — by
+job five it has filled up, and a legend in the side panel says what each verb does to the city.
+
+### What the editor taught us, measured rather than assumed
+
+Everything below was found by driving the real editor in a browser, not by reading docs:
 
 - **`getImage()` returns the canvas with a pending crop still floating over it.** Posting that way
-  silently drops the one edit job one is about. The POST button presses the editor's own commit and
-  reads `onSave` instead.
+  silently drops the one edit job one is about. POST IT presses the editor's own commit and reads
+  `onSave`.
 - **Brightness is subtractive, not multiplicative.** Modelling it the other way made every dark
   region of every photograph read as tampered with.
-- **Filters apply to the photo layer and never to an object pasted on top of it.** The original
-  design had you matching film grain onto a pasted car with `Noise`; that is not a move this editor
-  can make, so the game says so in as many words rather than asking for it — and job four gives
-  `Noise` the job it can actually do, graining the photograph itself.
+- **Filters reach the photo layer and never an object pasted on top of it.** At Noise 35 the whole
+  car park grained to 0.33 and a pasted car stayed at 0.003. So the game never asks you to grain a
+  paste — it gives `Noise` the job it can actually do, ageing the photograph itself.
+- **A filter stays a live preview until its panel is closed**, so it is not in `getImage()` yet.
+- **Save returns JPEG even when fed a PNG**, so every threshold has to survive compression noise.
+- **The tool rail is 72px wide at 10px type** — about 30px of usable label. `ERASE` came back as
+  `ERAS…` until the column was widened.
+- **The editor writes its own stylesheet at runtime, after yours**, with rules that score exactly
+  what yours do. On a tie the later sheet wins, so overriding it needs one more class.
 
-![Editing a job](docs/shots/3-editing.jpg)
+**Rotate, Straighten and corner radius have no job in this game, and that is deliberate.** Each is
+one click with one answer — there is no puzzle in "which way up is this". Inventing a level for
+them would have been coverage for its own sake.
+
+![The editor, with the tools renamed into what they do](docs/shots/3-editing.jpg)
 
 ---
 
 ## The game
 
-Five jobs, one chapter each, and one man who zooms in on everything you post.
+Eight jobs: a run of five with a story, and three optional side jobs that do not touch the ending.
 
 1. **Get me inside** — a bouncer on a door. Teaches *crop*.
 2. **The car was never there** — teaches *resize*, whose only real job is hiding that you cropped.
 3. **He can't be in the reflection** — he is on the dock, in the window and in the water. Crop
-   physically cannot reach the middle of a frame. Four tools get to the window at four different
-   prices.
+   physically cannot reach the middle of a frame. Four tools get to the window at four prices.
 4. **Put him at the scene** — the inverse of everything before it. Adding is hard, because a
    pasted object has no shadow.
 5. **Make it official** — change nothing about what the photograph shows, only where it claims to
    have come from.
 
-Then there is the **side work**, which is optional and says so. Three jobs built around the
-parts of the editor the run never needs, skippable entirely, and they do not touch the ending:
+The **side work** covers the parts of the editor the run never needs: filter presets and grain
+(*This is from years ago*), contrast, sharpen and the 4:3 preset (*Off the gantry camera*), and
+hue (*The sign was red* — the only job whose answer is a slider that turns every colour at once,
+on the only photograph where that is honest, because it is a street lit by one neon sign).
 
-- **This is from years ago** — the only job that changes *when* a photograph was taken. Drain the
-  colour with a preset, then give it grain, because a black and white frame with no grain in it
-  is a filter and he says so.
-- **Off the gantry camera** — nothing in the picture changes. What changes is the fingerprint the
-  device left on it: crushed blacks, oversharpening, and the 4:3 no phone hands you.
-- **The sign was red** — the only job whose answer is Hue, and the only one that could be. A
-  slider that turns every colour at once is useless for lying until the photograph is a street at
-  night lit by one neon sign, where turning everything *is* turning the light. Then the puzzle is
-  how far: short of the window it is still the wrong bar, past it the tungsten lamps inside go a
-  colour a filament cannot make.
+![The job board](docs/shots/7-board.jpg)
 
-The story does not grow to fit a feature list. Finish the run and the game ends; finish the run
-*and* every job going on the side and the file the city has on you says something different.
+### Posting is the whole event
 
-![The job board: the run, and the side work you can ignore](docs/shots/7-board.jpg)
+Press POST IT and the workspace is taken over. The file you sent fills the screen; the photograph
+Leonida printed from it develops down over the top; what the street did stamps in a line at a
+time; the crowd arrives. If **Cal Hampton** has found your flaw, the stage pushes into the exact
+place he is pointing at, his line types out, and the city un-prints your work while the crowd
+agrees with him. Click or space to go on, Escape to skip — and skipping can never land the world
+somewhere watching it would not have, because the whole sequence is computed before a frame of it
+plays.
 
-**Cal Hampton** is the antagonist, and he is the only person in Leonida who checks. He starts as
-an annoying reply, works out there is a pattern, and then becomes the job. If he finds the flaw
-in your work, the crowd believes him and the city puts it back.
+![He zooms in on the thing you thought nobody would check](docs/shots/5-him.jpg)
 
-![The end of a chapter](docs/shots/5-him.jpg)
+He is the only person in Leonida who checks anything, and **he keeps the originals**. His posts
+survive the job they happened in, so by job three "same hand on all three" comes with the three
+photographs attached.
 
-![The neon job: a street where turning every colour at once is honest](docs/shots/8-neon.jpg)
+### What it costs you
 
-Finish a job and the city opens a file on you. It climbs with the run, and there is one
-classification above the top of that ladder that only a player who also took every job on the
-side ever sees. You can save it or copy it. Hand it a GitHub profile for the name and photograph, or stay anonymous and get an alias and
-NO PHOTO ON FILE — which is arguably the better card, since the whole game is about being the
-person nobody can identify.
+Suspicion adds up — across a job, so splitting work over three careful little posts is not
+cheaper than one honest one, and across the run. The header says how close he is in three words;
+the file the city keeps on you gets stamped CLEAN, MARKED or BURNED; and the last line of the
+ending is about whether he ever got close enough to name you.
+
+Finish a job and the city opens that file. It climbs with the run, and there is one classification
+above the top of the ladder that only somebody who also took every job on the side ever sees. Hand
+it a GitHub profile for the name and photograph, or stay anonymous and get an alias and NO PHOTO
+ON FILE — arguably the better card, since the game is about being the person nobody can identify.
 
 ![The file on you](docs/shots/6-card.jpg)
 
@@ -189,33 +206,38 @@ otherwise drags the global fit toward itself), how much fine detail survives, ho
 arrived, and how much grain is there measured as a low percentile rather than a mean — a mean
 picks up a pasted object's own edges and calls it noise. The same high-frequency distribution
 read from its *top* instead of its floor gives edge hardness, which is what sharpening moves and
-what a standard deviation does not, normalised by the photometric gain so that pushing contrast
-cannot fake it.
+what a standard deviation does not, normalised by the photometric gain so pushing contrast cannot
+fake it. Hue is a circular mean weighted by saturation, because grey pixels have no hue and 350°
+to 10° is a turn of twenty rather than minus three hundred and forty.
 
 `src/lib/suspicion.ts` infers the *method* from the shape of those numbers, which is what lets
-several tools reach the same flag at different costs. The game never sees which button you
-pressed.
+several tools reach the same flag at different costs. **The game never sees which button you
+pressed** — blur the photograph in another program entirely and it scores the same.
 
-### The test bench
+Open **Forensics** in the bottom-left of any job to see exactly what it read off your last post.
 
-`/lab` runs **39 synthesised cases** against the real art — every valid solution, and the
-near-misses that must not fire. It is the reason a change to a threshold is a two-minute check
-rather than an afternoon of replaying levels by hand.
+### How it is checked
 
-`npm run check:identity` walks every level and asserts that no flag and no tell fires on a
-photograph nobody touched. It exists because one did: a flag whose test was "the frame is the
-right size" was quietly handing itself out to anyone who pressed POST without editing anything.
+| | what it proves |
+|---|---|
+| `/lab` | **39 synthesised edits** against the real art — every valid solution and the near-misses that must not fire |
+| `npm run check:identity` | no flag and no tell fires on a photograph nobody touched. It exists because one did |
+| `npm run check:content` | no line is said twice, every fatal tell says what to do instead, every tool has a verb, every translation key still exists in the library's types |
+| `npm run check:sequence` | **96 outcomes** — every level against every way a post can go, including all fifteen fatal tells — produce a sequence that opens on the photograph, holds every beat, and ends where it says it does |
+| `npm run play` | drives the **real editor in a real browser** with a real mouse: crop, resize, every filter slider, the aspect presets and the brush, across six of the eight jobs |
 
 ### Everything else
 
-- **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~5,500 lines.
-- **Sound is synthesised** with Web Audio oscillators. No audio files ship.
-- **Art**: 13 files, 4.1 MB total — eight 1200×800 backgrounds and five trimmed RGBA cut-outs.
+- **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~9,700 lines across `src/` and `tools/`.
+- **Sound is synthesised** with Web Audio — cues plus a per-scene bed of filtered noise and one low
+  tone. No audio files ship, nothing to license.
+- **Art**: 13 files, 4.0 MB total — eight 1200×800 backgrounds and five trimmed RGBA cut-outs.
   Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same
   rectangle, which is the property the diff engine depends on.
-- **Progress is kept in `localStorage`** — only the number of jobs finished, since everything else
-  belongs to the job you are in. Every access is wrapped, because it throws outright in a private
-  window with site data blocked.
+- **The title screen plays the first job on a loop** before you touch anything, composited from the
+  same art the game uses, so it cannot drift from what you are about to do.
+- **Progress is in `localStorage`** — jobs finished, suspicion carried, and his thread. Every access
+  is wrapped, because it throws outright in a private window with site data blocked.
 - **One network call in the whole project**, and it is optional: the GitHub lookup for the card.
   The avatar goes through a fetch and a blob rather than straight onto the canvas, because drawing
   a cross-origin image taints it and a tainted canvas will not hand back a file to download.
@@ -231,7 +253,8 @@ npm run dev
 
 - `/` — the game
 - `/lab` — the diff engine test bench
-- `npm run check:identity` — asserts nothing fires on an untouched photograph
+- `npm run check:identity` · `check:content` · `check:sequence` — the three checks that need no browser
+- `npm run play` — plays it in a real browser (needs `npm run dev` running)
 
 ---
 

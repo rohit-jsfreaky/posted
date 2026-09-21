@@ -58,15 +58,22 @@ export function budgetFor(progress: Progress): number {
 /**
  * Which of the three he is at.
  *
- * A third of the allowance is a clean run — he never had anything but a feeling
- * he could not name. Past four fifths and he has been right out loud, repeatedly,
- * with the receipts.
+ * Tuned against what the game actually charges rather than against round
+ * numbers. The intended answer to the first job is a crop, and a crop changes
+ * the shape of the frame, which costs 18 on its own — his soft tell for that job
+ * is literally "why is this photo a different shape than every other pic". So a
+ * clean, correct first job lands near four fifths of its allowance, and at the
+ * old thresholds a player who did everything right was told he had their name.
+ *
+ * Under half the allowance means he never had anything to point at. Over it, he
+ * has a feeling, which is exactly what that job leaves him with. Past the
+ * allowance itself he has been right out loud, repeatedly, with the receipts.
  */
 export function bandFor(heat: number, budget: number): Band {
   if (budget <= 0) return 'nothing';
   const used = heat / budget;
-  if (used < 0.35) return 'nothing';
-  if (used < 0.8) return 'feeling';
+  if (used < 0.55) return 'nothing';
+  if (used < 0.95) return 'feeling';
   return 'name';
 }
 
