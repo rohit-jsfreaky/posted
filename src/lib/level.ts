@@ -8,6 +8,7 @@
 
 import type { DiffReport } from './diff';
 import { SCENE_H, SCENE_W, type Ctx } from './draw';
+import type { Room } from './sound';
 import { EDITOR_TRANSLATIONS, VERBS } from './verbs';
 import type { ZoneMap } from './zones';
 
@@ -106,6 +107,14 @@ export type Level = {
    */
   teachesTool?: ToolName;
   tools: ToolName[];
+  /**
+   * What this job sounds like when nothing is happening.
+   *
+   * A street at 2am and a shut interview room are different silences, and the
+   * bed is the cheapest way to make eight jobs feel like eight places. Not
+   * `room`, because level five already has a zone by that name.
+   */
+  ambience: Room;
   zones: ZoneMap;
   initial: WorldState;
   composite: (state: WorldState, ctx: Ctx) => void;

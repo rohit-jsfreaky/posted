@@ -91,6 +91,7 @@ export const level5: Level = {
   teaches: 'Text, Shapes and Frame — claiming a source instead of changing a fact',
   teachesTool: 'frame',
   tools: ['crop', 'resize', 'filter', 'draw', 'stickers', 'shapes', 'text', 'frame'],
+  ambience: 'inside',
   zones: ZONES,
   initial: { official: false, face: 'visible', case_no: '' },
   composite,

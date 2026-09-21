@@ -61,6 +61,7 @@ export const level7: Level = {
   teaches: 'Contrast, Sharpen, and the aspect ratio nobody shoots by hand',
   teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
+  ambience: 'water',
   zones: ZONES,
   initial: { source: 'phone' },
   composite,

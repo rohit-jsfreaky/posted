@@ -81,6 +81,7 @@ export const level8: Level = {
   teaches: 'Hue, on the one photograph where turning every colour at once is honest',
   teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
+  ambience: 'neon',
   zones: ZONES,
   initial: { neon: 'magenta' },
   composite,

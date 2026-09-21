@@ -57,6 +57,7 @@ export const level4: Level = {
   teaches: 'Stickers, and the light that makes them belong',
   teachesTool: 'stickers',
   tools: ['crop', 'resize', 'filter', 'draw', 'stickers', 'shapes'],
+  ambience: 'day',
   zones: ZONES,
   initial: { car: false, shadow: false },
   composite,

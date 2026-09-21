@@ -104,6 +104,7 @@ export const level3: Level = {
   teaches: 'Filter, properly: brightness, blur, pixelate',
   teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
+  ambience: 'water',
   zones: ZONES,
   initial: { subject: true, reflection: true, water: true, clock: '21:40' },
   composite,

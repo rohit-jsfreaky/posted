@@ -17,7 +17,7 @@ import { judge, planPost, type Final, type Step } from '@/lib/sequence';
 import { assess, methodFor } from '@/lib/suspicion';
 import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '@/lib/verbs';
 import { type Chapter, type Message } from '@/lib/story';
-import { play, setMuted } from '@/lib/sound';
+import { play, setMuted, startBed, stopBed } from '@/lib/sound';
 
 /**
  * The loop, end to end:
@@ -184,6 +184,18 @@ export default function Game({
   }, []);
 
   /**
+   * The room this job happens in, for as long as you are in it.
+   *
+   * An external system being told about React state, which is what an effect is
+   * actually for. It will not start until the player has clicked something —
+   * browsers refuse — so the first job is silent until the first press.
+   */
+  useEffect(() => {
+    startBed(level.ambience);
+    return () => stopBed();
+  }, [level]);
+
+  /**
    * Everything that happens after POST IT, in order, on one surface.
    *
    * The sequence is worked out in full before the first frame of it plays — what
@@ -195,6 +207,9 @@ export default function Game({
   const onStep = useCallback(
     (step: Step) => {
       if (step.cue) play(step.cue);
+      // two beats want a second layer: the city developing, and the push in
+      if (step.kind === 'print' && step.develop) play('print');
+      if (step.kind === 'zoom') play('zoom');
       for (const item of step.posts) push(item);
       const dms = step.dms;
       if (dms && dms.length > 0) {
@@ -459,6 +474,7 @@ export default function Game({
               const next = !sound;
               setSound(next);
               setMuted(!next);
+              if (next) startBed(level.ambience);
             }}
             className="eyebrow border border-line px-2 py-1 text-[10px] text-mute hover:border-accent hover:text-text"
           >

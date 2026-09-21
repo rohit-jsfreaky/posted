@@ -57,6 +57,7 @@ export const level2: Level = {
   teaches: 'Resize',
   teachesTool: 'resize',
   tools: ['crop', 'resize', 'filter', 'draw'],
+  ambience: 'street',
   zones: ZONES,
   initial: { car: true, plate: true, witness: true, dims: 'original' },
   composite,

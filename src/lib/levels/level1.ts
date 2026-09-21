@@ -96,6 +96,7 @@ export const level1: Level = {
   teaches: 'Crop',
   teachesTool: 'crop',
   tools: ['crop', 'filter', 'draw'],
+  ambience: 'street',
   zones: ZONES,
   initial: {
     time: 'day',

@@ -81,6 +81,7 @@ export const level6: Level = {
   teaches: 'Filter presets, and the grain that sells them',
   teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
+  ambience: 'day',
   zones: ZONES,
   initial: { era: 'now', ev: true },
   composite,
