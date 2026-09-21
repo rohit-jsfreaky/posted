@@ -184,6 +184,28 @@ export default function Game({
   }, []);
 
   /**
+   * Escape backs out of whatever is covering the work.
+   *
+   * The zoom preview and the case-number box both had one way out, and it was a
+   * button. The sequence taught Escape, so everything else should answer to it
+   * too — except the chapter card, which is two seconds long and dismisses
+   * itself on any click already.
+   */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (preview) {
+        setPreview(null);
+      } else if (pending) {
+        setPending(null);
+        setTyped('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [preview, pending]);
+
+  /**
    * The room this job happens in, for as long as you are in it.
    *
    * An external system being told about React state, which is what an effect is
@@ -881,26 +903,39 @@ export default function Game({
         </div>
       )}
 
+      {/* Everything he could have measured, measured. Nobody has to open this to
+          play — but the claim the whole game rests on is that the edit is read
+          rather than guessed at, and this is that claim with its working shown. */}
       {lastReport && (
-        <details className="absolute bottom-2 left-3 z-30 max-w-md">
-          <summary className="cursor-pointer text-[10px] tracking-[0.14em] text-dim">
-            WHAT THE DIFF SAW
+        <details data-testid="forensics" className="absolute bottom-2 left-3 z-30 max-w-md">
+          <summary className="eyebrow cursor-pointer border border-line bg-panel px-2 py-1 text-[10px] text-mute hover:border-accent hover:text-text">
+            Forensics
           </summary>
-          <dl className="mt-1 grid grid-cols-2 gap-x-3 border border-line bg-panel p-2 text-[10px] text-mute">
-            <dt className="text-dim">brightness</dt>
-            <dd data-testid="gain">{lastReport.gain.toFixed(3)}×</dd>
-            <dt className="text-dim">saved size</dt>
-            <dd>
-              {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
-            </dd>
-            <dt className="text-dim">rotation / fit</dt>
-            <dd>
-              {lastReport.alignment.rotation}° / {lastReport.alignment.score.toFixed(3)}
-            </dd>
-            {Object.entries(lastReport.zones).map(([name, z]) => (
-              <ZoneRow key={name} name={name} z={z} />
-            ))}
-          </dl>
+          <div className="mt-1 border border-line bg-panel">
+            <p className="border-b border-line px-2 py-1.5 text-[10px] leading-snug text-dim">
+              What the engine read off the file you sent, against the one it handed you.
+            </p>
+            <dl className="grid grid-cols-2 gap-x-3 px-2 py-2 text-[10px] text-mute">
+              <dt className="text-dim">light</dt>
+              <dd data-testid="gain">{lastReport.gain.toFixed(3)}× what it was</dd>
+              <dt className="text-dim">frame</dt>
+              <dd>
+                {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
+                {lastReport.dims.changed ? ' — not the shape it was' : ' — unchanged'}
+              </dd>
+              <dt className="text-dim">angle</dt>
+              <dd>
+                {lastReport.alignment.rotation}°
+                {lastReport.alignment.mirrored ? ', mirrored' : ''} · matched{' '}
+                {(lastReport.alignment.score * 100).toFixed(0)}%
+              </dd>
+            </dl>
+            <dl className="grid grid-cols-2 gap-x-3 border-t border-line px-2 py-2 text-[10px] text-mute">
+              {Object.entries(lastReport.zones).map(([name, z]) => (
+                <ZoneRow key={name} name={name} z={z} />
+              ))}
+            </dl>
+          </div>
         </details>
       )}
     </main>
@@ -918,8 +953,9 @@ function ZoneRow({
     <>
       <dt className="text-dim">{name.replace(/_/g, ' ')}</dt>
       <dd>
-        {z.missing.toFixed(2)} gone / {z.structure.toFixed(2)} changed /{' '}
-        {z.drift.toFixed(3)} drift
+        {(z.missing * 100).toFixed(0)}% gone · {(z.structure * 100).toFixed(0)}% changed ·{' '}
+        {z.drift > 0 ? '+' : ''}
+        {z.drift.toFixed(3)} light
       </dd>
     </>
   );

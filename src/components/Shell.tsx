@@ -117,10 +117,46 @@ export default function Shell() {
     return { ...counts, side: side.size };
   })();
 
-  if (screen === 'loading') return <Loading progress={loaded} />;
+  /**
+   * A phone cannot play this, so it should say so rather than fail quietly.
+   *
+   * The editor needs a canvas the size of a photograph and a pointer that can
+   * grab a handle 10px wide. Rather than let somebody fight that on a phone,
+   * they get the one image that explains what they are missing. Pure CSS, so it
+   * costs nothing and cannot get out of step with the real layout.
+   */
+  const gate = (
+    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5 bg-ink px-8 text-center lg:hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/opengraph-image.png"
+        alt="A street at night with the doorman gone and a queue outside"
+        className="w-full max-w-md border border-line"
+      />
+      <h1 className="display text-3xl text-text">Posted needs a laptop</h1>
+      <p className="max-w-sm text-xs leading-relaxed text-mute">
+        The whole game is a photo editor you drag things around in. On a phone
+        there is nowhere to put it. Open this on something with a keyboard and it
+        will make a lot more sense.
+      </p>
+      <p className="eyebrow text-[10px] tracking-[0.2em] text-accent">
+        In Leonida, whatever you post becomes true.
+      </p>
+    </div>
+  );
+
+  if (screen === 'loading')
+    return (
+      <>
+        {gate}
+        <Loading progress={loaded} />
+      </>
+    );
 
   if (screen === 'start') {
     return (
+      <>
+      {gate}
       <Start
         done={progress.main}
         total={MAIN.length}
@@ -131,11 +167,14 @@ export default function Shell() {
         onJobs={() => setScreen('jobs')}
         onReset={wipe}
       />
+      </>
     );
   }
 
   if (screen === 'jobs') {
     return (
+      <>
+      {gate}
       <Jobs
         progress={progress}
         onBack={() => setScreen('start')}
@@ -144,11 +183,14 @@ export default function Shell() {
           setScreen('playing');
         }}
       />
+      </>
     );
   }
 
   if (screen === 'ending') {
     return (
+      <>
+      {gate}
       <Ending
         progress={counts}
         onRestart={() => {
@@ -156,6 +198,7 @@ export default function Shell() {
           setScreen('start');
         }}
       />
+      </>
     );
   }
 
@@ -164,6 +207,8 @@ export default function Shell() {
   const chapter = open.kind === 'main' ? CHAPTERS[open.at] : SIDE_BRIEFS[level.id];
 
   return (
+    <>
+    {gate}
     <Game
       key={open.kind === 'main' ? `m${open.at}` : `s${open.id}`}
       level={level}
@@ -174,5 +219,6 @@ export default function Shell() {
       onQuit={() => setScreen('jobs')}
       onSolved={(cost) => finish(open, cost)}
     />
+    </>
   );
 }
