@@ -224,6 +224,39 @@ export const SIDE_BRIEFS: Record<number, Chapter> = {
     himClosing:
       'somebody turned the hue on a whole street last night. the neon is red now and the lamps inside are still warm, so they knew when to stop. thats not a beginner',
   },
+  /**
+   * The one job where the picture is him.
+   *
+   * His closing line here is the only time he loses, and it is not the loss that
+   * makes it land — it is that he cannot tell either. A man who has spent the
+   * whole game being the only person who checks anything, looking at his own
+   * account and unable to prove what he wrote.
+   */
+  9: {
+    card: 'Side job',
+    dms: [
+      {
+        from: 'client',
+        text: 'Different job. There is an account that has spent a week calling my photographs fake.',
+      },
+      { from: 'client', text: 'He is right about all of them, which is the irritating part.' },
+      { from: 'you', text: 'so what do you want' },
+      {
+        from: 'client',
+        text: 'A screenshot of him saying something he would never say. His account, his post, different words.',
+      },
+      {
+        from: 'client',
+        text: 'And take the picture out from under it. A man with nothing attached is a man with an opinion.',
+      },
+    ],
+    payoff: [
+      { from: 'client', text: 'It is going round faster than his ever did.' },
+      { from: 'client', text: 'He is under it swearing he never wrote it. Nobody can tell.' },
+    ],
+    himClosing:
+      'i did not write that. i have never written that. i am looking at my own account right now and i cannot prove it either',
+  },
 };
 
 export const ENDING = {

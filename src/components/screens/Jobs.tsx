@@ -30,6 +30,8 @@ const CARD_ART: Record<number, string> = {
   6: '/art/bg-diner.jpg',
   7: '/art/bg-dock.jpg',
   8: '/art/bg-neon.jpg',
+  // not a place in Leonida: the one job whose photograph is a picture of him
+  9: '/art/bg-post.jpg',
 };
 
 type Pick = { kind: 'main'; at: number } | { kind: 'side'; id: number };

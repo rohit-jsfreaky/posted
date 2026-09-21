@@ -7,6 +7,7 @@ import { level5 } from './level5';
 import { level6 } from './level6';
 import { level7 } from './level7';
 import { level8 } from './level8';
+import { level9 } from './level9';
 
 /**
  * The run, and the work you can take on the side.
@@ -21,10 +22,15 @@ import { level8 } from './level8';
  * sharpening and the aspect ratio nobody shoots by hand. Take them or do not;
  * the ending does not move either way. The only thing they change is what the
  * city is finally prepared to call you.
+ *
+ * The last of them is the odd one out and is meant to be: the picture it hands
+ * you is not a photograph of Leonida, it is a screenshot of the man who has been
+ * catching you. It sits on the side rather than in the run because the run is
+ * five chapters and closed, not because it matters less.
  */
 export const MAIN: Level[] = [level1, level2, level3, level4, level5];
 
-export const SIDE: Level[] = [level6, level7, level8];
+export const SIDE: Level[] = [level6, level7, level8, level9];
 
 /** Everything, for the test bench, which does not care what is optional. */
 export const ALL: Level[] = [...MAIN, ...SIDE];
