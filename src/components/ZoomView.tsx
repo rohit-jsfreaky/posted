@@ -21,7 +21,7 @@ export default function ZoomView({
   zone: Zone;
   scale?: number;
   animate?: boolean;
-  height?: number;
+  height?: number | string;
   ring?: boolean;
 }) {
   const cx = (zone.x + zone.w / 2) * 100;

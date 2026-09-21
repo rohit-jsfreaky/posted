@@ -169,3 +169,97 @@ body {
   width: 100%;
   text-align: center;
 }
+
+/*
+ * The post, as it plays.
+ *
+ * A photograph arriving in a tray: the printed world wipes down over the file the
+ * player sent, and a revert wipes it back off again in the same direction it came
+ * from. Hard cuts, no fades and no glow — the interface is flat and the
+ * photographs carry the mood.
+ *
+ * Nothing in the sequence waits on an animation to finish. The player owns the
+ * timing, these only decorate it, so a browser that refuses to animate still
+ * shows every beat.
+ */
+@keyframes develop {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes un-print {
+  from {
+    clip-path: inset(0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+/* printed, not faded in: two steps so it lands rather than arrives */
+@keyframes stamp {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes word-in {
+  to {
+    opacity: 1;
+  }
+}
+
+.develop {
+  animation: develop 1400ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.un-print {
+  animation: un-print 900ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.stamp {
+  animation: stamp 200ms steps(2, end) both;
+}
+
+.card-in {
+  animation: card-in 260ms ease-out both;
+}
+
+/* he types it out, one word at a time, the way somebody does when they are sure */
+.type-on > span {
+  opacity: 0;
+  animation: word-in 1ms step-end both;
+  animation-delay: calc(var(--i) * 55ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .develop,
+  .un-print,
+  .stamp,
+  .card-in,
+  .type-on > span,
+  .rise {
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}

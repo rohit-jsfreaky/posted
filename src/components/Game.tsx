@@ -6,21 +6,15 @@ import ImageEditor, {
   type ImageEditorSaveResult,
 } from '@unlayer/react-image-editor';
 import CaseCard from './CaseCard';
-import Feed, { HIM, type FeedItem } from './Feed';
+import Feed, { type FeedItem } from './Feed';
+import PostStage, { useSequence } from './PostStage';
 import ZoomView from './ZoomView';
 import { type DiffReport, diffImages } from '@/lib/diff';
-import {
-  brokenKeeps,
-  readFlags,
-  renderLevel,
-  spotted,
-  toolConfig,
-  type Level,
-  type Tell,
-} from '@/lib/level';
+import { readFlags, renderLevel, toolConfig, type Level } from '@/lib/level';
+import { judge, planPost, type Final, type Step } from '@/lib/sequence';
 import { assess, methodFor } from '@/lib/suspicion';
 import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '@/lib/verbs';
-import { CROWD, type Chapter, type Message } from '@/lib/story';
+import { type Chapter, type Message } from '@/lib/story';
 import { play, setMuted } from '@/lib/sound';
 
 /**
@@ -75,7 +69,8 @@ export default function Game({
   const [typed, setTyped] = useState('');
   const [items, setItems] = useState<FeedItem[]>([]);
   const [thread, setThread] = useState<Message[]>([]);
-  const [busy, setBusy] = useState(false);
+  /** a diff is in flight. The sequence that follows keeps POST IT down on its own */
+  const [reading, setReading] = useState(false);
   const [beat, setBeat] = useState(false);
   /**
    * The chapter title, over the game, for a moment when the job opens.
@@ -84,18 +79,8 @@ export default function Game({
    * story is allowed to announce itself.
    */
   const [card, setCard] = useState(true);
-  /** his closing line, alone on the screen, at the end of a chapter */
-  const [hisBeat, setHisBeat] = useState<string | null>(null);
-  /** the job-done card waits until the chapter has finished playing */
+  /** the job-done card waits until the sequence has finished playing */
   const [finale, setFinale] = useState(false);
-  /**
-   * The edit the player saved, held over the street while it dissolves into the
-   * photograph the world printed from it. The swap is the game; watching it
-   * happen in the window marked LIVE is the difference between a mechanic and a
-   * glitch.
-   */
-  const [sentShot, setSentShot] = useState<string | null>(null);
-  const [fading, setFading] = useState(false);
   const [pending, setPending] = useState<Pending | null>(null);
   const [previewsLeft, setPreviewsLeft] = useState(2);
   const [preview, setPreview] = useState<{ zone: string; image: string; verdict: string } | null>(null);
@@ -111,32 +96,22 @@ export default function Game({
   /** DMs that arrived while the client tab was hidden */
   const [unseen, setUnseen] = useState(0);
   const [unread, setUnread] = useState(0);
-  /**
-   * Shown over the workspace whenever the photograph under the editor is replaced.
-   *
-   * The world re-renders after every post that lands, so the picture the player was
-   * working on is swapped for a new one. Without a word on screen that reads as the
-   * game throwing their work away — and when a tell reverts a flag it reads as the
-   * game undoing it out of spite. Both need saying.
-   */
-  const [notice, setNotice] = useState<{ head: string; body: string } | null>(null);
   /** how many hints the player has asked for on this job. Nothing is shown unasked */
   const [hints, setHints] = useState(0);
   /** three hints fill the panel, so they fold away once they have been read */
   const [hintsOpen, setHintsOpen] = useState(true);
 
   const editorRef = useRef<ImageEditorRef>(null);
-  const timers = useRef<number[]>([]);
   const feedEnd = useRef<HTMLDivElement>(null);
-
-  const clearTimers = useCallback(() => {
-    timers.current.forEach((t) => window.clearTimeout(t));
-    timers.current = [];
-  }, []);
-  const later = useCallback((ms: number, fn: () => void) => {
-    timers.current.push(window.setTimeout(fn, ms));
-  }, []);
-  useEffect(() => clearTimers, [clearTimers]);
+  /**
+   * Which panel is open, readable from inside a handler.
+   *
+   * `push` counts an arrival as unread by whichever tab is showing, and the
+   * sequence starts pushing in the same tick that moves the rail to the feed —
+   * so the state has not landed yet and the first post of every sequence counted
+   * itself as unread on the tab it was being shown on.
+   */
+  const railNow = useRef<Rail>('client');
 
   const world = useMemo(() => {
     const w = level.apply(level.initial, earned);
@@ -152,13 +127,17 @@ export default function Game({
   );
 
   // arrivals only count as unread while the feed is the hidden tab
-  const push = useCallback(
-    (item: Omit<FeedItem, 'id'>) => {
-      setItems((prev) => [...prev, { ...item, id: nextId() }]);
-      setUnread((n) => (rail === 'feed' ? 0 : n + 1));
-    },
-    [rail],
-  );
+  const push = useCallback((item: Omit<FeedItem, 'id'>) => {
+    setItems((prev) => [...prev, { ...item, id: nextId() }]);
+    setUnread((n) => (railNow.current === 'feed' ? 0 : n + 1));
+  }, []);
+
+  const openRail = useCallback((tab: Rail) => {
+    railNow.current = tab;
+    setRail(tab);
+    if (tab === 'feed') setUnread(0);
+    if (tab === 'client') setUnseen(0);
+  }, []);
 
   // the brief arrives as a conversation. Only timers here, no direct setState
   useEffect(() => {
@@ -166,7 +145,7 @@ export default function Game({
       window.setTimeout(() => setThread((prev) => [...prev, m]), 400 + i * 1100),
     );
     return () => ids.forEach((id) => window.clearTimeout(id));
-  }, [chapter, later]);
+  }, [chapter]);
 
   // counters tick upward on their own, the way they do on a real feed
   useEffect(() => {
@@ -192,261 +171,90 @@ export default function Game({
   }, []);
 
   /**
-   * Hand the editor the photograph the world produced.
+   * Everything that happens after POST IT, in order, on one surface.
    *
-   * `source` is a memo, so inside a handler it is still the photo from before this
-   * post landed. Resetting to it puts the bouncer back on the door the moment you
-   * remove him — the change shows in the feed and the workspace quietly rolls back,
-   * which reads as the edit being thrown away rather than acted on.
+   * The sequence is worked out in full before the first frame of it plays — what
+   * the street prints, what it says, whether he catches it and what it costs —
+   * so skipping it can only ever land the world where watching it would have.
+   * This does the three things a plan cannot: it makes noise, it puts things in
+   * the feed, and it holds the world while the stage is up.
    */
-  function show(list: string[], pick: string | null) {
-    const w = level.apply(level.initial, list);
-    if (level.choice && pick) w[level.choice.key] = pick;
-    void editorRef.current?.editor?.reset(renderLevel(level, w));
-  }
+  const onStep = useCallback(
+    (step: Step) => {
+      if (step.cue) play(step.cue);
+      for (const item of step.posts) push(item);
+      const dms = step.dms;
+      if (dms && dms.length > 0) {
+        setThread((prev) => [...prev, ...dms]);
+        setUnseen((n) => n + dms.length);
+      }
+      // he was believed, so the street takes it back
+      if (step.kind === 'revert') {
+        setEarned(step.apply.earned);
+        if (level.choice) setChoice(step.apply.choice);
+      }
+    },
+    [level, push],
+  );
+
+  /**
+   * The end of it, however it was reached.
+   *
+   * Anything skipped past still happened — it goes into the feed silently, so
+   * the thread reads the same whether it was watched or not. The editor is then
+   * handed the photograph the city ended up with, and the stage does not lift
+   * until that has landed, so there is never a frame of the old world showing.
+   */
+  const onDone = useCallback(
+    async (final: Final, remaining: Step[]) => {
+      for (const step of remaining) {
+        for (const item of step.posts) push(item);
+        const dms = step.dms;
+        if (dms && dms.length > 0) {
+          setThread((prev) => [...prev, ...dms]);
+          setUnseen((n) => n + dms.length);
+        }
+      }
+      setEarned(final.earned);
+      if (level.choice) setChoice(final.choice);
+      if (final.landed) setFinale(true);
+      await editorRef.current?.editor?.reset(final.editorImage);
+    },
+    [level, push],
+  );
+
+  const stage = useSequence({ onStep, onDone });
+  /** the diff, then the sequence: POST IT is down for both */
+  const busy = reading || stage.seq !== null;
 
   function resolve(report: DiffReport, flags: string[], image: string, picked: string | null) {
-    const broken = brokenKeeps(level, report);
-    const smell = assess(level, report);
-    setSuspicion(smell.total);
+    setSuspicion(assess(level, report).total);
     setLastReport(report);
 
-    play('post');
-    // the street first, because that is where the dissolve happens, then across
-    // to the replies once it has landed
-    setRail('street');
-    later(2600, () => {
-      setRail('feed');
-      setUnread(0);
+    const sequence = planPost({
+      level,
+      chapter,
+      verdict: judge(level, report, flags, { earned, choice, picked }),
+      image,
+      source,
+      earned,
+      choice,
+      picked,
+      beat,
+      render: (state) => renderLevel(level, state),
     });
 
-    /**
-     * What the street sees.
-     *
-     * Not the file the player saved. A forged photograph is a scruffy thing — a
-     * black bar sitting at an angle, a shape in roughly the right colour — and
-     * putting that in the feed makes the game look like a collage app. The edit
-     * is the instruction; what gets posted is the photograph Leonida produced
-     * from it, which is the entire premise. The one person who looks at the real
-     * file is the man zooming in, and his posts still carry it.
-     */
-    const posted = (img: string) =>
-      push({
-        kind: 'post',
-        who: 'you',
-        text: level.goal,
-        image: img,
-        sent: img === image ? undefined : image,
-        likes: 3,
-      });
-
-    /**
-     * A flipped photograph is not an edit, it is the same photograph backwards.
-     *
-     * Every sign in it reads the wrong way round, so nobody in Leonida would
-     * believe it for a second — and before the aligner looked for mirrors, a flip
-     * put every zone on the wrong half of the frame and handed out flags for
-     * pressing one button.
-     */
-    if (report.alignment.mirrored) {
-      posted(image);
-      later(700, () =>
-        push({
-          kind: 'reply',
-          who: 'marla_qt',
-          text: 'every sign in this reads backwards lol',
-          likes: 64,
-        }),
-      );
-      later(1600, () =>
-        push({ kind: 'system', who: '', text: 'NOBODY BELIEVED IT. NOTHING CHANGED.', likes: 0 }),
-      );
-      void editorRef.current?.editor?.reset(source);
-      return;
-    }
-
-    if (!report.trusted) {
-      posted(image);
-      later(700, () =>
-        push({
-          kind: 'reply',
-          who: 'nine_lives_vc',
-          text: report.unreadable ? 'thats just a black square my guy' : 'what am i even looking at',
-          likes: 12,
-        }),
-      );
-      void editorRef.current?.editor?.reset(source);
-      return;
-    }
-
-    if (flags.length === 0) {
-      posted(image);
-      const missed = level.nearMiss?.(report) ?? null;
-      later(700, () =>
-        push({
-          kind: 'reply',
-          who: 'nine_lives_vc',
-          text: missed ?? 'bro what did you even do 😐',
-          likes: missed ? 73 : 41,
-        }),
-      );
-      void editorRef.current?.editor?.reset(source);
-      return;
-    }
-
-    // a post nobody believes changes nothing, no matter what it removed
-    if (broken.length > 0) {
-      posted(image);
-      later(700, () =>
-        push({ kind: 'reply', who: 'marla_qt', text: `${broken[0].why}. this could be anywhere.`, likes: 88 }),
-      );
-      later(1600, () =>
-        push({ kind: 'system', who: '', text: 'NOBODY BELIEVED IT. NOTHING CHANGED.', likes: 0 }),
-      );
-      void editorRef.current?.editor?.reset(source);
-      return;
-    }
-
-    const stuck = Array.from(new Set([...earned, ...flags]));
-    setEarned(stuck);
-    if (picked && level.choice) setChoice(picked);
-
-    const after = level.apply(level.initial, stuck);
-    if (level.choice && (picked ?? choice)) after[level.choice.key] = (picked ?? choice) as string;
-    const printed = renderLevel(level, after);
-    posted(printed);
-
-    // hold the saved file over the street, then let it resolve into what the
-    // world made of it. Two frames apart, so the transition actually runs
-    setSentShot(image);
-    setFading(false);
-    later(80, () => setFading(true));
-    later(2200, () => {
-      setSentShot(null);
-      setFading(false);
-    });
-
-    level.flags
-      .filter((f) => flags.includes(f.name))
-      .forEach((f, i) =>
-        later(500 + i * 450, () =>
-          push({ kind: 'system', who: '', text: f.says.toUpperCase(), likes: 0 }),
-        ),
-      );
-
-    // people comment on what they can see, so the replies come from the flags that
-    // actually landed. One ambient line goes in the mix as noise
-    const said = level.flags
-      .filter((f) => flags.includes(f.name))
-      .flatMap((f) => f.chatter);
-    const picks = said.sort(() => Math.random() - 0.5).slice(0, 2);
-    // the ambient pool and a flag's own lines overlap, so two people could end up
-    // saying the same sentence word for word
-    const noise = level.reactions
-      .filter((t) => !picks.includes(t))
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 1);
-    const crowd = Array.from(new Set([...picks, ...noise]));
-    crowd.forEach((text, i) =>
-      later(1200 + i * 900, () => {
-        play('reply');
-        push({
-          kind: 'reply',
-          who: CROWD[i % CROWD.length],
-          text,
-          likes: 4 + i * 11,
-        });
-      }),
-    );
-
-    const hits: Tell[] = spotted(level, report, after);
-    const fatal = hits.find((t) => t.fatal);
-    if (hits.length > 0 || smell.total > level.tolerance) {
-      const tell = hits[0];
-      /**
-       * With no tell he is going on smell alone, so he leads with the worst
-       * thing he can see and zooms into the place he saw it. `notes` is sorted
-       * worst first; it used to take whichever note and whichever zone came out
-       * of the map first, so he could point at a corner nobody touched and
-       * complain about the cheapest edit in the photograph.
-       */
-      const worst = smell.notes[0];
-      const zone = tell
-        ? level.zones[tell.zone]
-        : (worst && level.zones[worst.zone]) ?? level.zones[Object.keys(level.zones)[0]];
-      const text = tell
-        ? tell.post
-        : `${worst?.note ?? 'something about this one does not sit right'}. cant put my finger on it yet.`;
-      later(3600, () => {
-        play('sting');
-        push({
-          kind: 'him',
-          who: HIM,
-          text,
-          likes: 210,
-          ...(tell?.whole
-            ? { image }
-            : { zoom: { image, zone } }),
-        });
-      });
-      if (fatal?.reverts) {
-        later(5200, () => {
-          play('revert');
-          const back = stuck.filter((f) => f !== fatal.reverts);
-          const held =
-            level.choice && fatal.reverts === level.choice.when ? null : picked ?? choice;
-          setEarned(back);
-          if (level.choice && fatal.reverts === level.choice.when) setChoice(null);
-          show(back, held);
-          push({ kind: 'system', who: '', text: 'PEOPLE BELIEVED HIM. IT WENT BACK.', likes: 0 });
-          setNotice({
-            head: 'It went back',
-            body:
-              fatal.fix ??
-              'He was believed, so the street undid it. Try it a way he cannot catch.',
-          });
-          later(7000, () => setNotice(null));
-        });
-      }
-    }
-
-    // the notice explains why the workspace photo is different. The job-done card
-    // says the same thing louder, so it only runs when the job is still open
-    const landed = level.solved(after) && !fatal;
-    if (!landed) {
-      setNotice({
-        head: 'The street changed',
-        body: 'Your pixels were only the instruction. This is what Leonida printed.',
-      });
-      later(5600, () => setNotice(null));
-    }
-    if (landed && !beat) {
-      setBeat(true);
-      later(400, () => play('landed'));
-      chapter.payoff.forEach((m, i) =>
-        later(2400 + i * 1300, () => {
-        setThread((prev) => [...prev, m]);
-        setUnseen((n) => n + 1);
-      }),
-      );
-      later(6400, () => {
-        play('sting');
-        setHisBeat(chapter.himClosing);
-        push({ kind: 'him', who: HIM, text: chapter.himClosing, likes: 180 });
-      });
-      // the card used to cover the screen the instant the world moved, hiding the
-      // street changing, the client's reply and his closing line along with it
-      later(10200, () => {
-        setHisBeat(null);
-        setFinale(true);
-      });
-    }
-
-    void editorRef.current?.editor?.reset(printed);
+    // the world the post leaves behind, held from the first frame so the stage
+    // has something to develop into
+    setEarned(sequence.opening.earned);
+    if (level.choice) setChoice(sequence.opening.choice);
+    if (sequence.landed) setBeat(true);
+    openRail('feed');
+    stage.start(sequence);
   }
 
   async function readPost(dataUrl: string) {
-    setBusy(true);
+    setReading(true);
     try {
       const report = await diffImages(source, dataUrl, level.zones);
       const flags = readFlags(level, report);
@@ -456,7 +264,7 @@ export default function Game({
       }
       resolve(report, flags, dataUrl, null);
     } finally {
-      setBusy(false);
+      setReading(false);
     }
   }
 
@@ -511,7 +319,7 @@ export default function Game({
     if (previewsLeft <= 0) return;
     const current = editorRef.current?.editor?.getImage();
     if (!current) return;
-    setBusy(true);
+    setReading(true);
     try {
       const report = await diffImages(source, current, level.zones);
       const z = report.zones[zoneName];
@@ -541,7 +349,7 @@ export default function Game({
       setPreview({ zone: zoneName, image: current, verdict });
       setPreviewsLeft((n) => n - 1);
     } finally {
-      setBusy(false);
+      setReading(false);
     }
   }
 
@@ -617,18 +425,16 @@ export default function Game({
             />
           </div>
 
-          {/* The swap is the game, so it is shown rather than hidden. Side by side:
-              the file the player saved, and the photograph the street printed from
-              it. Without this the picture simply changes under them and reads as
-              their work being thrown away. */}
-          {notice && (
-            <div
-              data-testid="world-changed"
-              className="rise pointer-events-none absolute left-1/2 top-4 z-30 w-[min(34rem,92%)] -translate-x-1/2 border border-accent bg-ink/95 px-4 py-2 text-center"
-            >
-              <p className="eyebrow text-xs text-accent">{notice.head}</p>
-              <p className="mt-0.5 text-[11px] leading-snug text-text/80">{notice.body}</p>
-            </div>
+          {/* The swap is the game, so it takes the room. Everything a post causes
+              plays here, over the work, rather than as a toast above it and a
+              thumbnail inside a tab that might not even be open. */}
+          {stage.seq && (
+            <PostStage
+              steps={stage.seq.steps}
+              index={stage.index}
+              onAdvance={stage.advance}
+              onSkip={stage.skip}
+            />
           )}
 
           {/* ----------------------------------------------------- action row */}
@@ -675,11 +481,7 @@ export default function Game({
                 <button
                   key={tab}
                   data-testid={`tab-${tab}`}
-                  onClick={() => {
-                    setRail(tab);
-                    if (tab === 'feed') setUnread(0);
-                    if (tab === 'client') setUnseen(0);
-                  }}
+                  onClick={() => openRail(tab)}
                   className={`eyebrow flex-1 px-2 py-2.5 text-[11px] ${
                     rail === tab ? 'bg-accent text-accent-ink' : 'text-mute hover:text-text'
                   }`}
@@ -780,31 +582,13 @@ export default function Game({
                   <h2 className="eyebrow text-xs text-text">As it is now</h2>
                   <span className="text-[10px] tracking-[0.14em] text-accent">LIVE</span>
                 </div>
-                <div className="relative">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    data-testid="world"
-                    src={source}
-                    alt="the world as it is now"
-                    className="w-full border border-line"
-                  />
-                  {sentShot && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      data-testid="dissolve"
-                      src={sentShot}
-                      alt=""
-                      className={`absolute inset-0 h-full w-full border border-accent transition-opacity duration-[1400ms] ease-out ${
-                        fading ? 'opacity-0' : 'opacity-100'
-                      }`}
-                    />
-                  )}
-                </div>
-                {sentShot && (
-                  <p className="eyebrow mt-1.5 text-center text-[9px] text-accent">
-                    what you sent &rarr; what the street printed
-                  </p>
-                )}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  data-testid="world"
+                  src={source}
+                  alt="the world as it is now"
+                  className="w-full border border-line"
+                />
                 <p className="mt-3 text-[11px] leading-snug text-mute">
                   This is the photograph Leonida has. Every post you land rewrites it, and the
                   next job starts from whatever it says.
@@ -925,24 +709,6 @@ export default function Game({
           <p className="mt-5 max-w-md text-[11px] leading-relaxed text-mute">
             {level.goal}
           </p>
-        </button>
-      )}
-
-      {/* the end of a chapter belongs to him, not to the feed it would drown in */}
-      {hisBeat && (
-        <button
-          data-testid="his-beat"
-          onClick={() => {
-            setHisBeat(null);
-            setFinale(true);
-          }}
-          className="absolute inset-0 z-[55] flex cursor-pointer flex-col items-center justify-center bg-ink/95 px-8 text-center"
-        >
-          <p className="eyebrow text-xs tracking-[0.32em] text-accent">@{HIM}</p>
-          <p className="mt-5 max-w-2xl text-[clamp(1rem,2.4vw,1.6rem)] leading-relaxed text-text">
-            {hisBeat}
-          </p>
-          <p className="eyebrow mt-8 text-[10px] text-dim">Click to go on</p>
         </button>
       )}
 

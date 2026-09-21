@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:identity": "npx --yes tsx tools/identity-check.ts",
-    "check:content": "npx --yes tsx tools/content-check.ts"
+    "check:content": "npx --yes tsx tools/content-check.ts",
+    "check:sequence": "npx --yes tsx tools/sequence-check.ts"
   },
   "dependencies": {
     "@unlayer/react-image-editor": "^1.0.2",
