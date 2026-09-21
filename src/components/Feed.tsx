@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ZoomView from './ZoomView';
+import { faceFor, initialsFor } from '@/lib/faces';
 import type { Zone } from '@/lib/zones';
 
 /**
@@ -31,6 +32,39 @@ export type FeedItem = {
 };
 
 export const HIM = 'cal_hampton_77';
+
+/**
+ * Who is talking.
+ *
+ * Everybody who speaks more than once has a portrait. The one account that does
+ * not is the client who will not give a name, and the blank square where his
+ * face should be is the point rather than an omission.
+ */
+export function Avatar({ who, size = 26 }: { who: string; size?: number }) {
+  const src = faceFor(who);
+  if (!src) {
+    return (
+      <span
+        aria-hidden
+        style={{ width: size, height: size }}
+        className="flex shrink-0 items-center justify-center border border-line bg-ink text-[9px] text-dim"
+      >
+        {initialsFor(who)}
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: size }}
+      className="shrink-0 border border-line object-cover"
+    />
+  );
+}
 
 function Likes({ n }: { n: number }) {
   return (
@@ -95,16 +129,17 @@ export default function Feed({ items }: { items: FeedItem[] }) {
               him ? 'border-accent bg-raised' : 'border-line bg-panel'
             }`}
           >
-            <div className="flex items-baseline justify-between gap-2">
-              <span
-                className={`text-[11px] ${him ? 'text-accent' : 'text-mute'}`}
-              >
+            <div className="flex items-center gap-2">
+              <Avatar who={item.who} />
+              <span className={`text-[11px] ${him ? 'text-accent' : 'text-mute'}`}>
                 @{item.who}
               </span>
-              <Likes n={item.likes} />
+              <span className="ml-auto">
+                <Likes n={item.likes} />
+              </span>
             </div>
 
-            <p className="mt-1 text-xs leading-snug text-text/85">{item.text}</p>
+            <p className="mt-1.5 text-xs leading-snug text-text/85">{item.text}</p>
 
             {item.image && <PostImage printed={item.image} sent={item.sent} />}
 

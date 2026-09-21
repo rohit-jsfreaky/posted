@@ -3,7 +3,7 @@
 import CaseCard from "../CaseCard";
 import { ENDING } from "@/lib/story";
 import { bandFor, VERDICT, type Standing } from "@/lib/heat";
-import { HIM } from "../Feed";
+import { Avatar, HIM } from "../Feed";
 
 /** The last screen. Five jobs, and the man who was right about all of them. */
 export default function Ending({
@@ -64,9 +64,10 @@ export default function Ending({
               data-testid="his-file"
               className="border-l-2 border-accent bg-panel/80 p-4"
             >
-              <div className="flex items-baseline justify-between">
+              <div className="flex items-center gap-2">
+                <Avatar who={HIM} size={30} />
                 <p className="eyebrow text-xs tracking-[0.2em] text-accent">@{HIM}</p>
-                <span className="text-[10px] text-dim">♥ 41,208</span>
+                <span className="ml-auto text-[10px] text-dim">♥ 41,208</span>
               </div>
               <p className="mt-2 text-sm leading-relaxed text-text/90">{ENDING.hisPost}</p>
               <CaseCard progress={progress} />

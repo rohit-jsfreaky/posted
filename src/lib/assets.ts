@@ -24,6 +24,9 @@ export const ASSETS = {
   'cut-car': '/art/cut-car.png',
   'cut-witness': '/art/cut-witness.png',
   'cut-ev': '/art/cut-ev.png',
+  // the only portrait the world draws rather than the interface: his, inside
+  // the screenshot of his own post
+  'face-cal': '/art/faces/cal_hampton_77.jpg',
 } as const;
 
 export type AssetName = keyof typeof ASSETS;

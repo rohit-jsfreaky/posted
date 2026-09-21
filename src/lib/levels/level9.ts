@@ -35,9 +35,12 @@ import type { Level, WorldState } from '../level';
 import { looksPainted } from '../suspicion';
 import { toPixels, type ZoneMap } from '../zones';
 
+/** his photograph, beside his handle. Not a zone: nothing is measured on it */
+const FACE = { x: 0.135, y: 0.042, w: 0.05, h: 0.075 };
+
 const ZONES: ZoneMap = {
   /** his handle. Change it and it stops being his post at all */
-  handle: { x: 0.14, y: 0.05, w: 0.34, h: 0.055 },
+  handle: { x: 0.2, y: 0.05, w: 0.34, h: 0.055 },
   /** the line he wrote, which is the thing being replaced */
   quote: { x: 0.14, y: 0.13, w: 0.72, h: 0.085 },
   /** the photograph he attached as proof — 3:2, so the art is not stretched */
@@ -58,6 +61,8 @@ function composite(state: WorldState, ctx: Ctx) {
   fill(ctx, CARD, '#12141b');
   fill(ctx, { x: CARD.x, y: CARD.y, w: 0.004, h: CARD.h }, '#ff2e7e');
 
+  // the one portrait the world draws rather than the interface
+  place(ctx, 'face-cal', FACE);
   label(ctx, '@cal_hampton_77', ZONES.handle.x, ZONES.handle.y + ZONES.handle.h / 2, '#ff2e7e', 30, 'left');
   label(ctx, '2h', CARD.x + CARD.w - 0.03, ZONES.handle.y + ZONES.handle.h / 2, '#55555e', 22, 'right');
 

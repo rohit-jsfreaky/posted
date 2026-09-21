@@ -243,7 +243,10 @@ Open **Forensics** in the bottom-left of any job to see exactly what it read off
 - **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~9,700 lines across `src/` and `tools/`.
 - **Sound is synthesised** with Web Audio — cues plus a per-scene bed of filtered noise and one low
   tone. No audio files ship, nothing to license.
-- **Art**: 14 files, 4.1 MB total — nine 1200×800 backgrounds and five trimmed RGBA cut-outs.
+- **Art**: 14 backgrounds and cut-outs plus 11 portraits, 4.4 MB total. Every account that speaks
+  more than once has a face, cut from a single contact sheet rather than generated eleven times,
+  so at avatar size they are unmistakably the same hand. One account has no face on purpose: the
+  client who will not give a name.
   One of those backgrounds is the ninth job compositing itself: a screenshot has no photograph to
   generate, only interface, and interface is flat colour and type.
   Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same

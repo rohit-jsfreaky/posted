@@ -6,7 +6,7 @@ import ImageEditor, {
   type ImageEditorSaveResult,
 } from '@unlayer/react-image-editor';
 import CaseCard from './CaseCard';
-import Feed, { HIM, type FeedItem } from './Feed';
+import Feed, { Avatar, HIM, type FeedItem } from './Feed';
 import PostStage, { useSequence } from './PostStage';
 import ZoomView from './ZoomView';
 import { type DiffReport, diffImages } from '@/lib/diff';
@@ -771,6 +771,14 @@ export default function Game({
               </div>
             ) : rail === 'client' ? (
               <div className="flex flex-col gap-1.5">
+                {/* whoever is paying, at the top, so you know who you are working for */}
+                <div className="mb-1 flex items-center gap-2 border-b border-line pb-2">
+                  <Avatar who={level.client} size={30} />
+                  <div>
+                    <p className="text-[11px] text-text">@{level.client}</p>
+                    <p className="text-[10px] text-dim">the client</p>
+                  </div>
+                </div>
                 {thread.map((m, i) => (
                   <p
                     key={`${i}-${m.text.slice(0, 10)}`}
@@ -812,10 +820,13 @@ export default function Game({
 
                 {onlyHim ? (
                   <div data-testid="his-thread" className="flex flex-col gap-2">
-                    <p className="text-[10px] leading-snug text-dim">
-                      Everything @{HIM} has posted about your work, oldest first. He keeps
-                      the originals.
-                    </p>
+                    <div className="flex items-center gap-2 border-b border-line pb-2">
+                      <Avatar who={HIM} size={30} />
+                      <p className="text-[10px] leading-snug text-dim">
+                        Everything @{HIM} has posted about your work, oldest first. He keeps
+                        the originals.
+                      </p>
+                    </div>
                     {[...his].map((p, i) => (
                       <article
                         key={`${i}-${p.text.slice(0, 12)}`}

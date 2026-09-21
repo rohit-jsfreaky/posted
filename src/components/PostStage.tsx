@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Avatar } from './Feed';
 import ZoomView from './ZoomView';
 import type { Final, Sequence, Step } from '@/lib/sequence';
 import type { Message } from '@/lib/story';
@@ -196,7 +197,8 @@ export default function PostStage({
             data-testid="his-beat"
             className="flex h-full flex-col items-center justify-center px-8 text-center"
           >
-            <p className="eyebrow text-xs tracking-[0.32em] text-accent">@cal_hampton_77</p>
+            <Avatar who="cal_hampton_77" size={64} />
+            <p className="eyebrow mt-3 text-xs tracking-[0.32em] text-accent">@cal_hampton_77</p>
             <p className="mt-5 max-w-2xl text-[clamp(1rem,2.4vw,1.6rem)] leading-relaxed text-text">
               {now.text}
             </p>
@@ -311,12 +313,15 @@ export default function PostStage({
               <div
                 key={r.text}
                 data-testid="stage-reply"
-                className="card-in border-l-2 border-line bg-panel/95 px-2.5 py-1.5"
+                className="card-in flex gap-2 border-l-2 border-line bg-panel/95 px-2.5 py-1.5"
               >
-                <p className="text-[10px] text-dim">
-                  @{r.who} <span className="text-dim">♥ {r.likes}</span>
-                </p>
-                <p className="text-[11px] leading-snug text-text/90">{r.text}</p>
+                <Avatar who={r.who} size={22} />
+                <div>
+                  <p className="text-[10px] text-dim">
+                    @{r.who} <span className="text-dim">♥ {r.likes}</span>
+                  </p>
+                  <p className="text-[11px] leading-snug text-text/90">{r.text}</p>
+                </div>
               </div>
             ))}
           </div>
