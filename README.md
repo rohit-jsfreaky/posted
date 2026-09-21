@@ -24,7 +24,7 @@ pixels are yours. Everything below is that one idea, seven more times.*
 | | requirement | where |
 |---|---|---|
 | ✅ | React Image Editor is a **core interactive part**, not decoration | It is the only way to play. Every puzzle is solved inside it — see [How the editor is used](#how-the-react-image-editor-is-used) |
-| ✅ | User can edit/customise at least one visual with it | Eight jobs, each one a different photograph edited in the editor |
+| ✅ | User can edit/customise at least one visual with it | Nine jobs, each one a different photograph edited in the editor |
 | ✅ | Public GitHub repo with complete source | This repository |
 | ✅ | Clear README: what it is · the idea · **how the editor is used** · screenshots · technical notes | This file |
 | ✅ | Deployed, publicly accessible live URL | [posted-omega.vercel.app](https://posted-omega.vercel.app/) |
@@ -126,7 +126,7 @@ them would have been coverage for its own sake.
 
 ## The game
 
-Eight jobs: a run of five with a story, and three optional side jobs that do not touch the ending.
+Nine jobs: a run of five with a story, and four optional side jobs that do not touch the ending.
 
 1. **Get me inside** — a bouncer on a door. Teaches *crop*.
 2. **The car was never there** — teaches *resize*, whose only real job is hiding that you cropped.
@@ -141,6 +141,14 @@ The **side work** covers the parts of the editor the run never needs: filter pre
 (*This is from years ago*), contrast, sharpen and the 4:3 preset (*Off the gantry camera*), and
 hue (*The sign was red* — the only job whose answer is a slider that turns every colour at once,
 on the only photograph where that is honest, because it is a street lit by one neon sign).
+
+And one that is not a photograph at all. **He never posted that** hands you a screenshot of Cal
+Hampton's own post about your very first forgery, and asks you to discredit him with it. Rewrite
+what he said — the game asks you what you typed, because the editor returns pixels and not words
+— and take the picture out from under it. What is left is a man making an accusation with nothing
+attached, in his own words, from his own account, and the crowd does not check. It is also the one
+job where reaching for a filter is the wrong answer, because nobody colour grades a screenshot and
+he says so.
 
 ![The job board](docs/shots/7-board.jpg)
 
@@ -227,15 +235,17 @@ Open **Forensics** in the bottom-left of any job to see exactly what it read off
 | `/lab` | **39 synthesised edits** against the real art — every valid solution and the near-misses that must not fire |
 | `npm run check:identity` | no flag and no tell fires on a photograph nobody touched. It exists because one did |
 | `npm run check:content` | no line is said twice, every fatal tell says what to do instead, every tool has a verb, every translation key still exists in the library's types |
-| `npm run check:sequence` | **96 outcomes** — every level against every way a post can go, including all fifteen fatal tells — produce a sequence that opens on the photograph, holds every beat, and ends where it says it does |
-| `npm run play` | drives the **real editor in a real browser** with a real mouse: crop, resize, every filter slider, the aspect presets and the brush, across six of the eight jobs |
+| `npm run check:sequence` | **108 outcomes** — every level against every way a post can go, including every fatal tell — produce a sequence that opens on the photograph, holds every beat, and ends where it says it does |
+| `npm run play` | drives the **real editor in a real browser** with a real mouse: crop, resize, every filter slider, the aspect presets and the brush, across six of the nine jobs |
 
 ### Everything else
 
 - **Next.js 16.3.5**, React 19.2.8, Tailwind v4, TypeScript. ~9,700 lines across `src/` and `tools/`.
 - **Sound is synthesised** with Web Audio — cues plus a per-scene bed of filtered noise and one low
   tone. No audio files ship, nothing to license.
-- **Art**: 13 files, 4.0 MB total — eight 1200×800 backgrounds and five trimmed RGBA cut-outs.
+- **Art**: 14 files, 4.1 MB total — nine 1200×800 backgrounds and five trimmed RGBA cut-outs.
+  One of those backgrounds is the ninth job compositing itself: a screenshot has no photograph to
+  generate, only interface, and interface is flat colour and type.
   Cut-outs are pre-trimmed to their content so a zone and the art that fills it are the same
   rectangle, which is the property the diff engine depends on.
 - **The title screen plays the first job on a loop** before you touch anything, composited from the
