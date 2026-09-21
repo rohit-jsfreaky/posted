@@ -13,6 +13,10 @@ Built for the Unlayer **Build With React Image Editor** Challenge.
 
 ![Crop the bouncer off the edge of the frame, post it, and he is gone from the street](docs/shots/loop.gif)
 
+*Drag the crop frame in past the man on the door. Take the light out of it. Press POST IT. The
+street comes back at night, with a queue outside and nobody on that door — and none of those
+pixels are yours. Everything below is that one idea, seven more times.*
+
 ---
 
 ## Challenge requirements
