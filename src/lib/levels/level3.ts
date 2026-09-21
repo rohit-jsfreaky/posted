@@ -102,6 +102,7 @@ export const level3: Level = {
     "My brother wasn't at the marina that night. He's in the shot, he's in the window, and he's in the water. All three.",
   goal: 'Take him out of the photo. All three of him.',
   teaches: 'Filter, properly: brightness, blur, pixelate',
+  teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
   zones: ZONES,
   initial: { subject: true, reflection: true, water: true, clock: '21:40' },

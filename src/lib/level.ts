@@ -8,6 +8,7 @@
 
 import type { DiffReport } from './diff';
 import { SCENE_H, SCENE_W, type Ctx } from './draw';
+import { EDITOR_TRANSLATIONS, VERBS } from './verbs';
 import type { ZoneMap } from './zones';
 
 export type WorldState = Record<string, string | boolean>;
@@ -96,6 +97,14 @@ export type Level = {
   goal: string;
   /** the one new tool this level is about */
   teaches: string;
+  /**
+   * Which tool that is, as the editor knows it.
+   *
+   * `teaches` is a sentence for a human — "Filter, properly: brightness, blur,
+   * pixelate" — and cannot be looked up. This is the id, so the interface can
+   * name the verb the job is about and light it up in the panel.
+   */
+  teachesTool?: ToolName;
   tools: ToolName[];
   zones: ZoneMap;
   initial: WorldState;
@@ -185,9 +194,28 @@ export function renderLevel(level: Level, state: WorldState): string {
   return canvas.toDataURL('image/png');
 }
 
-/** The editor's tool config for a level: everything it teaches, nothing it does not. */
+/**
+ * How the editor is dressed for a level.
+ *
+ * Three things at once, and they have to arrive together because the library
+ * rebuilds the editor whenever `features` changes but not when `translations`
+ * does:
+ *
+ *   which tools exist       everything this job teaches, nothing it does not
+ *   what they are called    the world-verb, not the software's own word for it
+ *   what they look like     our icons, so the rail is not half ours and half theirs
+ *
+ * `EDITOR_TRANSLATIONS` is a module constant, so the object handed over is equal
+ * to itself between renders and the editor never reloads on account of it.
+ */
 export function toolConfig(level: Level) {
-  const tools: Record<string, boolean> = {};
-  for (const t of ALL_TOOLS) tools[t] = level.tools.includes(t);
-  return { features: { imageEditor: { tools } } };
+  const tools: Record<string, { enabled: boolean; icon: string }> = {};
+  for (const t of ALL_TOOLS) {
+    tools[t] = { enabled: level.tools.includes(t), icon: VERBS[t].icon };
+  }
+  return {
+    features: { imageEditor: { tools } },
+    locale: 'en' as const,
+    translations: { en: EDITOR_TRANSLATIONS },
+  };
 }

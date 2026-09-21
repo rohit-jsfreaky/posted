@@ -89,6 +89,7 @@ export const level5: Level = {
     'I need this to look like it came from a police archive, not a phone. Frame it, label it, and cover the witness. Get the case number right.',
   goal: 'Change not what the photo shows, but where it claims to be from.',
   teaches: 'Text, Shapes and Frame — claiming a source instead of changing a fact',
+  teachesTool: 'frame',
   tools: ['crop', 'resize', 'filter', 'draw', 'stickers', 'shapes', 'text', 'frame'],
   zones: ZONES,
   initial: { official: false, face: 'visible', case_no: '' },

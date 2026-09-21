@@ -94,6 +94,7 @@ export const level1: Level = {
     "Club Vantablack. I'm not on the list and I'm not going home. One hour. $200.",
   goal: 'Get him through the door.',
   teaches: 'Crop',
+  teachesTool: 'crop',
   tools: ['crop', 'filter', 'draw'],
   zones: ZONES,
   initial: {

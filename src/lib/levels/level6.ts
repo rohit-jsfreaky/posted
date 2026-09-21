@@ -79,6 +79,7 @@ export const level6: Level = {
     'There is a photo of my place going round with a date on it. I need that date to be wrong by about thirty years.',
   goal: 'Make the photograph old enough to be useless.',
   teaches: 'Filter presets, and the grain that sells them',
+  teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
   zones: ZONES,
   initial: { era: 'now', ev: true },

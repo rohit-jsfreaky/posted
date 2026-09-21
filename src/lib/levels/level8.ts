@@ -79,6 +79,7 @@ export const level8: Level = {
     "Two bars on that block. One has a red sign, one has a pink one, and I said I was at the red one. The photo says otherwise.",
   goal: 'Turn the night from one bar into the other.',
   teaches: 'Hue, on the one photograph where turning every colour at once is honest',
+  teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
   zones: ZONES,
   initial: { neon: 'magenta' },

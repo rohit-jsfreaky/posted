@@ -55,6 +55,7 @@ export const level2: Level = {
     "There's a photo of my car outside a place I was never at. Take the car out. And don't be sloppy, people check.",
   goal: 'Remove the car and leave nothing to check.',
   teaches: 'Resize',
+  teachesTool: 'resize',
   tools: ['crop', 'resize', 'filter', 'draw'],
   zones: ZONES,
   initial: { car: true, plate: true, witness: true, dims: 'original' },

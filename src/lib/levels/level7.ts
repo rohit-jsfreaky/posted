@@ -59,6 +59,7 @@ export const level7: Level = {
     "Nobody cares about a photo somebody took on their phone. I need this one to have come off camera four, and I need it to look like it.",
   goal: 'Change not what took the photograph, but what it claims took it.',
   teaches: 'Contrast, Sharpen, and the aspect ratio nobody shoots by hand',
+  teachesTool: 'filter',
   tools: ['crop', 'resize', 'filter', 'draw', 'shapes'],
   zones: ZONES,
   initial: { source: 'phone' },

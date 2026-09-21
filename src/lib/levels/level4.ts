@@ -55,6 +55,7 @@ export const level4: Level = {
     "Different job. I need his car in bay four at half one yesterday. It wasn't. Make it have been.",
   goal: 'Put the car in the empty bay, and make it belong there.',
   teaches: 'Stickers, and the light that makes them belong',
+  teachesTool: 'stickers',
   tools: ['crop', 'resize', 'filter', 'draw', 'stickers', 'shapes'],
   zones: ZONES,
   initial: { car: false, shadow: false },

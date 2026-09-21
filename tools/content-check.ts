@@ -15,6 +15,7 @@
 import { ALL, MAIN, SIDE } from '../src/lib/levels';
 import { CHAPTERS, CROWD, ENDING, SIDE_BRIEFS } from '../src/lib/story';
 import { NOTES_FOR_CHECK } from '../src/lib/suspicion';
+import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '../src/lib/verbs';
 import { readFileSync } from 'node:fs';
 import type { Level } from '../src/lib/level';
 
@@ -215,6 +216,88 @@ for (const [method, note] of Object.entries(NOTES_FOR_CHECK)) {
     fail('zoom preview', `no answer for "${method}" — it falls through to whatever is last`);
   }
   record(note, `suspicion note ${method}`);
+}
+
+/**
+ * The editor's own rail, which is now written in our words.
+ *
+ * Renaming the tools is the thing that makes the editor read as the game's
+ * control panel rather than as an editor somebody embedded, so a tool without a
+ * verb is a tool that says "Stickers" in the middle of Leonida. The label rules
+ * are not style: the rail is a narrow column at 10px, and a long word is
+ * silently truncated to an ellipsis by the library rather than wrapped.
+ */
+for (const level of ALL) {
+  const at = `level ${level.id} (${level.title})`;
+  for (const t of level.tools) {
+    const v = VERBS[t];
+    if (!v) {
+      fail(at, `enables "${t}", which has no verb`);
+      continue;
+    }
+    if (v.label !== v.label.toUpperCase()) fail(`verb ${t}`, `label is not uppercase: "${v.label}"`);
+    if (v.label.length > 8) {
+      fail(`verb ${t}`, `label "${v.label}" is ${v.label.length} characters — the rail truncates past 8`);
+    }
+    if (!v.line.trim()) fail(`verb ${t}`, 'has no line');
+    if (!v.icon.trim().startsWith('<svg')) fail(`verb ${t}`, 'icon is not inline svg');
+    if (!v.icon.includes('viewBox')) fail(`verb ${t}`, 'icon has no viewBox, so it cannot scale');
+    if (!v.icon.includes('currentColor')) {
+      fail(`verb ${t}`, 'icon does not use currentColor, so it will not follow the rail');
+    }
+    for (const banned of ['<script', '<style', 'href=']) {
+      if (v.icon.includes(banned)) fail(`verb ${t}`, `icon contains ${banned}, which the sanitiser strips`);
+    }
+  }
+  if (!level.teachesTool) {
+    fail(at, 'has no teachesTool, so the header cannot name the verb it teaches');
+  } else if (!level.tools.includes(level.teachesTool)) {
+    fail(at, `teaches "${level.teachesTool}", which it does not enable`);
+  }
+}
+
+// one verb per tool, and no two tools answering to the same word
+const byLabel = new Map<string, string[]>();
+for (const [tool, v] of Object.entries(VERBS)) {
+  byLabel.set(v.label, [...(byLabel.get(v.label) ?? []), tool]);
+  record(v.line, `verb ${tool} line`);
+}
+for (const [label, tools] of byLabel) {
+  if (tools.length > 1) fail('verbs', `"${label}" is the label for ${tools.join(' and ')}`);
+}
+
+/**
+ * Every key we translate still has to be a key the editor asks about.
+ *
+ * The runtime comes off a CDN and is not pinned, so a renamed key would not
+ * error — the editor would quietly fall back to its own English and one word of
+ * software would appear in the middle of the fiction. The shipped type
+ * definitions are the closest thing to a contract we have.
+ */
+const intl = readFileSync('node_modules/@unlayer/types/dist/editor/intl.d.ts', 'utf8');
+for (const key of Object.keys(EDITOR_TRANSLATIONS)) {
+  if (!intl.includes(`'${key}'`)) {
+    fail('translations', `"${key}" is not in the installed type definitions any more`);
+  }
+}
+for (const [key, value] of Object.entries(EDITOR_TRANSLATIONS)) {
+  // the library merges any string, so an empty one blanks the control entirely
+  if (!value.trim()) fail('translations', `"${key}" is empty, which would blank the control`);
+}
+
+/**
+ * The editor's Cancel and Save: hidden by one file, pressed by another.
+ *
+ * Two files depending on the same positional selector is how a silent break
+ * happens — the CSS stops hiding, or the button stops being found, and neither
+ * is an error anywhere. They share a constant, and this checks they still do.
+ */
+const css = readFileSync('src/app/globals.css', 'utf8');
+if (!css.includes(SAVE_GROUP)) {
+  fail('save group', 'globals.css no longer hides the selector SAVE_GROUP names');
+}
+if (!game.includes('SAVE_GROUP')) {
+  fail('save group', 'Game.tsx no longer presses the button through SAVE_GROUP');
 }
 
 if (!ENDING.headline.trim()) fail('ending', 'has no headline');

@@ -131,7 +131,41 @@ body {
  * those ourselves. The editor is loaded from Unlayer's CDN, so if its markup ever
  * changes this selector stops matching and the buttons simply come back — a
  * duplicated control, not a broken screen.
+ *
+ * `POST IT` presses the real button inside this group, so the selector is written
+ * down once as SAVE_GROUP in src/lib/verbs.ts and content-check asserts that this
+ * rule and that constant still say the same thing.
  */
 .editor-shell .image-editor-root > div > div:first-child > div:last-child {
   display: none;
+}
+
+/*
+ * Room for the verbs.
+ *
+ * The editor's tool column is 72px wide and its labels are 10px, which leaves
+ * about 30px of text — enough for LIGHT and PAINT and nothing else, so ERASE and
+ * OFFICIAL arrived as ERAS… and OFFICI…. The words are the point of renaming the
+ * tools at all, so the column is widened rather than the words shortened.
+ *
+ * Same bargain as the rule above: scoped to our shell, and if the editor's markup
+ * changes this stops matching and the column goes back to its own width with the
+ * labels truncated — narrower than we want, never broken.
+ *
+ * `.image-editor-root` is in the selector to win, not to aim. The editor writes a
+ * `<style>` block at runtime, after this file, and its own width rule scores the
+ * same as ours — so on a tie the later sheet took it and the column stayed 72px.
+ * One more class outscores it.
+ */
+.editor-shell .image-editor-root [data-testid='native-tool-nav'] {
+  width: 6.5rem;
+}
+
+.editor-shell
+  .image-editor-root
+  [data-testid^='native-tool-']:not([data-testid='native-tool-nav'])
+  > span:last-child {
+  max-width: 100%;
+  width: 100%;
+  text-align: center;
 }

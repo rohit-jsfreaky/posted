@@ -19,6 +19,7 @@ import {
   type Tell,
 } from '@/lib/level';
 import { assess, methodFor } from '@/lib/suspicion';
+import { EDITOR_TRANSLATIONS, SAVE_GROUP, VERBS } from '@/lib/verbs';
 import { CROWD, type Chapter, type Message } from '@/lib/story';
 import { play, setMuted } from '@/lib/sound';
 
@@ -460,6 +461,29 @@ export default function Game({
   }
 
   /**
+   * Find the editor's own commit button, which the interface hides.
+   *
+   * Three ways of naming the same button, because each can fail on its own and
+   * they fail differently. The label is ours, so it is right by construction
+   * until a runtime renames the key underneath it. The tick is the icon the
+   * library draws on a confirm, and it is scoped to the hidden group so the crop
+   * panel's own Apply cannot answer instead. Last is last: the group is laid out
+   * as an optional chat toggle, then Cancel, then Save, so the end of it is the
+   * commit even when the front of it is something we have not seen.
+   */
+  function findCommit(): HTMLButtonElement | null {
+    const group = document.querySelector(SAVE_GROUP);
+    const buttons = Array.from(group?.querySelectorAll('button') ?? []);
+    const save = EDITOR_TRANSLATIONS['image_editor.toolbar.save'];
+    return (
+      buttons.find((b) => b.textContent?.trim() === save) ??
+      buttons.find((b) => b.querySelector('svg[data-icon="check"]')) ??
+      buttons.at(-1) ??
+      null
+    );
+  }
+
+  /**
    * Post from our own button.
    *
    * This presses the editor's own commit rather than reading the canvas, because
@@ -473,12 +497,9 @@ export default function Game({
    * that misses a crop beats a button that does nothing.
    */
   async function postIt() {
-    const root = document.querySelector('.editor-shell .image-editor-root');
-    const commit = Array.from(root?.querySelectorAll('button') ?? []).find(
-      (b) => b.textContent?.trim() === 'Save',
-    );
+    const commit = findCommit();
     if (commit) {
-      (commit as HTMLButtonElement).click();
+      commit.click();
       return;
     }
     const current = editorRef.current?.editor?.getImage();
@@ -543,7 +564,14 @@ export default function Game({
           {level.title}
         </h1>
         <span className="hidden truncate text-[10px] tracking-[0.14em] text-dim lg:block">
-          NEW TOOL — {level.teaches.toUpperCase()}
+          {level.teachesTool ? (
+            <>
+              NEW VERB — <span className="text-accent">{VERBS[level.teachesTool].label}</span>{' '}
+              <span className="text-dim">· {VERBS[level.teachesTool].line}</span>
+            </>
+          ) : (
+            <>NEW TOOL — {level.teaches.toUpperCase()}</>
+          )}
         </span>
 
         <div className="ml-auto flex items-center gap-3">
@@ -781,6 +809,34 @@ export default function Game({
                   This is the photograph Leonida has. Every post you land rewrites it, and the
                   next job starts from whatever it says.
                 </p>
+
+                {/* What each control in the editor does to the city, rather than to
+                    the picture. The rail says it in full because the editor's own
+                    tool column only has room for the verb. */}
+                <div className="mt-4 border-t border-line pt-3">
+                  <h2 className="eyebrow text-xs text-text">The panel</h2>
+                  <ul data-testid="panel" className="mt-2 flex flex-col gap-2">
+                    {level.tools.map((t) => {
+                      const v = VERBS[t];
+                      const isNew = t === level.teachesTool;
+                      return (
+                        <li
+                          key={t}
+                          className={`border-l-2 pl-2 ${isNew ? 'border-accent' : 'border-line'}`}
+                        >
+                          <span className="eyebrow text-[10px] text-text">{v.label}</span>
+                          <span className="ml-1.5 text-[10px] text-dim">· {t}</span>
+                          {isNew && (
+                            <span className="ml-1.5 text-[9px] tracking-[0.14em] text-accent">
+                              NEW
+                            </span>
+                          )}
+                          <p className="text-[11px] leading-snug text-mute">{v.line}</p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               </div>
             ) : rail === 'client' ? (
               <div className="flex flex-col gap-1.5">
