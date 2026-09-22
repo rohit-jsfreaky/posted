@@ -638,8 +638,8 @@ export async function buildMutation(
         h,
         (ctx) => {
           base(ctx);
-          paint(ctx, w, h, Z.quote, '#12141b');
-          ctx.fillStyle = '#f2f2f4';
+          paint(ctx, w, h, Z.quote, '#eceef2');
+          ctx.fillStyle = '#16181d';
           ctx.font = `600 ${Math.round(h * 0.037)}px monospace`;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';
@@ -676,7 +676,7 @@ export async function buildMutation(
         h,
         (ctx) => {
           base(ctx);
-          paint(ctx, w, h, Z.proof, '#12141b');
+          paint(ctx, w, h, Z.proof, '#eceef2');
         },
         img,
       );
@@ -687,9 +687,9 @@ export async function buildMutation(
         h,
         (ctx) => {
           base(ctx);
-          paint(ctx, w, h, Z.proof, '#12141b');
-          paint(ctx, w, h, Z.quote, '#12141b');
-          ctx.fillStyle = '#f2f2f4';
+          paint(ctx, w, h, Z.proof, '#eceef2');
+          paint(ctx, w, h, Z.quote, '#eceef2');
+          ctx.fillStyle = '#16181d';
           ctx.font = `600 ${Math.round(h * 0.037)}px monospace`;
           ctx.textAlign = 'left';
           ctx.textBaseline = 'middle';

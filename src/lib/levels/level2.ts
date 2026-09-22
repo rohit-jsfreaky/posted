@@ -114,9 +114,9 @@ export const level2: Level = {
   solved: (s) => !s.car && s.dims === 'original',
 
   hints: [
-    'The car is parked against the kerb on the right. It has to come out of the photograph — but he checks the size of everything off that camera, so the picture has to end up the same size it started.',
-    'Click ERASE and drag the right edge of the frame to the left until the car is outside it. Keep the street sign in shot, because that is what says where the photo was taken.',
-    'Now click COVER UP. Put 1200 in the Width box and 800 in the Height box, which is the size this photo started at. Then press POST IT.',
+    'Take the car parked against the right kerb out of this photograph, and then put the picture back to the size it started at. He checks the size of everything that comes off that camera.',
+    'Click ERASE and drag the right edge of the frame leftwards until the car is outside it. Keep the street sign in shot, because that is the thing that says where this was taken.',
+    'Cutting made the picture smaller, so put it back. Click COVER UP, type 1200 into Width and 800 into Height, and press POST IT.',
   ],
   tells: [
     {

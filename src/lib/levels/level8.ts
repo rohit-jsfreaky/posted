@@ -150,9 +150,9 @@ export const level8: Level = {
   ],
 
   hints: [
-    'The neon sign outside this bar is pink. The client says he was at the red-signed bar two doors down, so the sign in this photograph has to be red.',
+    'The neon sign outside this bar is pink. Turn it red, because the client says he was at the red-signed bar two doors down and the photograph says otherwise.',
     'Click LIGHT and drag the Hue slider a short way, to about 15 or 20. Watch the wet road rather than the sign itself, because the sign is too bright to judge a colour from.',
-    'Do not drag it far. The lamps hanging inside the bar are ordinary bulbs, and past about 80 they turn green, which no bulb does — and that is the first place he looks. Then press POST IT.',
+    'Do not drag it far. Past about 80 the lamps hanging inside the bar turn green, and no bulb does that. It is the first place he looks. Then press POST IT.',
   ],
 
   reactions: [

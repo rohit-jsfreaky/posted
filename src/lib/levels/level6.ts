@@ -176,9 +176,9 @@ export const level6: Level = {
   ],
 
   hints: [
-    'This photograph has to look about thirty years old. Two things make a photo look old — the colour gone, and film grain — and one thing in this one argues with both: the electric car parked at the right kerb.',
-    'Click LIGHT. At the top of that panel pick Grayscale or Sepia, or drag Saturation all the way down. Then drag GRAIN up; even 5 is enough. Film has grain and a filter on its own does not, and he knows the difference.',
-    'Then click ERASE and drag the right edge of the frame in past the electric car, so it is outside the picture. Keep the front of the diner and its sign in shot. Then press POST IT.',
+    'Make this photograph look about thirty years old, and get rid of the one thing in it that could not have been there: the electric car parked at the right kerb.',
+    'Click LIGHT. At the top of that panel pick Grayscale or Sepia, or drag Saturation all the way down. Then drag GRAIN up, even as far as 5. Film has grain and a filter on its own does not, and he says so.',
+    'Then click ERASE and drag the right edge of the frame leftwards past the electric car, so it ends up outside the picture. Keep the front of the diner and its sign in shot. Then press POST IT.',
   ],
 
   reactions: [

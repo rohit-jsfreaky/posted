@@ -161,9 +161,9 @@ export const level7: Level = {
   ],
 
   hints: [
-    'Nothing in this picture changes. It has to look like it came off the yard fixed camera instead of a phone, and a cheap fixed camera leaves three marks on everything it takes.',
-    'Click LIGHT. Drag Contrast up hard, to about +55, because cheap sensors crush the dark parts rather than rolling them off. Then drag Sharpen up by about the same, because they over-sharpen to cover a bad lens.',
-    'Click ERASE and press the 4:3 button in the aspect ratio list rather than dragging the corners by eye. Fixed cameras shoot 4:3 and phones do not. Keep the van and the shutter in frame, then press POST IT.',
+    'Nothing in this picture changes. It has to look like it came off the fixed camera in the yard rather than off a phone, which means putting the three marks on it that a cheap camera leaves on everything.',
+    'Click LIGHT. Drag Contrast up to about +55, because cheap sensors crush the dark parts rather than rolling them off. Then drag Sharpen up by about the same, because they over-sharpen to cover a bad lens.',
+    'Now the shape. Click ERASE and press the 4:3 button in the aspect ratio list, rather than dragging the corners by eye. Fixed cameras shoot 4:3 and phones do not. Keep the van and the shutter in frame, then press POST IT.',
   ],
 
   reactions: [

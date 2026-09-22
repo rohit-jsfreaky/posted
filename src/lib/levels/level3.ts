@@ -159,9 +159,9 @@ export const level3: Level = {
   solved: (s) => !s.subject && !s.reflection && !s.water,
 
   hints: [
-    'He is in this photograph three times: standing on the dock, reflected in the window behind him, and again in the water below. All three have to go.',
-    'The window is in the middle of the frame, so ERASE cannot reach it. Click LIGHT and drag Brightness up instead, to about +40, until the glass burns out to white and takes the reflection with it.',
-    'For the man on the dock and his reflection in the water, click BOARD UP, drop a rectangle over each of them, and set its colour to something already in the photo — the grey of the dock, the dark of the water. A patch in a colour that is nowhere else is the first thing he spots. Then press POST IT.',
+    'He is in this photograph three times and all three have to go. He is standing on the dock, reflected in the window behind him, and again in the water below.',
+    'Start with the window. It sits in the middle of the frame, so ERASE cannot reach it. Click LIGHT and drag Brightness up to about +40 instead, until the glass burns out to white and takes the reflection with it.',
+    'Now the other two. Click BOARD UP and put a rectangle over the man on the dock, and another over his reflection in the water. Set each one to a colour already in the photo — the grey of the dock, the dark of the water. A patch in a colour that is nowhere else is the first thing he spots. Then press POST IT.',
   ],
   tells: [
     {

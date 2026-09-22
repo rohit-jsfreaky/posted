@@ -40,47 +40,72 @@ import { looksPainted } from '../suspicion';
 import { toPixels, type ZoneMap } from '../zones';
 
 /** his photograph, beside his handle. Not a zone: nothing is measured on it */
-const FACE = { x: 0.135, y: 0.042, w: 0.05, h: 0.075 };
+const FACE = { x: 0.305, y: 0.082, w: 0.038, h: 0.057 };
 
 const ZONES: ZoneMap = {
   /** his handle. Change it and it stops being his post at all */
-  handle: { x: 0.2, y: 0.05, w: 0.34, h: 0.055 },
-  /** the line he wrote, which is the thing being replaced */
-  quote: { x: 0.14, y: 0.13, w: 0.72, h: 0.085 },
+  handle: { x: 0.355, y: 0.085, w: 0.28, h: 0.05 },
+  /**
+   * The two lines he wrote, which are the thing being replaced.
+   *
+   * 468px wide rather than the 864 it was. A band the width of the whole frame
+   * could not feel a typed sentence landing in it — the change was real and far
+   * too small a share of the area to move either reading.
+   */
+  quote: { x: 0.305, y: 0.155, w: 0.39, h: 0.09 },
   /** the photograph he attached as proof — 3:2, so the art is not stretched */
-  proof: { x: 0.17, y: 0.26, w: 0.66, h: 0.66 },
+  proof: { x: 0.305, y: 0.26, w: 0.39, h: 0.39 },
 };
 
-/** the card the post sits on */
-const CARD = { x: 0.1, y: 0.02, w: 0.8, h: 0.96 };
+/**
+ * The card, portrait, because a post is a thing people screenshot on a phone.
+ *
+ * Also the reason the numbers work. Filling the frame made the attachment 44% of
+ * the picture, and covering that much of it dragged the global photometric fit
+ * to a gain of 1.53, which clipped the untouched parts of the card to white and
+ * reported them as changed. At this size the attachment is about 15%, which the
+ * trimmed fit absorbs.
+ */
+const CARD = { x: 0.28, y: 0.05, w: 0.44, h: 0.67 };
 
-/** what he actually posted, before you get to it */
-const SAID = 'the vantablack pic is fake. i still have the original.';
+/**
+ * The card is light, and that is a mechanic rather than a taste.
+ *
+ * It was the same near-black as the rest of the game, and the editor writes in
+ * dark grey — so a player could not see what they had typed, and the diff could
+ * not either. A short word in low contrast across an 864px band moves neither
+ * the structure reading nor the brightness one, and the post came back "nothing
+ * changed" after they had done exactly what they were told. Dark on near-white
+ * is legible to both, and it is what a screenshot of a post looks like anyway.
+ */
+const PAPER = '#eceef2';
+const INK = '#16181d';
+const FAINT = '#6b7078';
+
+/** what he actually posted, before you get to it, on the two lines it takes */
+const SAID = ['the vantablack pic is fake.', 'i still have the original.'];
 
 function composite(state: WorldState, ctx: Ctx) {
   reset(ctx);
 
   // the app behind the screenshot, then the post itself
   fill(ctx, { x: 0, y: 0, w: 1, h: 1 }, '#08080a');
-  fill(ctx, CARD, '#12141b');
+  fill(ctx, CARD, PAPER);
   fill(ctx, { x: CARD.x, y: CARD.y, w: 0.004, h: CARD.h }, '#ff2e7e');
 
   // the one portrait the world draws rather than the interface
   place(ctx, 'face-cal', FACE);
-  label(ctx, '@cal_hampton_77', ZONES.handle.x, ZONES.handle.y + ZONES.handle.h / 2, '#ff2e7e', 30, 'left');
-  label(ctx, '2h', CARD.x + CARD.w - 0.03, ZONES.handle.y + ZONES.handle.h / 2, '#55555e', 22, 'right');
+  label(ctx, '@cal_hampton_77', ZONES.handle.x, ZONES.handle.y + ZONES.handle.h / 2, '#ff2e7e', 24, 'left');
+  label(ctx, '2h', CARD.x + CARD.w - 0.022, ZONES.handle.y + ZONES.handle.h / 2, FAINT, 18, 'right');
 
-  label(
-    ctx,
-    state.quote ? String(state.quote) : SAID,
-    ZONES.quote.x,
-    ZONES.quote.y + ZONES.quote.h / 2,
-    '#f2f2f4',
-    30,
-    'left',
-    0,
-    ZONES.quote.w * 0.98,
-  );
+  // what he wrote, on two lines the way it sits on a phone. Once the player has
+  // put words in his mouth it is one line, because that is what they typed
+  if (state.quote) {
+    label(ctx, String(state.quote), ZONES.quote.x, 0.185, INK, 26, 'left', 0, ZONES.quote.w * 0.98);
+  } else {
+    label(ctx, SAID[0], ZONES.quote.x, 0.172, INK, 26, 'left', 0, ZONES.quote.w * 0.98);
+    label(ctx, SAID[1], ZONES.quote.x, 0.212, INK, 26, 'left', 0, ZONES.quote.w * 0.98);
+  }
 
   if (state.proof) {
     place(ctx, 'bg-club', ZONES.proof);
@@ -92,12 +117,12 @@ function composite(state: WorldState, ctx: Ctx) {
     ctx.fillRect(px.x, px.y, px.w, px.h);
     ctx.restore();
     ctx.globalCompositeOperation = 'source-over';
-    label(ctx, '2,214 replies', ZONES.proof.x, 0.945, '#55555e', 20, 'left');
+    label(ctx, '2,214 replies', ZONES.proof.x, 0.685, FAINT, 17, 'left');
   } else {
     // an accusation with nothing under it
-    fill(ctx, { x: ZONES.proof.x, y: 0.3, w: ZONES.proof.w, h: 0.002 }, '#24242a');
-    label(ctx, 'no attachment', ZONES.proof.x, 0.36, '#55555e', 24, 'left');
-    label(ctx, '2,214 replies', ZONES.proof.x, 0.42, '#55555e', 20, 'left');
+    fill(ctx, { x: ZONES.proof.x, y: 0.29, w: ZONES.proof.w, h: 0.002 }, '#c9ccd4');
+    label(ctx, 'no attachment', ZONES.proof.x, 0.33, FAINT, 20, 'left');
+    label(ctx, '2,214 replies', ZONES.proof.x, 0.38, FAINT, 17, 'left');
   }
 }
 
@@ -192,7 +217,7 @@ export const level9: Level = {
       post: 'somebody has painted over the bottom of a screenshot of me. badly. i still have the post.',
       fatal: true,
       reverts: 'proof_gone',
-      fix: 'Use BOARD UP and cover the attachment with a rectangle in the same dark colour the panel already is. A brush never matches a flat interface, and ERASE takes so much of the frame here that what is left stops reading as a screenshot.',
+      fix: 'Use BOARD UP and cover the attachment with a rectangle in the same near-white the card already is. A brush never matches a flat interface, and ERASE takes so much of the frame here that what is left stops reading as a screenshot.',
     },
     {
       /** nobody colour grades a screenshot, and this is the job that knows it */
@@ -206,9 +231,9 @@ export const level9: Level = {
   ],
 
   hints: [
-    'This is a screenshot of his post, not a photograph of a street. Two things make anybody believe a post: what it says, and what is attached underneath to prove it. Both have to go.',
-    'Click REWRITE and type over his line, the one saying the vantablack pic is fake. When you post, the game will ask you what you typed, because the editor hands back a picture and not words.',
-    'For the photo underneath, click BOARD UP and cover it with a rectangle in the same dark colour the post panel already is. Do not ERASE it: the photo is most of the frame here, and what is left stops looking like a screenshot at all. Do not PAINT it either, because a post is flat colour and a brush never matches flat colour. Then press POST IT.',
+    'This is a screenshot of his post, not a photograph of a street. Two things make anybody believe a post and both have to go: the line he wrote, and the photo attached underneath it.',
+    'Cover his line rather than typing on top of it, or you end up with two sentences stacked on each other. Click BOARD UP, draw a rectangle over the sentence saying the vantablack pic is fake, and set it to the same near-white the card already is. Then click REWRITE and type what you want him to have said on the blank space. When you post, the game will ask you what you typed.',
+    'Now the photo underneath. Click BOARD UP again and cover it with a rectangle in that same near-white. Do not ERASE it, because the photo is most of the frame here and what is left stops looking like a screenshot at all. Do not PAINT it either, because a brush never matches flat colour. Then press POST IT.',
   ],
 
   reactions: [

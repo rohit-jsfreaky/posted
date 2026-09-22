@@ -102,9 +102,9 @@ export const level4: Level = {
   solved: (s) => Boolean(s.car && s.shadow),
 
   hints: [
-    'This job runs the other way round. Bay four is empty, and the client needs his car sitting in it at half past one in the afternoon.',
-    'Click PLANT and scroll the sticker list down past the faces and the doodles until you reach Transportation. Drag a car out of it and drop it into the empty bay.',
-    'Anything standing in that lot at that hour throws a shadow, and a pasted car throws nothing. Click PAINT, set the brush colour to black and drag Size well up — it starts out red and thin — then draw a flat dark band on the ground where the car meets it. Then press POST IT. He will say the car looks too clean next to the rest of the photo; he is right, nothing here can fix it, and it does not cost you the job.',
+    'This job is the opposite of the others. Nothing has to be taken out. His car has to be put into the empty bay, and it has to look like it was parked there at half past one in the afternoon.',
+    'Click PLANT. Scroll the sticker list down past the faces and the doodles until you reach Transportation, then drag a car out of it and drop it into the empty bay.',
+    'Now give it a shadow, because everything else in that lot has one. Click PAINT, set the brush colour to black and drag Size well up, because it starts out red and thin. Draw a flat dark band on the ground where the car meets it, then press POST IT. He will say the car looks too clean next to the rest of the photo. He is right, nothing here can fix it, and it does not cost you the job.',
   ],
   tells: [
     {
