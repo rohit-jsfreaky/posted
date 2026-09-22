@@ -147,7 +147,7 @@ export const level7: Level = {
       post: 'camera four shoots 4:3 like every other camera on that yard. that is not 4:3.',
       fatal: true,
       reverts: 'tone_crushed',
-      fix: 'Crop, and take the 4:3 preset rather than dragging the corners by eye.',
+      fix: 'Click ERASE and press the 4:3 button in the aspect ratio list, rather than dragging the corners by eye.',
     },
     {
       id: 'too_smooth',
@@ -156,14 +156,14 @@ export const level7: Level = {
       post: 'nothing off that camera is that smooth. they oversharpen everything, look at any other still.',
       fatal: true,
       reverts: 'tone_crushed',
-      fix: 'Filter > Sharpen, up. Their processing leaves a halo on every edge and yours has none.',
+      fix: 'Click LIGHT and drag Sharpen up to about +55. Their processing leaves a halo on every edge and yours has none.',
     },
   ],
 
   hints: [
-    'Nothing in this picture has to change. What took it does.',
-    'A cheap fixed camera leaves three marks. It crushes the dark parts, so push Contrast up hard. It over-sharpens to cover a bad lens, so push Sharpen up too. And it shoots 4:3, which is not the shape a phone hands you.',
-    'For the shape, open Crop and click the 4:3 button rather than dragging the corners about. Keep the van and the shutter in frame or the photograph stops being about anything.',
+    'Nothing in this picture changes. It has to look like it came off the yard fixed camera instead of a phone, and a cheap fixed camera leaves three marks on everything it takes.',
+    'Click LIGHT. Drag Contrast up hard, to about +55, because cheap sensors crush the dark parts rather than rolling them off. Then drag Sharpen up by about the same, because they over-sharpen to cover a bad lens.',
+    'Click ERASE and press the 4:3 button in the aspect ratio list rather than dragging the corners by eye. Fixed cameras shoot 4:3 and phones do not. Keep the van and the shutter in frame, then press POST IT.',
   ],
 
   reactions: [

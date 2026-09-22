@@ -162,9 +162,9 @@ export const level5: Level = {
   solved: (s) => Boolean(s.official) && s.face === 'redacted' && Boolean(s.case_no),
 
   hints: [
-    'Nothing in the photograph needs to change. Where it looks like it came from does.',
-    'Frame gives it the border a filed document has. For the witness, blur or pixelate her face, or lay a black bar across it the way a real file would.',
-    'Text puts the case number on the label. It will ask you what you typed, and VCPD numbers run to seven digits. There is one on the folder in the same photo if you want to count it.',
+    'Nothing in this photograph has to change. What has to change is where it looks like it came from: a police file rather than a phone. Three things do that — a border, the face of the witness covered, and a case number on the blank label.',
+    'Click OFFICIAL and pick a plain border. That is what makes it read as a filed document rather than a snapshot. Then click BOARD UP and lay a black rectangle across the eyes of the witness, the way a real file redacts a face.',
+    'Click REWRITE and type a case number onto the blank label at the bottom left. When you post, the game will ask you what you typed, because the editor hands back a picture and not words. VCPD numbers are seven digits long, and there is one printed on the folder in the same photograph if you want to copy its shape. Then press POST IT.',
   ],
   tells: [
     {
@@ -177,7 +177,7 @@ export const level5: Level = {
       post: 'VCPD case numbers have seven digits. that one has six. the folder in the same photo has seven.',
       fatal: true,
       reverts: 'case_numbered',
-      fix: 'Write a case number with seven digits, the way the folder in the same photo does.',
+      fix: 'Use REWRITE and type a case number with seven digits in it, the way the one on the folder in the same photograph does.',
     },
     {
       id: 'no_redaction',

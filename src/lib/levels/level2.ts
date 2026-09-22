@@ -114,9 +114,9 @@ export const level2: Level = {
   solved: (s) => !s.car && s.dims === 'original',
 
   hints: [
-    'The car is at the kerb on the right, so the same edge trick works again.',
-    'Trouble is, cutting a piece off leaves you with a smaller photo, and he checks the size of everything that comes off that camera.',
-    'So take the car off, then open Resize and put it back to 1200 x 800. Same picture, right size, no car.',
+    'The car is parked against the kerb on the right. It has to come out of the photograph — but he checks the size of everything off that camera, so the picture has to end up the same size it started.',
+    'Click ERASE and drag the right edge of the frame to the left until the car is outside it. Keep the street sign in shot, because that is what says where the photo was taken.',
+    'Now click COVER UP. Put 1200 in the Width box and 800 in the Height box, which is the size this photo started at. Then press POST IT.',
   ],
   tells: [
     {
@@ -127,7 +127,7 @@ export const level2: Level = {
       post: '1440x1080? every cam on that street shoots 1920x1080. this is cropped.',
       fatal: true,
       reverts: 'car_removed',
-      fix: 'Crop the car out, then use Resize to put the photo back to the size it started at.',
+      fix: 'Use ERASE to take the car off the right edge, then click COVER UP and put 1200 in Width and 800 in Height, which is the size it started at.',
     },
     {
       id: 'smear',
@@ -136,7 +136,7 @@ export const level2: Level = {
       post: 'follow the kerb from the left. it runs, then it stops, then it starts again in the wrong place.',
       fatal: true,
       reverts: 'car_removed',
-      fix: 'The car sits against the right kerb. Crop it out of the frame instead of painting over it.',
+      fix: 'The car sits against the right kerb, so ERASE can reach it. Drag the right edge of the frame in past it instead of painting over it.',
     },
   ],
 

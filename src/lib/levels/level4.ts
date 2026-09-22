@@ -102,9 +102,9 @@ export const level4: Level = {
   solved: (s) => Boolean(s.car && s.shadow),
 
   hints: [
-    'This one goes the other way. Bay four is empty and it needs his car in it, so open Stickers and scroll past the emoticons and the doodles until you reach Transportation.',
-    'Anything standing in that lot at half one throws a shadow, and a pasted car throws nothing. Open Draw, but before you touch the picture make the brush black and drag the size right up, because it starts off red and thin. Then lay a flat dark band under the car where it meets the ground.',
-    'He will say the car looks too clean next to everything else, and he is right. Nothing in this editor can fix that, so let him have it. It will not cost you the job.',
+    'This job runs the other way round. Bay four is empty, and the client needs his car sitting in it at half past one in the afternoon.',
+    'Click PLANT and scroll the sticker list down past the faces and the doodles until you reach Transportation. Drag a car out of it and drop it into the empty bay.',
+    'Anything standing in that lot at that hour throws a shadow, and a pasted car throws nothing. Click PAINT, set the brush colour to black and drag Size well up — it starts out red and thin — then draw a flat dark band on the ground where the car meets it. Then press POST IT. He will say the car looks too clean next to the rest of the photo; he is right, nothing here can fix it, and it does not cost you the job.',
   ],
   tells: [
     {
@@ -114,7 +114,7 @@ export const level4: Level = {
       post: 'the car has no shadow. everything else in this lot has a shadow.',
       fatal: true,
       reverts: 'car_placed',
-      fix: 'Draw a soft dark shape on the ground under the car. Everything else in that lot throws one.',
+      fix: 'Click PAINT, set the brush to black and drag Size well up, then draw a flat dark band on the ground under the car. Everything else in that lot throws one.',
     },
     {
       // he notices the clean paste even when it does not cost you the job

@@ -153,7 +153,7 @@ export const level6: Level = {
       post: 'thats not an old photo, thats a new one with a filter on it. theres no grain in it anywhere.',
       fatal: true,
       reverts: 'colour_gone',
-      fix: 'Filter > Noise, up, after you take the colour out. Film has grain and a filter does not.',
+      fix: 'Click LIGHT and drag GRAIN up after you take the colour out. Even 5 is enough. Film has grain and a filter on its own does not.',
     },
     {
       id: 'dated',
@@ -162,7 +162,7 @@ export const level6: Level = {
       post: 'nothing in that photo is from then except the photo. zoom in on the kerb.',
       fatal: true,
       reverts: 'colour_gone',
-      fix: 'The car at the right kerb could not have been there. It is at the edge — crop it out of the frame.',
+      fix: 'The electric car at the right kerb could not have been there. It is at the edge, so click ERASE and drag the right edge of the frame in past it.',
     },
     {
       id: 'smeared_kerb',
@@ -171,14 +171,14 @@ export const level6: Level = {
       post: 'somebody has painted over the kerb. the line stops and starts again.',
       fatal: true,
       reverts: 'ev_gone',
-      fix: 'The car sits at the right edge of the frame. Crop it out instead of painting over it.',
+      fix: 'The car sits at the right edge of the frame. Use ERASE and drag that edge in past it, instead of painting over it.',
     },
   ],
 
   hints: [
-    'Two things make a photograph look old, and there is one thing in this one that argues with both of them.',
-    'For the age, go to Filter and use the top half of the panel for once. Any of the grey or sepia presets will do, or just pull Saturation to the floor. Then turn Noise up, because film has grain and a filter does not, and he knows the difference.',
-    'The thing arguing with the date is that electric car at the kerb. It is sitting on the edge, so you already know what to do with it.',
+    'This photograph has to look about thirty years old. Two things make a photo look old — the colour gone, and film grain — and one thing in this one argues with both: the electric car parked at the right kerb.',
+    'Click LIGHT. At the top of that panel pick Grayscale or Sepia, or drag Saturation all the way down. Then drag GRAIN up; even 5 is enough. Film has grain and a filter on its own does not, and he knows the difference.',
+    'Then click ERASE and drag the right edge of the frame in past the electric car, so it is outside the picture. Keep the front of the diner and its sign in shot. Then press POST IT.',
   ],
 
   reactions: [

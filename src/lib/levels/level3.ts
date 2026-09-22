@@ -159,9 +159,9 @@ export const level3: Level = {
   solved: (s) => !s.subject && !s.reflection && !s.water,
 
   hints: [
-    'He is in there three times. Standing on the dock, again in the window behind him, and again in the water.',
-    'The window is dead centre, so cutting cannot reach it. Push the brightness up instead until the glass burns out. Real photographs lose windows to sunlight all the time.',
-    'For the dock and the water, put a shape over him, and pick a colour that is already in the photo. A patch that matches nothing around it is the first thing he spots.',
+    'He is in this photograph three times: standing on the dock, reflected in the window behind him, and again in the water below. All three have to go.',
+    'The window is in the middle of the frame, so ERASE cannot reach it. Click LIGHT and drag Brightness up instead, to about +40, until the glass burns out to white and takes the reflection with it.',
+    'For the man on the dock and his reflection in the water, click BOARD UP, drop a rectangle over each of them, and set its colour to something already in the photo — the grey of the dock, the dark of the water. A patch in a colour that is nowhere else is the first thing he spots. Then press POST IT.',
   ],
   tells: [
     {
@@ -171,7 +171,7 @@ export const level3: Level = {
       post: 'theres a patch on the dock that is not the colour of anything near it.',
       fatal: true,
       reverts: 'subject_removed',
-      fix: 'Cover him in a colour the dock actually is. A patch that matches nothing around it is the thing he looks for.',
+      fix: 'Use BOARD UP and set the rectangle to a colour the dock actually is. A patch in a colour that is nowhere else in the photo is the thing he looks for.',
     },
     {
       id: 'whole_thing_smeared',
@@ -183,7 +183,7 @@ export const level3: Level = {
       post: 'the entire photo is smeared. thats not depth of field, thats someone hiding something.',
       fatal: true,
       reverts: 'reflection_removed',
-      fix: 'Only the window has to go. Raise brightness until it blows out instead of blurring the whole photo.',
+      fix: 'Only the window has to go. Click LIGHT and drag Brightness up to about +40 until the glass burns out, rather than blurring the whole photograph.',
     },
   ],
 

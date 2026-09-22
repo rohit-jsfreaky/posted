@@ -158,9 +158,9 @@ export const level1: Level = {
   solved: (s) => !s.bouncer && s.time === 'night' && s.door === 'open',
 
   hints: [
-    'Two things are wrong for your client. It is the middle of the day, and there is a man standing on the door.',
-    'He is right at the edge of the picture. You do not have to do anything clever here, just cut that bit off. Nothing worth keeping is over there.',
-    'For the time of day, find the brightness slider and drag it a long way down. A small nudge still looks like the afternoon.',
+    'Two things are wrong with this photograph. It is the middle of the afternoon, and there is a doorman standing to the right of the door. Both have to go.',
+    'For the doorman, click ERASE in the tool bar on the right. A frame appears over the photo with handles on its edges. Drag the handle on the right edge to the left, past him, until he is outside the frame. Leave the building and the sign inside it.',
+    'For the time of day, click LIGHT and drag the Brightness slider a long way down, to about -30. A small nudge still looks like the afternoon. Then press POST IT.',
   ],
   tells: [
     {
@@ -178,7 +178,7 @@ export const level1: Level = {
       post: 'zoom in on the right side. that wall has a smudge shaped exactly like a man.',
       fatal: true,
       reverts: 'bouncer_removed',
-      fix: 'He stands near the right edge. Crop him out of the frame — paint never matches the wall behind it.',
+      fix: 'He stands near the right edge of the photo. Use ERASE and drag the right edge of the frame in past him instead — paint never matches the wall behind it.',
     },
   ],
 

@@ -150,9 +150,9 @@ export const level8: Level = {
   ],
 
   hints: [
-    'Everything you can see is lit by that one sign, which is why turning all the colours at once is honest here and nowhere else in the game.',
-    'Filter, then Hue. Pink to red is a small turn. Watch the wet road rather than the sign itself, because the sign is too bright to read a colour off.',
-    'Do not drag it to the end. The lamps hanging inside the bar are ordinary bulbs, and they are the one thing that sign is not lighting. Go too far and they turn green, and that is the first place he looks.',
+    'The neon sign outside this bar is pink. The client says he was at the red-signed bar two doors down, so the sign in this photograph has to be red.',
+    'Click LIGHT and drag the Hue slider a short way, to about 15 or 20. Watch the wet road rather than the sign itself, because the sign is too bright to judge a colour from.',
+    'Do not drag it far. The lamps hanging inside the bar are ordinary bulbs, and past about 80 they turn green, which no bulb does — and that is the first place he looks. Then press POST IT.',
   ],
 
   reactions: [

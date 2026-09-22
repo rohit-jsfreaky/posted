@@ -192,7 +192,7 @@ export const level9: Level = {
       post: 'somebody has painted over the bottom of a screenshot of me. badly. i still have the post.',
       fatal: true,
       reverts: 'proof_gone',
-      fix: 'Board the attachment over in the panel colour instead. Paint never matches a flat interface, and cropping takes so much of the frame that it stops reading as a screenshot.',
+      fix: 'Use BOARD UP and cover the attachment with a rectangle in the same dark colour the panel already is. A brush never matches a flat interface, and ERASE takes so much of the frame here that what is left stops reading as a screenshot.',
     },
     {
       /** nobody colour grades a screenshot, and this is the job that knows it */
@@ -206,9 +206,9 @@ export const level9: Level = {
   ],
 
   hints: [
-    'This one is not a photograph. It is a picture of a post, and what makes a post believable is not what makes a photograph believable.',
-    'Two things have to go: what he said, and what he attached underneath to prove it. REWRITE reaches the first one, and the game will ask you what you wrote, because the editor hands back pixels rather than words.',
-    'For the attachment, board it over in the same colour the panel already is. Do not crop it away — the photograph is most of the frame here, and what is left stops looking like a screenshot at all. Do not paint it either: a post is flat colour, and a brush never matches flat colour.',
+    'This is a screenshot of his post, not a photograph of a street. Two things make anybody believe a post: what it says, and what is attached underneath to prove it. Both have to go.',
+    'Click REWRITE and type over his line, the one saying the vantablack pic is fake. When you post, the game will ask you what you typed, because the editor hands back a picture and not words.',
+    'For the photo underneath, click BOARD UP and cover it with a rectangle in the same dark colour the post panel already is. Do not ERASE it: the photo is most of the frame here, and what is left stops looking like a screenshot at all. Do not PAINT it either, because a post is flat colour and a brush never matches flat colour. Then press POST IT.',
   ],
 
   reactions: [

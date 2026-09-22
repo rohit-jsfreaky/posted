@@ -74,6 +74,14 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
     if (!h.trim()) fail(at, `hint ${i + 1} is empty`);
     record(h, `${at} hint ${i + 1}`);
   });
+  /**
+   * The last hint is the one somebody reads when they are properly stuck, so it
+   * has to end where the job ends rather than trailing off into advice.
+   */
+  const last = level.hints[level.hints.length - 1] ?? '';
+  if (!/POST IT/.test(last)) {
+    fail(at, 'the last hint never tells them to press POST IT');
+  }
 
   for (const f of level.flags) {
     const fat = `${at} flag ${f.name}`;
@@ -112,6 +120,35 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
   for (const k of level.keeps) {
     if (!zones.has(k.zone)) fail(at, `keep points at zone "${k.zone}", which does not exist`);
     record(k.why, `${at} keep ${k.zone}`);
+  }
+
+  /**
+   * Nothing may point at a button that is not on the screen.
+   *
+   * The tools were renamed into world-verbs — the rail says ERASE and LIGHT, not
+   * Crop and Filter — and every hint and every fatal-tell fix in the game went on
+   * naming the old ones for a whole build. It is the worst class of bug this
+   * project can have: the game plays perfectly and the instructions are wrong, so
+   * nothing fails and a stuck player is sent hunting for a control that does not
+   * exist. Checked by name, because a rename is exactly how it happened once.
+   */
+  const RENAMED: Record<string, string> = {
+    Crop: 'ERASE',
+    Resize: 'COVER UP',
+    Filter: 'LIGHT',
+    Stickers: 'PLANT',
+    Noise: 'GRAIN',
+  };
+  const guidance = [
+    ...level.hints.map((h, i) => [`hint ${i + 1}`, h] as const),
+    ...level.tells.filter((t) => t.fix).map((t) => [`tell ${t.id} fix`, t.fix!] as const),
+  ];
+  for (const [where, text] of guidance) {
+    for (const [old, now] of Object.entries(RENAMED)) {
+      if (new RegExp(`\\b${old}\\b`).test(text)) {
+        fail(at, `${where} says "${old}", but that button is called ${now} now`);
+      }
+    }
   }
 
   for (const t of level.tells) {
