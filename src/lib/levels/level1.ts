@@ -159,7 +159,7 @@ export const level1: Level = {
 
   hints: [
     'Two things have to change before this photograph is any use to him. The doorman standing to the right of the door has to go, and it has to be night rather than the middle of the afternoon.',
-    'Start with the doorman. Click ERASE in the tool bar on the right. A frame appears over the photo with handles on its edges. Drag the handle on the right edge leftwards, past him, until he is outside the frame. Keep the building and the sign inside it.',
+    'Start with the doorman. Click ERASE in the column of tools down the left. A frame appears over the photo with handles on its edges. Drag the handle on the right edge leftwards, past him, until he is outside the frame. Keep the building and the sign inside it.',
     'Now the time of day. Click LIGHT and drag the Brightness slider down to about -30. A small nudge still looks like the afternoon. Then press POST IT.',
   ],
   tells: [

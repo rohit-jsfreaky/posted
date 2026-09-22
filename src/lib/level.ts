@@ -223,7 +223,21 @@ export function toolConfig(level: Level) {
     tools[t] = { enabled: level.tools.includes(t), icon: VERBS[t].icon };
   }
   return {
-    features: { imageEditor: { tools } },
+    features: {
+      imageEditor: {
+        tools,
+        /**
+         * The verbs belong on the side the player reads from first.
+         *
+         * Docked right, the rail reads as the embedded library's own furniture.
+         * Docked left it reads as the game's control panel, which is the whole
+         * argument this project is making. The option is documented but is not
+         * in the shipped types yet, so it is cast — and if a runtime ignores it
+         * the rail simply stays where it was.
+         */
+        dock: 'left',
+      } as unknown as Record<string, unknown>,
+    },
     locale: 'en' as const,
     translations: { en: EDITOR_TRANSLATIONS },
   };

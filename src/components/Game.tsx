@@ -429,6 +429,23 @@ export default function Game({
     }
   }
 
+  /**
+   * The last post in one sentence, for the end of the forensics bar.
+   *
+   * The numbers beside it are the evidence; this is the finding. It is the same
+   * assessment he works from, so it cannot disagree with what he goes on to say.
+   */
+  const verdictNote = (() => {
+    if (!lastReport) return '';
+    if (!lastReport.trusted) {
+      return lastReport.unreadable
+        ? 'Crushed past the point where anything can be read off it.'
+        : 'He could not place this against the original at all.';
+    }
+    const worst = assess(level, lastReport).notes[0];
+    return worst ? `${worst.note}.` : 'Nothing in this one he could point at.';
+  })();
+
   const heat = Math.min(1, suspicion / level.tolerance);
   const segments = 12;
   const lit = Math.round(heat * segments);
@@ -543,53 +560,114 @@ export default function Game({
           )}
 
           {/* ----------------------------------------------------- action row */}
-          <div className="flex shrink-0 flex-wrap items-center gap-2 border-t border-line px-3 py-2.5">
-            {/*
-              This row used to read "ZOOM 2" and then four grey buttons with nouns
-              on them: the internal name for the feature, and the internal names of
-              the zones. It looked like debug output left in by mistake, and nobody
-              could have guessed it meant "look at this part of your edit the way he
-              will, and you get two looks".
-            */}
-            <span className="text-[10px] tracking-[0.14em] text-dim">
-              {previewsLeft > 0 ? (
-                <>
-                  CHECK BEFORE YOU POST
-                  <span className="ml-1.5 text-mute">{previewsLeft} LEFT</span>
-                </>
-              ) : (
-                <span className="text-dim">NO CHECKS LEFT</span>
-              )}
-            </span>
-            {Object.keys(level.zones).map((z) => (
-              <button
-                key={z}
-                data-testid={`preview-${z}`}
-                onClick={() => void runPreview(z)}
-                disabled={previewsLeft <= 0 || busy}
-                title={`See what a skeptic would notice about the ${z.replace(/_/g, ' ')}`}
-                className="border border-line px-2 py-1 text-[10px] text-mute hover:border-mute hover:text-text disabled:opacity-30"
-              >
-                {z.replace(/_/g, ' ')}
-              </button>
-            ))}
+          {/*
+            The row that commits. It read as debug output before — "ZOOM 2" and
+            four grey pills with the internal names of the zones on them — so the
+            heading says what the buttons are for and the buttons look like
+            buttons.
+          */}
+          <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-2 border-t border-line px-4 py-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="eyebrow text-[11px] text-text">
+                Check before you post
+                {previewsLeft > 0 ? (
+                  <span className="ml-2 text-accent">{previewsLeft} left</span>
+                ) : (
+                  <span className="ml-2 text-dim">none left</span>
+                )}
+              </span>
+              {Object.keys(level.zones).map((z) => (
+                <button
+                  key={z}
+                  data-testid={`preview-${z}`}
+                  onClick={() => void runPreview(z)}
+                  disabled={previewsLeft <= 0 || busy}
+                  title={`See what a skeptic would notice about the ${z.replace(/_/g, ' ')}`}
+                  className="flex items-center gap-1.5 border border-line px-2.5 py-1.5 text-[10px] text-mute hover:border-mute hover:text-text disabled:opacity-30"
+                >
+                  <Glass />
+                  {z.replace(/_/g, ' ')}
+                </button>
+              ))}
+            </div>
 
-            <button
-              onClick={() => void editorRef.current?.editor?.reset(source)}
-              title="Throw your edit away and start this photograph again"
-              className="eyebrow ml-auto mr-2 border border-line px-4 py-2 text-[11px] text-mute hover:border-accent hover:text-text"
-            >
-              Start the photo again
-            </button>
-            <button
-              data-testid="post-it"
-              onClick={() => void postIt()}
-              disabled={busy}
-              className="display bg-accent px-7 py-2 text-lg text-accent-ink hover:brightness-110 disabled:opacity-50"
-            >
-              {busy ? 'Reading…' : 'Post it'}
-            </button>
+            <div className="ml-auto flex items-center gap-3">
+              <button
+                onClick={() => void editorRef.current?.editor?.reset(source)}
+                title="Throw your edit away and start this photograph again"
+                className="eyebrow border border-line px-4 py-2.5 text-[11px] text-mute hover:border-accent hover:text-text"
+              >
+                Start the photo again
+              </button>
+              <button
+                data-testid="post-it"
+                onClick={() => void postIt()}
+                disabled={busy}
+                className="display flex items-center gap-2 bg-accent px-8 py-2.5 text-xl text-accent-ink hover:brightness-110 disabled:opacity-50"
+              >
+                {busy ? 'Reading…' : 'Post it'}
+                {!busy && <span aria-hidden>&rarr;</span>}
+              </button>
+            </div>
           </div>
+
+          {/*
+            Everything he could have measured, measured. Nobody has to open it to
+            play, but the claim the whole game rests on is that the edit is read
+            rather than guessed at, and this is that claim with its working shown.
+            Along the bottom rather than folded into the corner, because a row of
+            measurements wants width and because pinned over the workspace it sat
+            on top of the photograph.
+          */}
+          {lastReport && (
+            <details
+              data-testid="forensics"
+              className="group shrink-0 border-t border-line bg-panel/60"
+            >
+              <summary className="flex cursor-pointer items-center gap-2 px-4 py-2">
+                <span className="eyebrow text-[10px] text-mute group-open:text-accent">
+                  Forensics
+                </span>
+                <span className="text-[10px] text-dim">
+                  what the engine read off the file you sent
+                </span>
+                <span className="eyebrow ml-auto text-[10px] text-dim">
+                  {lastReport.trusted ? 'readable' : 'unplaceable'}
+                </span>
+              </summary>
+
+              <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-line px-4 py-3">
+                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[10px] text-mute">
+                  <dt className="text-dim">light</dt>
+                  <dd data-testid="gain">{lastReport.gain.toFixed(3)}× what it was</dd>
+                  <dt className="text-dim">frame</dt>
+                  <dd>
+                    {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
+                    {lastReport.dims.changed ? ' — not the shape it was' : ' — unchanged'}
+                  </dd>
+                  <dt className="text-dim">angle</dt>
+                  <dd>
+                    {lastReport.alignment.rotation}°
+                    {lastReport.alignment.mirrored ? ', mirrored' : ''} · matched{' '}
+                    {(lastReport.alignment.score * 100).toFixed(0)}%
+                  </dd>
+                </dl>
+
+                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[10px] text-mute">
+                  {Object.entries(lastReport.zones).map(([name, z]) => (
+                    <ZoneRow key={name} name={name} z={z} />
+                  ))}
+                </dl>
+
+                <div className="ml-auto max-w-[15rem]">
+                  <p className="eyebrow text-[10px] text-mute">What he would make of it</p>
+                  <p className="mt-1 text-[10px] leading-snug text-text/80">
+                    {verdictNote}
+                  </p>
+                </div>
+              </div>
+            </details>
+          )}
         </section>
 
         {/* ----------------------------------------------------------- right rail */}
@@ -618,9 +696,17 @@ export default function Game({
             })}
           </div>
 
-          {/* what this job still needs. Without it, a player who does half the job
-              has no way of telling which half is missing */}
+          {/*
+            What the job needs, and what must survive it, across the panel rather
+            than down it. Stacked, these two plus the hints pushed the feed into a
+            strip at the bottom of the screen — which is where the entire reaction
+            to a post happens.
+          */}
           <div className="shrink-0 border-b border-line px-3 py-2.5">
+            {/* the objectives are sentences and the keeps are single words, so
+                they do not want the same share of the width */}
+            <div className="grid grid-cols-[1.45fr_1fr] gap-x-3">
+              <div>
             <h2 className="eyebrow text-xs text-text">This job needs</h2>
             <ul data-testid="objectives" className="mt-2 flex flex-col gap-1">
               {level.flags
@@ -643,49 +729,61 @@ export default function Game({
                   );
                 })}
             </ul>
-            {/* "KEEP IN SHOT: facade, sign" was the zone names and no verb.
-                Nobody reading it knew they were being told not to crop */}
-            <p className="mt-2 text-[10px] leading-snug text-dim">
-              <span className="text-mute">DO NOT CROP AWAY:</span>{' '}
-              {level.keeps.map((k) => k.zone.replace(/_/g, ' ')).join(', ')} — without
-              {level.keeps.length > 1 ? ' them' : ' it'} nobody believes the post
-            </p>
+              </div>
+
+              {/* "KEEP IN SHOT: facade, sign" was the zone names and no verb.
+                  Nobody reading it knew they were being told not to crop */}
+              <div className="border-l border-line pl-3">
+                <h2 className="eyebrow text-xs text-text">Do not crop away</h2>
+                <ul className="mt-2 flex flex-col gap-1">
+                  {level.keeps.map((k) => (
+                    <li key={k.zone} className="flex gap-1.5 text-[11px] text-text/90">
+                      <span className="text-dim">—</span>
+                      {k.zone.replace(/_/g, ' ')}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1.5 text-[10px] leading-snug text-dim">
+                  Without {level.keeps.length > 1 ? 'them' : 'it'} nobody believes the post.
+                </p>
+              </div>
+            </div>
 
             {/* working out which manipulation solves it is the game, so the hints
                 sit behind a button and come one at a time. Once read they fold
                 away, because three of them push the client and the feed off the
                 bottom of the panel */}
+            {/* the hints are a card of their own, numbered, capped and scrolling
+                inside themselves, so three of them cannot push the feed off the
+                bottom of the panel */}
             {hints > 0 && (
-              <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
-                <span className="eyebrow text-[10px] text-mute">
-                  Hints {hints}/{level.hints.length}
-                </span>
-                <button
-                  data-testid="hint-fold"
-                  onClick={() => setHintsOpen((v) => !v)}
-                  className="eyebrow text-[10px] text-accent hover:text-text"
-                >
-                  {hintsOpen ? 'Hide' : 'Show'}
-                </button>
+              <div className="mt-3 border border-line bg-panel">
+                <div className="flex items-center justify-between border-b border-line px-2 py-1.5">
+                  <span className="eyebrow text-[10px] text-mute">
+                    Hint {hints}/{level.hints.length}
+                  </span>
+                  <button
+                    data-testid="hint-fold"
+                    onClick={() => setHintsOpen((v) => !v)}
+                    className="eyebrow text-[10px] text-accent hover:text-text"
+                  >
+                    {hintsOpen ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+                {hintsOpen && (
+                  <div className="scroll-thin max-h-44 overflow-y-auto px-2 py-2">
+                    {level.hints.slice(0, hints).map((h, i) => (
+                      <div key={h.slice(0, 14)} data-testid="hint" className="rise flex gap-2 py-1">
+                        <span className="flex h-4 w-4 shrink-0 items-center justify-center bg-accent text-[9px] text-accent-ink">
+                          {i + 1}
+                        </span>
+                        <p className="text-[11px] leading-snug text-text/85">{h}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-            <div
-              className={
-                hintsOpen && hints > 0 ? 'max-h-52 overflow-y-auto scroll-thin' : undefined
-              }
-            >
-              {hintsOpen &&
-                level.hints.slice(0, hints).map((h, i) => (
-                  <p
-                    key={h.slice(0, 14)}
-                    data-testid="hint"
-                    className="rise mt-2 border-l-2 border-accent bg-raised px-2 py-1.5 text-[11px] leading-snug text-text/85"
-                  >
-                    <span className="text-accent">{i + 1}. </span>
-                    {h}
-                  </p>
-                ))}
-            </div>
             {hints < level.hints.length && (
               <button
                 data-testid="hint-button"
@@ -693,7 +791,7 @@ export default function Game({
                   setHints((n) => n + 1);
                   setHintsOpen(true);
                 }}
-                className="eyebrow mt-2 w-full border border-line py-1.5 text-[10px] text-mute hover:border-accent hover:text-text"
+                className="eyebrow mt-2 w-full border border-line py-2 text-[10px] text-mute hover:border-accent hover:text-text"
               >
                 {hints === 0 ? 'Stuck? Get a hint' : `Another hint  ${hints}/${level.hints.length}`}
               </button>
@@ -967,38 +1065,19 @@ export default function Game({
           play — but the claim the whole game rests on is that the edit is read
           rather than guessed at, and this is that claim with its working shown. */}
       {lastReport && (
-        <details data-testid="forensics" className="absolute bottom-2 left-3 z-30 max-w-md">
-          <summary className="eyebrow cursor-pointer border border-line bg-panel px-2 py-1 text-[10px] text-mute hover:border-accent hover:text-text">
-            Forensics
-          </summary>
-          <div className="mt-1 border border-line bg-panel">
-            <p className="border-b border-line px-2 py-1.5 text-[10px] leading-snug text-dim">
-              What the engine read off the file you sent, against the one it handed you.
-            </p>
-            <dl className="grid grid-cols-2 gap-x-3 px-2 py-2 text-[10px] text-mute">
-              <dt className="text-dim">light</dt>
-              <dd data-testid="gain">{lastReport.gain.toFixed(3)}× what it was</dd>
-              <dt className="text-dim">frame</dt>
-              <dd>
-                {lastReport.dims.saved[0]}×{lastReport.dims.saved[1]}
-                {lastReport.dims.changed ? ' — not the shape it was' : ' — unchanged'}
-              </dd>
-              <dt className="text-dim">angle</dt>
-              <dd>
-                {lastReport.alignment.rotation}°
-                {lastReport.alignment.mirrored ? ', mirrored' : ''} · matched{' '}
-                {(lastReport.alignment.score * 100).toFixed(0)}%
-              </dd>
-            </dl>
-            <dl className="grid grid-cols-2 gap-x-3 border-t border-line px-2 py-2 text-[10px] text-mute">
-              {Object.entries(lastReport.zones).map(([name, z]) => (
-                <ZoneRow key={name} name={name} z={z} />
-              ))}
-            </dl>
-          </div>
-        </details>
+        <div />
       )}
     </main>
+  );
+}
+
+/** the one icon in the action row: these buttons look at a part of the photo */
+function Glass() {
+  return (
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <circle cx="10.5" cy="10.5" r="6.5" />
+      <path d="M15.5 15.5 L21 21" />
+    </svg>
   );
 }
 

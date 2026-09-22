@@ -143,6 +143,19 @@ function checkLevel(level: Level, kind: 'run' | 'side') {
     ...level.hints.map((h, i) => [`hint ${i + 1}`, h] as const),
     ...level.tells.filter((t) => t.fix).map((t) => [`tell ${t.id} fix`, t.fix!] as const),
   ];
+  /**
+   * And nothing may name the wrong side of the screen.
+   *
+   * The tool column was docked to the left after the hints were written, and one
+   * of them went on saying "the tool bar on the right" — same class of bug as the
+   * renames, found the same way, by looking at the screen.
+   */
+  for (const [where, text] of guidance) {
+    if (/tool bar on the right|tools on the right|column of tools down the right/i.test(text)) {
+      fail(at, `${where} says the tools are on the right, and they are docked left`);
+    }
+  }
+
   for (const [where, text] of guidance) {
     for (const [old, now] of Object.entries(RENAMED)) {
       if (new RegExp(`\\b${old}\\b`).test(text)) {
